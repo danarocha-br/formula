@@ -1,4 +1,4 @@
-import { database } from '@repo/database';
+import { database } from "@repo/database";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -6,14 +6,14 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@repo/design-system/components/ui/breadcrumb';
-import { Separator } from '@repo/design-system/components/ui/separator';
-import { SidebarTrigger } from '@repo/design-system/components/ui/sidebar';
-import type { Metadata } from 'next';
-import type { ReactElement } from 'react';
+} from "@repo/design-system/components/ui/breadcrumb";
+import { Separator } from "@repo/design-system/components/ui/separator";
+import { SidebarTrigger } from "@repo/design-system/components/ui/sidebar";
+import type { Metadata } from "next";
+import type { ReactElement } from "react";
 
-const title = 'Acme Inc';
-const description = 'My application.';
+const title = "Acme Inc";
+const description = "My application.";
 
 export const metadata: Metadata = {
   title,
@@ -46,11 +46,20 @@ const App = async (): Promise<ReactElement> => {
       </header>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
         <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-          {pages.map((page) => (
-            <div key={page.id} className="aspect-video rounded-xl bg-muted/50">
-              {page.name}
+          {pages.length > 0 ? (
+            pages.map((page) => (
+              <div
+                key={page.id}
+                className="aspect-video rounded-xl bg-muted/50"
+              >
+                {page.name}
+              </div>
+            ))
+          ) : (
+            <div className="col-span-3 text-center py-4">
+              No pages available or failed to load pages
             </div>
-          ))}
+          )}
         </div>
         <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
       </div>
