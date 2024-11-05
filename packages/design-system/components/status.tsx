@@ -80,7 +80,10 @@ export const Status = async (): Promise<ReactElement> => {
     {
       headers: {
         Authorization: `Bearer ${betterstackApiKey}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
       },
+      next: { revalidate: 60 },
     }
   );
 
