@@ -10,7 +10,7 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.1.3",
+    "@clerk/nextjs": "^6.2.0",
     "@repo/database": "workspace:*",
     "@repo/design-system": "workspace:*",
     "@repo/feature-flags": "workspace:*",
