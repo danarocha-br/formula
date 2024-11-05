@@ -1,8 +1,8 @@
 {
-  "name": "next-forge",
-  "version": "2.9.4",
+  "name": "@compasso/formula",
+  "version": "0.1.0",
   "bin": {
-    "next-forge": "./index.js"
+    "@compasso/formula": "./index.js"
   },
   "files": [
     "index.js"
