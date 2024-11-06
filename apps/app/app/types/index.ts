@@ -1,3 +1,4 @@
+export type Locale = "en" | "pt-BR";
 export interface ExpenseItem {
   id: string;
   label: string;

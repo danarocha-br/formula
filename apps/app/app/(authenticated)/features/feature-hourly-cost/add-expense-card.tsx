@@ -12,8 +12,9 @@ import { Combobox } from "@repo/design-system/components/ui/combobox";
 import { SliderCard } from "@repo/design-system/components/ui/slider-card";
 import { cn } from "@repo/design-system/lib/utils";
 import { useOutsideClick } from "@repo/design-system/hooks/use-outside-click";
-import { CostStatus } from '../../../types';
+import { CostStatus, Locale } from '../../../types';
 import { FIXED_COST_CATEGORIES } from '../../../constants';
+import { getTranslations } from '@/utils/translations';
 
 
 const card = cva(["relative", "rounded-lg", "transition-all"], {
@@ -97,6 +98,7 @@ const cardButton = cva([
 interface AddCardProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   onClose?: () => void;
   highlight?: boolean;
+  locale: Locale;
 }
 
 interface NewExpenseForm {
@@ -144,7 +146,9 @@ interface ComboboxOption {
 export const AddCard: React.FC<AddCardProps> = ({
   onClose,
   highlight = false,
+  locale,
 }) => {
+  const t = getTranslations(locale);
   const [isActive, setIsActive] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
@@ -239,10 +243,11 @@ export const AddCard: React.FC<AddCardProps> = ({
                   control={control}
                   render={({ field }) => (
                     <Combobox
-                      placeholder="Select category"
+                      placeholder={t.expenses.form.category}
+                      searchPlaceholder={t.common["search"]}
                       options={categoriesList}
                       value={field.value || undefined}
-                      onChange={(option) => {
+                      onChange={(option: ComboboxOption | null) => {
                         field.onChange(
                           option
                             ? {
@@ -252,8 +257,7 @@ export const AddCard: React.FC<AddCardProps> = ({
                             : null
                         );
                       }}
-                      // onBlur={field.onBlur}
-                      emptyMessage="No category found."
+                      emptyMessage={t.common["not-found"]}
                       errors={
                         errors?.category?.message
                           ? { message: errors.category.message }
@@ -286,7 +290,7 @@ export const AddCard: React.FC<AddCardProps> = ({
                   render={({ field }) => (
                     <Input
                       variant="secondary"
-                      placeholder="Expense name"
+                      placeholder={t.expenses.form.name}
                       className="w-full"
                       id={id}
                       {...field}
@@ -304,8 +308,8 @@ export const AddCard: React.FC<AddCardProps> = ({
                   name="value"
                   render={({ field: { onChange, ...fieldProps } }) => (
                     <SliderCard
-                      suffix="per month"
-                      currency="$"
+                      suffix={t.expenses.form.period}
+                      currency={t.common["currency-symbol"]}
                       min={1}
                       max={5000}
                       {...fieldProps}
@@ -322,7 +326,7 @@ export const AddCard: React.FC<AddCardProps> = ({
                 <div className="mt-8">
                   <Button>
                     <Icon name="plus" label="add" color="on-dark" />
-                    Add expense
+                    {t.expenses.actions["add-expense"]}
                   </Button>
                 </div>
               </div>
@@ -345,7 +349,7 @@ export const AddCard: React.FC<AddCardProps> = ({
             >
               <div className="flex flex-col gap-2 items-center justify-center h-32 text-card-foreground">
                 <Icon name="plus" size="lg" label="add" color="current" />
-                <p className="text-sm">Add expense</p>
+                <p className="text-sm">{t.expenses.actions["add-expense"]}</p>
               </div>
             </div>
           </button>

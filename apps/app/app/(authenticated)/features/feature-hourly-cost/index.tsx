@@ -22,10 +22,13 @@ import { Icon } from "@repo/design-system/components/ui/icon";
 import { EmptyView } from "./empty-view";
 import { MasonryGrid } from "@repo/design-system/components/ui/masonry-grid";
 import { BillableCosts } from "../feature-billable-cost";
-import { ExpenseItem } from '@/app/types';
+import { ExpenseItem, Locale } from "@/app/types";
+import { useTranslations } from "@/hooks/use-translation";
+import { getTranslations } from "@/utils/translations";
 
 type Props = {
   expenses: ExpenseItem[];
+  locale: Locale;
 };
 
 const DragOverlayWrapper = dynamic(
@@ -50,7 +53,11 @@ const DragOverlayWrapper = dynamic(
   { ssr: false }
 );
 
-export const FeatureHourlyCost = ({ expenses: initialExpenses }: Props) => {
+export const FeatureHourlyCost = ({
+  expenses: initialExpenses,
+  locale,
+}: Props) => {
+  const t = getTranslations(locale);
   const [expenses, setExpenses] = useState(initialExpenses);
   const [activeCard, setActiveCard] = useState<ExpenseItem | null>(null);
 
@@ -102,7 +109,7 @@ export const FeatureHourlyCost = ({ expenses: initialExpenses }: Props) => {
         <ScrollArea.Root className="w-full h-[calc(100vh-70px)] rounded-b-lg">
           <div className="bg-purple-300 text-card-foreground rounded-lg @container">
             {expenses && expenses.length === 0 ? (
-              <EmptyView />
+              <EmptyView locale={locale} />
             ) : (
               <DndContext
                 sensors={sensors}
@@ -146,28 +153,28 @@ export const FeatureHourlyCost = ({ expenses: initialExpenses }: Props) => {
                   <Icon
                     name="work"
                     size="sm"
-                    label="fixed costs"
+                    label={t.navigation["bottom-level"]["fixed-cost"]}
                     color="current"
                   />
-                  Fixed costs
+                  {t.navigation["bottom-level"]["fixed-cost"]}
                 </TabButton>
                 <TabButton>
                   <Icon
                     name="work"
                     size="sm"
-                    label="fixed costs"
+                    label={t.navigation["bottom-level"]["variable-cost"]}
                     color="current"
                   />
-                  Variable costs
+                  {t.navigation["bottom-level"]["variable-cost"]}
                 </TabButton>
                 <TabButton>
                   <Icon
                     name="work"
                     size="sm"
-                    label="fixed costs"
+                    label={t.navigation["bottom-level"]["equipment-cost"]}
                     color="current"
                   />
-                  Equipment costs
+                  {t.navigation["bottom-level"]["equipment-cost"]}
                 </TabButton>
               </div>
             </div>

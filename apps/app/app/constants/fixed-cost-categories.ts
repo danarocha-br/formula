@@ -1,79 +1,83 @@
+import { getTranslations } from '@/utils/translations';
+
+const t = getTranslations("pt-BR");
+
 export const FIXED_COST_CATEGORIES = [
-  { label: "Rent", value: "rent", icon: "rental", color: "bg-froly-200" },
+  { label: t.common.categories['fixed-cost']['rent'], value: "rent", icon: "rental", color: "bg-froly-200" },
   {
-    label: "Utilities",
+    label: t.common.categories['fixed-cost']['utilities'],
     value: "utilities",
     icon: "utilities",
     color: "bg-[#F07D66]",
   },
   {
-    label: "Electricity",
+    label: t.common.categories['fixed-cost']['electricity'],
     value: "electricity",
     icon: "energy",
     color: "bg-green-300",
   },
   {
-    label: "Internet/phone",
+    label: t.common.categories['fixed-cost']['internet'],
     value: "internet/phone",
     icon: "internet",
     color: "bg-yellow-300",
   },
   {
-    label: "Insurance",
+    label: t.common.categories['fixed-cost']['insurance'],
     value: "insurance",
     icon: "security",
     color: "bg-purple-300",
   },
   {
-    label: "Subscriptions",
+    label: t.common.categories['fixed-cost']['subscriptions'],
     value: "subscriptions",
     icon: "subscriptions",
     color: "bg-froly-300",
   },
   {
-    label: "Cloud services",
+    label: t.common.categories['fixed-cost']['cloud'],
     value: "cloud services",
     icon: "cloud",
     color: "bg-cyan-300",
   },
   {
-    label: "Domain/hosting",
+    label: t.common.categories['fixed-cost']['domain'],
     value: "domain/hosting",
     icon: "server",
     color: "bg-neutral-300",
   },
   {
-    label: "Tools",
+    label: t.common.categories['fixed-cost']['tools'],
     value: "tools",
     icon: "tools",
     color: "bg-froly-100",
   },
   {
-    label: "Accounting",
+    label: t.common.categories['fixed-cost']['accounting'],
     value: "accounting",
     icon: "accounting",
     color: "bg-[#1F937060]",
   },
   {
-    label: "Banking fees",
+    label: t.common.categories['fixed-cost']['banking'],
     value: "banking fees",
     icon: "fees",
     color: "bg-[#FF8686]",
   },
   {
-    label: "Marketing",
+    label: t.common.categories['fixed-cost']['marketing'],
     value: "marketing",
     icon: "marketing",
     color: "bg-[#E8EF16]",
   },
   {
-    label: "Courses/training",
+    label: t.common.categories['fixed-cost']['courses'],
     value: "courses/training",
     icon: "learning",
     color: "bg-green-400",
   },
   {
-    label: "Other",
+    label: t.common.categories['fixed-cost']['other'],
     value: "other",
     icon: "other",
     color: "bg-neutral-100",

@@ -27,11 +27,9 @@ type RootLayoutProperties = {
 };
 
 export default async function RootLayout({ children }: RootLayoutProperties) {
-  // Providing all messages to the client
-  // side is the easiest way to get started
   return (
     <html
-      lang="en"
+      lang={"en"}
       className={cn(
         sans.variable,
         GeistMono.variable,
@@ -40,13 +38,13 @@ export default async function RootLayout({ children }: RootLayoutProperties) {
       suppressHydrationWarning
     >
       <body>
-          <DesignSystemProvider>
-            <ClerkProvider>
-              <TooltipProvider>{children}</TooltipProvider>
-              <Toaster />
-              <Analytics />
-            </ClerkProvider>
-          </DesignSystemProvider>
+        <DesignSystemProvider>
+          <ClerkProvider>
+            <TooltipProvider>{children}</TooltipProvider>
+            <Toaster />
+            <Analytics />
+          </ClerkProvider>
+        </DesignSystemProvider>
       </body>
     </html>
   );
