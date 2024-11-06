@@ -16,9 +16,9 @@ type ItemCardProps = {
     period: string;
     category?: keyof typeof iconPath;
     className?: string;
-    loading?: boolean;
     isEmpty?: boolean;
   };
+  loading?: boolean;
   className?: string;
 };
 
@@ -36,7 +36,7 @@ const card = cva([
   "transform-gpu",
 ]);
 
-export const ItemCard = ({ data, className, ...props }: ItemCardProps) => {
+export const ItemCard = ({ data, loading=false,className, ...props }: ItemCardProps) => {
   const {
     id,
     label,
@@ -44,7 +44,6 @@ export const ItemCard = ({ data, className, ...props }: ItemCardProps) => {
     currency = "$",
     period,
     category,
-    loading = false,
     isEmpty = false,
   } = data;
   const {
@@ -96,13 +95,13 @@ export const ItemCard = ({ data, className, ...props }: ItemCardProps) => {
       {!loading ? (
         !isEmpty &&
         !!category && (
-          <span className="text-text-color-body flex items-center justify-center bg-froly-100 rounded-[12px] h-10 w-10">
+          <span className="text-card-foreground flex items-center justify-center bg-froly-100 rounded-[12px] h-10 w-10">
             <Icon
               name={category}
               label="category icon"
               size="lg"
               color="current"
-              className="opacity-70"
+              className="opacity-80"
             />
           </span>
         )
@@ -113,15 +112,15 @@ export const ItemCard = ({ data, className, ...props }: ItemCardProps) => {
       {!isEmpty && (
         <div className="flex flex-col">
           {!loading ? (
-            <span className="text-text-color-caption truncate">{label}</span>
+            <span className="text-muted font-normal truncate">{label}</span>
           ) : (
             <Skeleton className="h-5 w-1/2" />
           )}
           {!loading ? (
-            <p className="text-text-color-body font-medium @[200px]:text-lg @[380px]:text-2xl @[600px]:text-3xl">
+            <p className="text-card-foreground font-medium @[200px]:text-lg @[380px]:text-2xl @[600px]:text-3xl">
               <span>{currency}</span>
               <span className="mx-1">{value}</span>
-              <span className="text-text-color-caption text-md truncate">
+              <span className="text-muted text-md truncate">
                 / {period}
               </span>
             </p>

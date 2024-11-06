@@ -99,7 +99,7 @@ export const metadata: Metadata = {
 const App = async (): Promise<ReactElement> => {
   return (
     <main className='pt-2'>
-      <FeatureHourlyCost expenses={expenses} />
+      <FeatureHourlyCost expenses={[]} />
     </main>
   );
 };

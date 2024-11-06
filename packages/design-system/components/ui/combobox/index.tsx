@@ -7,20 +7,20 @@ import {
   toggleMultiOptions,
   toggleSingleOption,
 } from "./helpers";
-import { useToggle } from '@repo/design-system/hooks/use-toggle';
-import { cn } from '@repo/design-system/lib/utils';
+import { useToggle } from "@repo/design-system/hooks/use-toggle";
+import { cn } from "@repo/design-system/lib/utils";
 import { Icon, iconPath } from "../icon";
 import { Popover } from "../popover";
 import { Command } from "../command";
-import { Loader } from '../loader';
-import { Chip } from '../chip';
-import { IconButton } from '../icon-button';
+import { Loader } from "../loader";
+import { Chip } from "../chip";
+import { IconButton } from "../icon-button";
 import * as S from "./styles";
 
 type SelectOption = {
-  readonly label: string;
-  readonly value: string;
-  readonly slot?: React.ReactNode;
+   label: string;
+   value: string;
+   slot?: React.ReactNode;
 };
 
 export type ComboboxProps = {
@@ -159,11 +159,19 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
       // toggleFocus();
     };
 
-
     return (
       <div className="flex flex-col-reverse gap-0 w-full">
         {Boolean(errors) && !areErrorsEmpty ? (
-          <div>{errors.message}</div>
+          <div className="mt-1 inline-flex text-xs text-destructive">
+            <Icon
+              className="select-icon--error mr-1"
+              label="error"
+              name="alert"
+              size="xs"
+              color="danger"
+            />
+            {errors.message}
+          </div>
         ) : null}
 
         <div
@@ -175,164 +183,155 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
             className,
           })}
         >
-          <div
-            className={S.label({
-              isFocused: openCombobox,
-              isDisabled: disabled,
-              isReadOnly: readOnly,
-            })}
-          >
-            <div className="flex gap-2 items-center">
-              {Boolean(icon) && (
-                <Icon
-                  label="input icon"
-                  name={icon || "work"}
-                  size="xs"
-                  className={S.icon()}
-                />
+          {!!label && (
+            <div
+              className={S.label({
+                isFocused: openCombobox,
+                isDisabled: disabled,
+                isReadOnly: readOnly,
+              })}
+            >
+              <div className="flex gap-2 items-center">
+                {Boolean(icon) && (
+                  <Icon
+                    label="input icon"
+                    name={icon || "work"}
+                    size="xs"
+                    className={S.icon()}
+                  />
+                )}
+
+                {label}
+              </div>
+
+              {loading && (
+                <span className="select-icon--loading absolute right-2">
+                  <Loader />
+                </span>
               )}
-
-              {label}
             </div>
-
-            {loading && (
-              <span className="select-icon--loading absolute right-2">
-                <Loader />
-              </span>
-            )}
-
-            {Boolean(errors) && !areErrorsEmpty ? (
-              <Icon
-                className="select-icon--error mr-[-8px]"
-                label="error"
-                name="alert"
-                size="xs"
-                color="danger"
-              />
-            ) : null}
-          </div>
+          )}
 
           <Popover.Root
             open={!disabled && openCombobox}
             onOpenChange={onComboboxStateChange}
           >
             <Popover.Trigger asChild>
-                <button
-                  ref={ref}
-                  type="button"
-                  role="combobox"
-                  name={name}
-                  aria-expanded={openCombobox}
-                  aria-labelledby={label}
-                  aria-readonly={readOnly}
-                  onFocus={() => toggleFocus()}
-                  onBlur={() => toggleFocus()}
-                  className={S.inputWrapper({
-                    isFocused: openCombobox,
-                    isDisabled: disabled,
-                    isReadOnly: readOnly,
+              <button
+                ref={ref}
+                type="button"
+                role="combobox"
+                name={name}
+                aria-expanded={openCombobox}
+                aria-labelledby={label}
+                aria-readonly={readOnly}
+                onFocus={() => toggleFocus()}
+                onBlur={() => toggleFocus()}
+                className={S.inputWrapper({
+                  isFocused: openCombobox,
+                  isDisabled: disabled,
+                  isReadOnly: readOnly,
+                })}
+              >
+                <span
+                  className={S.chips({
+                    hasSlot: selectedOptionHasSlot ? true : false,
                   })}
                 >
-                  <span
-                    className={S.chips({
-                      hasSlot: selectedOptionHasSlot ? true : false,
-                    })}
-                  >
-                    {selectedValues.length === 0 && (
-                      <span
-                        className={S.placeholder({
-                          isDisabled: disabled,
-                        })}
-                      >
-                        {placeholder}
-                      </span>
-                    )}
-
-                    <span className="flex gap-2 items-center">
-                      {!isMulti &&
-                        selectedValues.length === 1 &&
-                        options &&
-                        options
-                          .filter(
-                            (option) =>
-                              option.value === selectedValues[0]?.value
-                          )
-                          .map((option) => (
-                            <span
-                              key={option.value}
-                              className="text-sm flex gap-2 items-center text-text-color-body"
-                            >
-                              {!!option.slot && option.slot} {option.label}
-                            </span>
-                          ))}
+                  {selectedValues.length === 0 && (
+                    <span
+                      className={S.placeholder({
+                        isDisabled: disabled,
+                      })}
+                    >
+                      {placeholder}
                     </span>
+                  )}
 
-                    {isMulti && selectedValues.length === 1 && (
-                      <Chip
-                        label={selectedValues[0]?.label || ""}
-                        color="neutral"
-                        removable
-                        onRemove={() =>
-                          selectedValues[0] &&
-                          onDeleteSingleOption(selectedValues[0])
-                        }
-                        hasMaxWidth
-                      >
-                        {!!selectedValues[0]?.slot && selectedValues[0]?.slot}
-                      </Chip>
-                    )}
-
-                    {isMulti &&
-                      selectedValues.length === 2 &&
-                      selectedValues.map((option) => (
-                        <Chip
-                          key={option.value}
-                          label={option.label}
-                          color="neutral"
-                          removable
-                          onRemove={() => onDeleteSingleOption(option)}
-                          hasMaxWidth
-                        >
-                          {!!option.slot && option.slot}
-                        </Chip>
-                      ))}
-
-                    {isMulti && selectedValues.length > 2 && (
-                      <>
-                        <b>{selectedValues.length}</b>
-                        {truncationLabel}
-                      </>
-                    )}
+                  <span className="flex gap-2 items-center">
+                    {!isMulti &&
+                      selectedValues.length === 1 &&
+                      options &&
+                      options
+                        .filter(
+                          (option) => option.value === selectedValues[0]?.value
+                        )
+                        .map((option) => (
+                          <span
+                            key={option.value}
+                            className="text-sm flex gap-2 items-center text-text-color-body"
+                          >
+                            {!!option.slot && option.slot} {option.label}
+                          </span>
+                        ))}
                   </span>
 
-                  {isClearable && isMulti && selectedValues.length >= 1 && (
-                    <>
-                      <IconButton
-                        type="button"
-                        icon="close"
-                        label="remove selection"
-                        size="xs"
-                        className={S.deleteButton({ isFocused: openCombobox })}
-                        onClick={onDeleteAll}
-                      />
-                      <span className="h-4 border-r border-action-color-border-transparent-enabled/50" />
-                    </>
+                  {isMulti && selectedValues.length === 1 && (
+                    <Chip
+                      label={selectedValues[0]?.label || ""}
+                      color="neutral"
+                      removable
+                      onRemove={() =>
+                        selectedValues[0] &&
+                        onDeleteSingleOption(selectedValues[0])
+                      }
+                      hasMaxWidth
+                    >
+                      {!!selectedValues[0]?.slot && selectedValues[0]?.slot}
+                    </Chip>
                   )}
 
-                  {!readOnly && (
-                    <Icon
-                      name="down"
-                      label="open menu"
-                      size="xs"
-                      className={`ml-auto shrink-0 ${S.placeholder({
-                        isDisabled: disabled,
-                      })}`}
-                    />
+                  {isMulti &&
+                    selectedValues.length === 2 &&
+                    selectedValues.map((option) => (
+                      <Chip
+                        key={option.value}
+                        label={option.label}
+                        color="neutral"
+                        removable
+                        onRemove={() => onDeleteSingleOption(option)}
+                        hasMaxWidth
+                      >
+                        {!!option.slot && option.slot}
+                      </Chip>
+                    ))}
+
+                  {isMulti && selectedValues.length > 2 && (
+                    <>
+                      <b>{selectedValues.length}</b>
+                      {truncationLabel}
+                    </>
                   )}
-                </button>
+                </span>
+
+                {isClearable && isMulti && selectedValues.length >= 1 && (
+                  <>
+                    <IconButton
+                      type="button"
+                      icon="close"
+                      label="remove selection"
+                      size="xs"
+                      className={S.deleteButton({ isFocused: openCombobox })}
+                      onClick={onDeleteAll}
+                    />
+                    <span className="h-4 border-r border-action-color-border-transparent-enabled/50" />
+                  </>
+                )}
+
+                {!readOnly && (
+                  <Icon
+                    name="down"
+                    label="open menu"
+                    size="xs"
+                    className={`ml-auto shrink-0 ${S.placeholder({
+                      isDisabled: disabled,
+                    })}`}
+                  />
+                )}
+              </button>
             </Popover.Trigger>
             <Popover.Content
-              align='start'
+              align="start"
               className={cn(
                 "p-1 w-full min-w-[260px]",
                 minWidth && minWidth,

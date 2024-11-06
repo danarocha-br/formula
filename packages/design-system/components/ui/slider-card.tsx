@@ -1,10 +1,11 @@
+"use client";
 import React from "react";
 import { NumericFormat } from "react-number-format";
 
-import { Icon, iconPath } from './icon';
-import { cva } from 'class-variance-authority';
-import { Label } from './label';
-import { Slider } from './slider';
+import { Icon, iconPath } from "./icon";
+import { cva } from "class-variance-authority";
+import { Label } from "./label";
+import { Slider } from "./slider";
 
 const container = cva(
   ["flex", "items-center", "gap-4", "w-full", "rounded-md", "bg-input"],
@@ -14,10 +15,15 @@ const container = cva(
         true: ["p-0"],
         false: ["py-2", "px-2"],
       },
+
+      hasError: {
+        true: ["border border-destructive rounded-sm"],
+      },
     },
 
     defaultVariants: {
       removePaddings: false,
+      hasError: false,
     },
   }
 );
@@ -35,7 +41,6 @@ const inputNumeric = cva([
   "outline-none",
 ]);
 
-
 export interface SliderCardProps
   extends Omit<
     React.InputHTMLAttributes<HTMLInputElement>,
@@ -50,6 +55,7 @@ export interface SliderCardProps
   suffix?: string;
   onChange?: (value: number) => void;
   removePaddings?: boolean;
+  errors?: any;
 }
 
 const SliderCard = React.forwardRef<HTMLInputElement, SliderCardProps>(
@@ -63,6 +69,7 @@ const SliderCard = React.forwardRef<HTMLInputElement, SliderCardProps>(
       value = 0,
       onChange,
       removePaddings = false,
+      errors,
       ...props
     },
     ref
@@ -70,8 +77,19 @@ const SliderCard = React.forwardRef<HTMLInputElement, SliderCardProps>(
     const baseMax = Number(props.max) || 1000;
     const sliderValue = Math.min((value / baseMax) * 100, 100);
 
+    const areErrorsEmpty = React.useMemo(
+      () => Boolean(errors) && Object.keys(errors).length === 0,
+      [errors]
+    );
+
     return (
-      <div className={container({ removePaddings, className })}>
+      <div
+        className={container({
+          removePaddings,
+          className,
+          hasError: Boolean(errors) && !areErrorsEmpty ? true : false,
+        })}
+      >
         <div className="flex flex-col gap-1 w-full relative">
           {!!label && (
             <div className="flex gap-2 items-center">
@@ -130,6 +148,19 @@ const SliderCard = React.forwardRef<HTMLInputElement, SliderCardProps>(
             max={100}
           />
         </div>
+
+        {Boolean(errors) && !areErrorsEmpty ? (
+          <div className="mt-1 inline-flex text-xs text-destructive">
+            <Icon
+              className="select-icon--error mr-1"
+              label="error"
+              name="alert"
+              size="xs"
+              color="danger"
+            />
+            {errors.message}
+          </div>
+        ) : null}
       </div>
     );
   }

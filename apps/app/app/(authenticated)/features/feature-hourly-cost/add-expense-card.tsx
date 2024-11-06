@@ -12,9 +12,9 @@ import { Combobox } from "@repo/design-system/components/ui/combobox";
 import { SliderCard } from "@repo/design-system/components/ui/slider-card";
 import { cn } from "@repo/design-system/lib/utils";
 import { useOutsideClick } from "@repo/design-system/hooks/use-outside-click";
-import { FIXED_COST_CATEGORIES } from '@/app/constants';
+import { FIXED_COST_CATEGORIES } from "@/app/constants";
 
-import { CostStatus, FixedCostCategory } from "@/types";
+import { CostStatus } from "@/types";
 
 const card = cva(["relative", "rounded-lg", "transition-all"], {
   variants: {
@@ -53,7 +53,6 @@ const card = cva(["relative", "rounded-lg", "transition-all"], {
       highlight: true,
       className: ["border-2", "hover:bg-purple-200/30"],
     },
-
   ],
   defaultVariants: {
     isActive: false,
@@ -66,22 +65,21 @@ interface AddCardProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 interface NewExpenseForm {
-  category?: FixedCostCategory;
+  category: ComboboxOption | null;
   value: number;
   currency: string;
-  title: string;
+  title: string | undefined;
   period: string;
   status?: CostStatus;
   billing_period?: Date;
 }
 
 const expenseSchema = z.object({
-  categories: z.array(
-    z.object({
-      label: z.string(),
-      value: z.string(),
-    })
-  ),
+  category: z.object({
+    label: z.string(),
+    value: z.string(),
+    slot: z.any().optional(),
+  }),
   value: z.number({
     invalid_type_error: "Value must be a number",
     required_error: "Value is required",
@@ -93,12 +91,18 @@ const expenseSchema = z.object({
   title: z.string({
     invalid_type_error: "Title must be a string",
     required_error: "Title is required",
-  }),
+  }).min(1),
   period: z.string({
     invalid_type_error: "Period must be a string",
     required_error: "Period is required",
   }),
 });
+
+interface ComboboxOption {
+  label: string;
+  value: string;
+  slot?: React.ReactNode;
+}
 
 export const AddCard: React.FC<AddCardProps> = ({
   onClose,
@@ -109,7 +113,7 @@ export const AddCard: React.FC<AddCardProps> = ({
   const id = useId();
 
   const defaultValues: NewExpenseForm = {
-    category: undefined,
+    category: null,
     value: 0,
     currency: "$",
     title: "",
@@ -122,6 +126,7 @@ export const AddCard: React.FC<AddCardProps> = ({
   } = useForm<NewExpenseForm>({
     defaultValues,
     resolver: zodResolver(expenseSchema),
+    mode: "onBlur",
   });
 
   const onSubmit: SubmitHandler<NewExpenseForm> = (data) => console.log(data);
@@ -157,26 +162,24 @@ export const AddCard: React.FC<AddCardProps> = ({
     }
   });
 
-  const categoriesList = FIXED_COST_CATEGORIES.map((category) => {
-    return {
-      label: category.label,
-      value: category.icon,
-      slot: (
-        <div
-          className={cn(
-            "flex items-center justify-center p-1 h-6 w-6 rounded-[4px]",
-            category.color
-          )}
-        >
-          <Icon
-            name={category.icon as keyof typeof iconPath}
-            label={category.label}
-            color="body"
-          />
-        </div>
-      ),
-    };
-  });
+  const categoriesList = FIXED_COST_CATEGORIES.map((category) => ({
+    label: category.label,
+    value: category.icon,
+    slot: (
+      <div
+        className={cn(
+          "flex items-center justify-center p-1 h-6 w-6 rounded-[4px]",
+          category.color
+        )}
+      >
+        <Icon
+          name={category.icon as keyof typeof iconPath}
+          label={category.label}
+          color="body"
+        />
+      </div>
+    ),
+  }));
 
   console.log(errors);
 
@@ -201,18 +204,23 @@ export const AddCard: React.FC<AddCardProps> = ({
                     <Combobox
                       placeholder="Select category"
                       options={categoriesList}
-                      {...field}
-                      emptyMessage={"No category found."}
-                      onChange={(selectedOption: any) => {
-                        field.onChange(selectedOption);
+                      value={field.value || undefined}
+                      onChange={(option) => {
+                        field.onChange(
+                          option
+                            ? {
+                                label: (option as ComboboxOption).label,
+                                value: (option as ComboboxOption).value,
+                              }
+                            : null
+                        );
                       }}
-                      value={field.value as any}
+                      // onBlur={field.onBlur}
+                      emptyMessage="No category found."
                       errors={
-                        errors?.category
-                          ? {
-                              message: errors.category,
-                            }
-                          : ""
+                        errors?.category?.message
+                          ? { message: errors.category.message }
+                          : undefined
                       }
                     />
                   )}
@@ -225,7 +233,12 @@ export const AddCard: React.FC<AddCardProps> = ({
                   onClose?.();
                 }}
               >
-                <Icon name="close" className="w-4 h-4" label="close" color='body' />
+                <Icon
+                  name="close"
+                  className="w-4 h-4"
+                  label="close"
+                  color="body"
+                />
               </button>
             </div>
             <div>
@@ -240,6 +253,11 @@ export const AddCard: React.FC<AddCardProps> = ({
                       className="w-full"
                       id={id}
                       {...field}
+                      errors={
+                        errors?.title?.message
+                          ? { message: errors.title.message }
+                          : undefined
+                      }
                     />
                   )}
                 />
@@ -247,21 +265,26 @@ export const AddCard: React.FC<AddCardProps> = ({
                 <Controller
                   control={control}
                   name="value"
-                  render={({ field }) => (
+                  render={({ field: { onChange, ...fieldProps } }) => (
                     <SliderCard
                       suffix="per month"
                       currency="$"
                       min={1}
                       max={5000}
-                      {...field}
+                      {...fieldProps}
                       removePaddings
+                      errors={
+                        errors?.value?.message
+                          ? { message: errors.value.message }
+                          : undefined
+                      }
                     />
                   )}
                 />
 
                 <div className="mt-8">
                   <Button>
-                    <Icon name="plus" label="add" color='on-dark'/>
+                    <Icon name="plus" label="add" color="on-dark" />
                     Add expense
                   </Button>
                 </div>

@@ -25,7 +25,7 @@ export const container = cva(
       },
 
       hasError: {
-        true: ["border-destructive"],
+        true: ["border border-destructive"],
       },
 
       isFocused: {
@@ -121,13 +121,13 @@ export const inputWrapper = cva(
     "min-h-[36px]",
 
     "focus-visible:outline-none",
-    "focus:bg-ring",
+    "focus:bg-ring/60",
   ],
   {
     variants: {
       isFocused: {
         true: [
-          "bg-ring",
+          "bg-ring/60",
         ],
       },
 
@@ -140,7 +140,7 @@ export const inputWrapper = cva(
         ],
 
         false: [
-          "group-hover:bg-ring",
+          "group-hover:bg-ring/60",
         ],
       },
 

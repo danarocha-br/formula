@@ -1,10 +1,14 @@
-import * as React from "react"
+"use client";
+import * as React from "react";
 
-import { cn } from "@repo/design-system/lib/utils"
-import { cva } from 'class-variance-authority';
+import { cn } from "@repo/design-system/lib/utils";
+import { cva } from "class-variance-authority";
+import { Icon } from "./icon";
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
   variant?: "primary" | "secondary";
+  errors?: any;
 }
 
 const input = cva(
@@ -44,33 +48,59 @@ const input = cva(
           "hover:bg-ring",
           "hover:border-ring",
         ],
-        secondary: [
-          "text-md",
-          "bg-ring/60",
-          "hover:bg-ring/80",
-          "h-11",
-        ],
+        secondary: ["text-md", "bg-ring/60", "hover:bg-ring/80", "h-11"],
+      },
+
+      hasError: {
+        true: ["border border-destructive"],
+        false: ["border-none"],
       },
     },
 
     defaultVariants: {
       variant: "primary",
+      hasError: false,
     },
   }
 );
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, variant='primary', type, ...props }, ref) => {
+  ({ className, variant = "primary", errors, type, ...props }, ref) => {
+    const areErrorsEmpty = React.useMemo(
+      () => Boolean(errors) && Object.keys(errors).length === 0,
+      [errors]
+    );
+
     return (
-      <input
-        type={type}
-        className={cn(input({ variant }), className)}
-        ref={ref}
-        {...props}
-      />
+      <div>
+        <input
+          type={type}
+          className={cn(
+            input({
+              variant,
+              hasError: Boolean(errors) && !areErrorsEmpty ? true : false,
+            }),
+            className
+          )}
+          ref={ref}
+          {...props}
+        />
+        {Boolean(errors) && !areErrorsEmpty ? (
+          <div className="mt-1 inline-flex text-xs text-destructive">
+            <Icon
+              className="select-icon--error mr-1"
+              label="error"
+              name="alert"
+              size="xs"
+              color="danger"
+            />
+            {errors.message}
+          </div>
+        ) : null}
+      </div>
     );
   }
-)
-Input.displayName = "Input"
+);
+Input.displayName = "Input";
 
-export { Input }
+export { Input };

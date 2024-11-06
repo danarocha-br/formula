@@ -94,14 +94,17 @@
     --accent: 0 0% 96.1%;
     --accent-foreground: 0 0% 9%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: var(--color-froly-400);
+    --destructive-foreground: var(--color-white);
 
     --success: 142 76% 36%;
     --success-foreground: 0 0% 98%;
 
     --warning: 36 100% 50%;
     --warning-foreground: 0 0% 98%;
+
+    --inverted: var(--color-neutral-900);
+    --inverted-foreground: var(--color-white);
 
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
@@ -134,8 +137,7 @@
     --popover: var(--color-white);
     --popover-foreground: var(--color-neutral-800);
 
-    --primary: var(var(--color-purple-300))
-    --primary-foreground: 0 0% 9%;
+    --primary: var(var(--color-purple-300)) --primary-foreground: 0 0% 9%;
 
     --secondary: 0 0% 14.9%;
     --secondary-foreground: var(--color-neutral-800);
@@ -146,14 +148,17 @@
     --accent: var(--color-purple-400);
     --accent-foreground: var(--color-purple-50);
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: var(--color-froly-400);
+    --destructive-foreground: var(--color-white);
 
     --success: 142 76% 36%;
     --success-foreground: 0 0% 98%;
 
     --warning: 36 100% 50%;
     --warning-foreground: 0 0% 98%;
+
+    --inverted: var(--color-neutral-900);
+    --inverted-foreground: var(--color-white);
 
     --border: var(--color-neutral-100);
     --input: var(--color-white);
@@ -223,4 +228,8 @@
 .shiki[title]:before {
   content: attr(title);
   @apply inline-block text-muted-foreground text-right mb-6 text-sm;
+}
+
+::selection {
+  background: hsl(var(--color-purple-100));
 }

@@ -144,6 +144,10 @@ const config: Config = {
         DEFAULT: "hsl(var(--primary) / <alpha-value>)",
         foreground: "hsl(var(--primary-foreground) / <alpha-value>)",
       },
+      inverted: {
+        DEFAULT: "hsl(var(--inverted) / <alpha-value>)",
+        foreground: "hsl(var(--inverted-foreground) / <alpha-value>)",
+      },
       sidebar: {
         DEFAULT: "hsl(var(--sidebar-background))",
         foreground: "hsl(var(--sidebar-foreground))",
@@ -163,6 +167,17 @@ const config: Config = {
       },
     },
     extend: {
+      fontSize: {
+        xs: "0.694rem",
+        sm: "0.860rem",
+        md: "1rem",
+        lg: "1.2rem",
+        xl: "1.44rem",
+        "2xl": "1.728rem",
+        "3xl": "2.074rem",
+        "4xl": "2.488rem",
+        "5xl": "2.986rem",
+      },
       borderRadius: {
         none: "0px",
         sm: "8px",

@@ -21,7 +21,7 @@ import { ExpenseItem } from "@/types";
 import { Icon } from "@repo/design-system/components/ui/icon";
 import { EmptyView } from "./empty-view";
 import { MasonryGrid } from "@repo/design-system/components/ui/masonry-grid";
-import { BillableCosts } from '../feature-billable-cost';
+import { BillableCosts } from "../feature-billable-cost";
 
 type Props = {
   expenses: ExpenseItem[];
@@ -100,15 +100,14 @@ export const FeatureHourlyCost = ({ expenses: initialExpenses }: Props) => {
       <Resizable.Panel defaultSize={60} className="hidden md:block">
         <ScrollArea.Root className="w-full h-[calc(100vh-70px)] rounded-b-lg">
           <div className="bg-purple-300 text-card-foreground rounded-lg @container">
-            <EmptyView />
-
-            {/* <DndContext
-            sensors={sensors}
-            onDragStart={onDragStart}
-            onDragEnd={onDragEnd}
-          >
-            <div className="bg-purple-300 text-card-foreground rounded-lg @container">
-              <section className="h-full relative">
+            {expenses && expenses.length === 0 ? (
+              <EmptyView />
+            ) : (
+              <DndContext
+                sensors={sensors}
+                onDragStart={onDragStart}
+                onDragEnd={onDragEnd}
+              >
                 <div className="p-2 w-full">
                   <SortableContext items={cardsId}>
                     <MasonryGrid>
@@ -127,10 +126,7 @@ export const FeatureHourlyCost = ({ expenses: initialExpenses }: Props) => {
                             <ItemCard
                               data={expense}
                               className="w-full h-full"
-                              // style={{
-                              //   position: "absolute",
-                              //   inset: 0,
-                              // }}
+                              // loading={true}
                             />
                           </div>
                         );
@@ -139,42 +135,9 @@ export const FeatureHourlyCost = ({ expenses: initialExpenses }: Props) => {
                   </SortableContext>
                 </div>
 
-                <div className="sticky mt-auto bottom-0 flex items-center justify-between w-full rounded-br-md rounded-tl-md col-span-full bg-purple-200 h-14 opacity-95">
-                  <div className="h-full flex">
-                    <button className="text-card-foreground flex items-center gap-2 bg-purple-100 h-full pl-4 pr-6 text-sm rounded-t-lg">
-                      <Icon
-                        name="work"
-                        size="sm"
-                        label="fixed costs"
-                        color="current"
-                      />
-                      Fixed costs
-                    </button>
-                    <button className="text-card-foreground flex items-center gap-2 bg-purple-200 h-full pl-4 pr-6 text-sm rounded-t-lg">
-                      <Icon
-                        name="work"
-                        size="sm"
-                        label="fixed costs"
-                        color="current"
-                      />
-                      Variable costs
-                    </button>
-                    <button className="text-card-foreground flex items-center gap-2 bg-purple-200 h-full pl-4 pr-6 text-sm rounded-t-lg">
-                      <Icon
-                        name="work"
-                        size="sm"
-                        label="fixed costs"
-                        color="current"
-                      />
-                      Equipment costs
-                    </button>
-                  </div>
-                </div>
-              </section>
-            </div>
-
-            <DragOverlayWrapper activeCard={activeCard} />
-          </DndContext> */}
+                <DragOverlayWrapper activeCard={activeCard} />
+              </DndContext>
+            )}
 
             <div className="sticky bottom-0 flex items-center justify-between w-full rounded-br-md rounded-tl-md col-span-full bg-purple-200 h-14 opacity-95">
               <div className="h-full flex">
