@@ -1,0 +1,81 @@
+export const FIXED_COST_CATEGORIES = [
+  { label: "Rent", value: "rent", icon: "rental", color: "bg-froly-200" },
+  {
+    label: "Utilities",
+    value: "utilities",
+    icon: "utilities",
+    color: "bg-[#F07D66]",
+  },
+  {
+    label: "Electricity",
+    value: "electricity",
+    icon: "energy",
+    color: "bg-green-300",
+  },
+  {
+    label: "Internet/phone",
+    value: "internet/phone",
+    icon: "internet",
+    color: "bg-yellow-300",
+  },
+  {
+    label: "Insurance",
+    value: "insurance",
+    icon: "security",
+    color: "bg-purple-300",
+  },
+  {
+    label: "Subscriptions",
+    value: "subscriptions",
+    icon: "subscriptions",
+    color: "bg-froly-300",
+  },
+  {
+    label: "Cloud services",
+    value: "cloud services",
+    icon: "cloud",
+    color: "bg-cyan-300",
+  },
+  {
+    label: "Domain/hosting",
+    value: "domain/hosting",
+    icon: "server",
+    color: "bg-neutral-300",
+  },
+  {
+    label: "Tools",
+    value: "tools",
+    icon: "tools",
+    color: "bg-froly-100",
+  },
+  {
+    label: "Accounting",
+    value: "accounting",
+    icon: "accounting",
+    color: "bg-[#1F937060]",
+  },
+  {
+    label: "Banking fees",
+    value: "banking fees",
+    icon: "fees",
+    color: "bg-[#FF8686]",
+  },
+  {
+    label: "Marketing",
+    value: "marketing",
+    icon: "marketing",
+    color: "bg-[#E8EF16]",
+  },
+  {
+    label: "Courses/training",
+    value: "courses/training",
+    icon: "learning",
+    color: "bg-green-400",
+  },
+  {
+    label: "Other",
+    value: "other",
+    icon: "other",
+    color: "bg-neutral-100",
+  },
+];

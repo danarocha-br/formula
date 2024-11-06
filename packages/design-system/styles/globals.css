@@ -4,17 +4,86 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    --color-white: 0 0% 100%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --color-neutral-50: 48 7% 96%;
+    --color-neutral-100: 48 7% 90%;
+    --color-neutral-200: 48 7% 82%;
+    --color-neutral-300: 48 7% 76%;
+    --color-neutral-400: 48 7% 66%;
+    --color-neutral-500: 48 3% 48%;
+    --color-neutral-600: 49 3% 30%;
+    --color-neutral-700: 49 3% 20%;
+    --color-neutral-800: 53 3% 11%;
+    --color-neutral-900: 53 3% 5%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
+    --color-cyan-50: 188 57% 98%;
+    --color-cyan-100: 188 57% 94%;
+    --color-cyan-200: 188 57% 87%;
+    --color-cyan-300: 188 40% 76%;
+    --color-cyan-400: 188 37% 66%;
+    --color-cyan-500: 188 27% 42%;
+    --color-cyan-600: 188 42% 28%;
+    --color-cyan-700: 188 42% 20%;
+    --color-cyan-800: 188 57% 13%;
+    --color-cyan-900: 188 57% 9%;
 
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
+    --color-green-50: 72 61% 98%;
+    --color-green-100: 72 61% 94%;
+    --color-green-200: 72 61% 87%;
+    --color-green-300: 72 61% 76%;
+    --color-green-400: 72 61% 66%;
+    --color-green-500: 72 61% 42%;
+    --color-green-600: 72 61% 28%;
+    --color-green-700: 72 61% 20%;
+    --color-green-800: 72 61% 13%;
+    --color-green-900: 72 61% 9%;
+
+    --color-yellow-50: 41 90% 98%;
+    --color-yellow-100: 41 90% 94%;
+    --color-yellow-200: 41 90% 87%;
+    --color-yellow-300: 41 90% 76%;
+    --color-yellow-400: 41 90% 66%;
+    --color-yellow-500: 41 85% 42%;
+    --color-yellow-600: 41 80% 28%;
+    --color-yellow-700: 41 80% 20%;
+    --color-yellow-900: 41 80% 13%;
+    --color-yellow-900: 41 80% 9%;
+
+    --color-froly-50: 342 67% 98%;
+    --color-froly-100: 342 67% 92%;
+    --color-froly-200: 342 67% 83%;
+    --color-froly-300: 342 67% 76%;
+    --color-froly-400: 342 62% 66%;
+    --color-froly-500: 342 50% 42%;
+    --color-froly-600: 342 50% 28%;
+    --color-froly-700: 342 50% 20%;
+    --color-froly-900: 342 50% 13%;
+    --color-froly-900: 342 66% 9%;
+
+    --color-purple-50: 257 81% 98%;
+    --color-purple-100: 257 81% 92%;
+    --color-purple-200: 257 81% 83%;
+    --color-purple-300: 257 81% 76%;
+    --color-purple-400: 257 74% 66%;
+    --color-purple-500: 257 74% 42%;
+    --color-purple-600: 257 74% 28%;
+    --color-purple-700: 257 74% 20%;
+    --color-purple-900: 257 74% 13%;
+    --color-purple-900: 257 81% 9%;
+
+    --background: var(--color-neutral-900);
+    --subdued: var(--color-neutral-800);
+    --foreground: var(--color-neutral-100);
+
+    --card: var(--color-neutral-100);
+    --card-foreground: var(--color-neutral-800);
+
+    --popover: var(--color-neutral-50);
+    --popover-foreground: var(--color-neutral-800);
+
+    --primary: 257 81% 76%;
+    --primary-foreground: var(--color-neutral-800);
 
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
@@ -36,7 +105,7 @@
 
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+    --ring: var(--color-neutral-700);
     --radius: 0.5rem;
 
     --chart-1: 12 76% 61%;
@@ -55,26 +124,27 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: var(--color-neutral-900);
+    --subdued: var(--color-neutral-800);
+    --foreground: var(--color-neutral-100);
 
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card: var(--color-white);
+    --card-foreground: var(--color-neutral-800);
 
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: var(--color-white);
+    --popover-foreground: var(--color-neutral-800);
 
-    --primary: 0 0% 98%;
+    --primary: var(var(--color-purple-300))
     --primary-foreground: 0 0% 9%;
 
     --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary-foreground: var(--color-neutral-800);
 
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
+    --muted: var(--color-neutral-500);
+    --muted-foreground: var(--color-neutral-400);
 
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent: var(--color-purple-400);
+    --accent-foreground: var(--color-purple-50);
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
@@ -85,9 +155,9 @@
     --warning: 36 100% 50%;
     --warning-foreground: 0 0% 98%;
 
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    --border: var(--color-neutral-100);
+    --input: var(--color-white);
+    --ring: var(--color-neutral-100);
 
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;

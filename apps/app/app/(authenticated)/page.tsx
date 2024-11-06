@@ -1,69 +1,106 @@
 import { database } from "@repo/database";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@repo/design-system/components/ui/breadcrumb";
-import { Separator } from "@repo/design-system/components/ui/separator";
-import { SidebarTrigger } from "@repo/design-system/components/ui/sidebar";
+import { ExpenseItem } from '@/types';
+
 import type { Metadata } from "next";
 import type { ReactElement } from "react";
+import { FeatureHourlyCost } from './features/feature-hourly-cost';
 
-const title = "Acme Inc";
-const description = "My application.";
+const title = "Formula by Compasso";
+const description = "Manage your expenses";
 
 export const metadata: Metadata = {
   title,
   description,
 };
 
-const App = async (): Promise<ReactElement> => {
-  const pages = await database.page.findMany();
+  const expenses: ExpenseItem[] = [
+    {
+      id: "1",
+      label: "Energy",
+      value: 400,
+      category: "energy",
+      period: "month",
+      createdAt: new Date(),
+    },
+    {
+      id: "2",
+      label: "Rental",
+      value: 50,
+      category: "rental",
+      period: "month",
+      createdAt: new Date(),
+    },
+    {
+      id: "3",
+      label: "Internet",
+      value: 700,
+      category: "internet",
+      period: "month",
+      createdAt: new Date(),
+    },
+    {
+      id: "4",
+      label: "Energy",
+      value: 80,
+      category: "energy",
+      period: "month",
+      createdAt: new Date(),
+    },
+    {
+      id: "5",
+      label: "Internet",
+      value: 80,
+      category: "internet",
+      period: "month",
+      createdAt: new Date(),
+    },
+    {
+      id: "6",
+      label: "Car",
+      value: 400,
+      category: "transport",
+      period: "month",
+      createdAt: new Date(),
+    },
+    {
+      id: "7",
+      label: "Internet",
+      value: 230,
+      category: "internet",
+      period: "month",
+      createdAt: new Date(),
+    },
+    {
+      id: "8",
+      label: "Internet",
+      value: 40,
+      category: "internet",
+      period: "month",
+      createdAt: new Date(),
+    },
+    {
+      id: "9",
+      label: "Internet",
+      value: 40,
+      category: "internet",
+      period: "month",
+      createdAt: new Date(),
+    },
+    {
+      id: "10",
+      label: "Internet",
+      value: 40,
+      category: "internet",
+      period: "month",
+      createdAt: new Date(),
+    },
+  ];
 
+const App = async (): Promise<ReactElement> => {
   return (
-    <>
-      <header className="flex h-16 shrink-0 items-center gap-2">
-        <div className="flex items-center gap-2 px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">
-                  Building Your Application
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
-      </header>
-      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-        <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-          {pages.length > 0 ? (
-            pages.map((page) => (
-              <div
-                key={page.id}
-                className="aspect-video rounded-xl bg-muted/50"
-              >
-                {page.name}
-              </div>
-            ))
-          ) : (
-            <div className="col-span-3 text-center py-4">
-              No pages available or failed to load pages
-            </div>
-          )}
-        </div>
-        <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
-      </div>
-    </>
+    <main className='pt-2'>
+      <FeatureHourlyCost expenses={expenses} />
+    </main>
   );
 };
 
