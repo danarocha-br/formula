@@ -21,6 +21,7 @@ import { ExpenseItem } from "@/types";
 import { Icon } from "@repo/design-system/components/ui/icon";
 import { EmptyView } from "./empty-view";
 import { MasonryGrid } from "@repo/design-system/components/ui/masonry-grid";
+import { BillableCosts } from '../feature-billable-cost';
 
 type Props = {
   expenses: ExpenseItem[];
@@ -215,7 +216,7 @@ export const FeatureHourlyCost = ({ expenses: initialExpenses }: Props) => {
       <Resizable.Panel defaultSize={40}>
         <section className="bg-neutral-100 text-card-foreground rounded-lg relative flex flex-col justify-between @container">
           <ScrollArea.Root className="w-full h-[calc(100vh-70px)] rounded-b-lg">
-            {/* <BillableCosts /> */}
+            <BillableCosts />
 
             <div className="sticky bottom-0 mt-auto flex items-center justify-between w-full rounded-b-md h-14 px-5 py-4 bg-purple-200 opacity-95">
               <p>Your total expenses are </p>

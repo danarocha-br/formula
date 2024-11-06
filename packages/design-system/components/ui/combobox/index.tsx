@@ -159,7 +159,6 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
       // toggleFocus();
     };
 
-    console.log(selectedValues);
 
     return (
       <div className="flex flex-col-reverse gap-0 w-full">

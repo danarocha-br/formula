@@ -1,8 +1,8 @@
-import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
-import { cva, type VariantProps } from "class-variance-authority"
+import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "@repo/design-system/lib/utils"
+import { cn } from "@repo/design-system/lib/utils";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
@@ -32,26 +32,71 @@ const buttonVariants = cva(
       size: "default",
     },
   }
-)
+);
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
-  asChild?: boolean
+  asChild?: boolean;
+  loading?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button"
+  (
+    {
+      className,
+      variant,
+      loading = false,
+      size,
+      asChild = false,
+      children,
+      ...props
+    },
+    ref
+  ) => {
+    const Comp = asChild ? Slot : "button";
     return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+      // <Comp
+      //   className={cn(buttonVariants({ variant, size, className }))}
+      //   ref={ref}
+      //   {...props}
+      // />
+      <button
         ref={ref}
+        disabled={props.disabled || loading}
+        className={cn(
+          "group relative inline-flex items-center justify-center overflow-hidden rounded-sm bg-neutral-900 px-8 py-3 transition w-full",
+          className,
+          loading && "bg-neutral-600"
+        )}
         {...props}
-      />
-    )
-  }
-)
-Button.displayName = "Button"
+      >
+        {!!loading && (
+          <div className="absolute inset-0 flex items-center [container-type:inline-size]">
+            <div className="absolute h-[100cqw] w-[100cqw] animate-spin bg-[conic-gradient(from_0_at_50%_50%,rgba(255,255,255,0.8)_0deg,transparent_60deg,transparent_300deg,rgba(255,255,255,0.8)_360deg)] transition duration-300 [animation-duration:3s] opacity-100"></div>{" "}
+          </div>
+        )}
 
-export { Button, buttonVariants }
+        <div
+          className={cn(
+            "absolute inset-0.5 rounded-[6px] bg-neutral-800",
+            loading && "bg-neutral-600"
+          )}
+        ></div>
+
+        <div className="absolute bottom-0 left-1/2 h-1/3 w-4/5 -translate-x-1/2 rounded-sm bg-white/10 opacity-50 blur-md transition-all duration-500 group-hover:h-2/3 group-hover:opacity-100"></div>
+        <span
+          className={cn(
+            "flex gap-4 items-center relative mt-px text-white font-medium transition-all duration-200",
+            loading && "opacity-50"
+          )}
+        >
+          {children}
+        </span>
+      </button>
+    );
+  }
+);
+Button.displayName = "Button";
+
+export { Button, buttonVariants };

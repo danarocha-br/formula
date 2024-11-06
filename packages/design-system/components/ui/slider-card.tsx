@@ -23,7 +23,9 @@ const container = cva(
 );
 
 const inputNumeric = cva([
+  "font-sans",
   "text-lg",
+  "font-medium",
   "text-card-foreground",
   "bg-transparent",
   "rounded-sm",

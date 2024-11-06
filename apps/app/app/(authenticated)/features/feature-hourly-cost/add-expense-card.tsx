@@ -164,7 +164,7 @@ export const AddCard: React.FC<AddCardProps> = ({
       slot: (
         <div
           className={cn(
-            "flex items-center justify-center p-3 h-6 w-6 rounded-[4px]",
+            "flex items-center justify-center p-1 h-6 w-6 rounded-[4px]",
             category.color
           )}
         >
@@ -261,7 +261,7 @@ export const AddCard: React.FC<AddCardProps> = ({
 
                 <div className="mt-8">
                   <Button>
-                    <Icon name="plus" label="add" />
+                    <Icon name="plus" label="add" color='on-dark'/>
                     Add expense
                   </Button>
                 </div>
