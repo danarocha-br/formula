@@ -1,9 +1,10 @@
 "use client";
 
-import { cn } from '@repo/design-system/lib/utils';
 import { cva } from 'class-variance-authority';
 import { GripVertical } from "lucide-react";
 import * as ResizablePrimitive from "react-resizable-panels";
+
+import { cn } from "../../lib/utils";
 
 const handle = cva([
   "group/handle",

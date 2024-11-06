@@ -1,9 +1,9 @@
 import { database } from "@repo/database";
-import { ExpenseItem } from '@/types';
 
 import type { Metadata } from "next";
 import type { ReactElement } from "react";
 import { FeatureHourlyCost } from './features/feature-hourly-cost';
+import { ExpenseItem } from '../types';
 
 const title = "Formula by Compasso";
 const description = "Manage your expenses";

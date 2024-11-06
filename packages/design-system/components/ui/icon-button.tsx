@@ -1,7 +1,7 @@
 import { cva, VariantProps } from "class-variance-authority";
 import { iconPath } from "./icon/icon-path";
-import { cn } from "@repo/design-system/lib/utils";
 import { Icon } from "./icon";
+import { cn } from "../../lib/utils";
 
 const button = cva(
   [

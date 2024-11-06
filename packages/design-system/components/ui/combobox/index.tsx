@@ -7,8 +7,8 @@ import {
   toggleMultiOptions,
   toggleSingleOption,
 } from "./helpers";
-import { useToggle } from "@repo/design-system/hooks/use-toggle";
-import { cn } from "@repo/design-system/lib/utils";
+import { useToggle } from "../../../hooks/use-toggle";
+import { cn } from "../../../lib/utils";
 import { Icon, iconPath } from "../icon";
 import { Popover } from "../popover";
 import { Command } from "../command";

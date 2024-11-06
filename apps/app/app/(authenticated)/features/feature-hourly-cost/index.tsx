@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { ItemCard } from "@repo/design-system/components/ui/item-card";
 import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
 import { Resizable } from "@repo/design-system/components/ui/resizable-panel";
+import { TabButton } from "@repo/design-system/components/ui/tab-button";
 
 import {
   DndContext,
@@ -17,11 +18,11 @@ import {
 import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import dynamic from "next/dynamic";
 
-import { ExpenseItem } from "@/types";
 import { Icon } from "@repo/design-system/components/ui/icon";
 import { EmptyView } from "./empty-view";
 import { MasonryGrid } from "@repo/design-system/components/ui/masonry-grid";
 import { BillableCosts } from "../feature-billable-cost";
+import { ExpenseItem } from '@/app/types';
 
 type Props = {
   expenses: ExpenseItem[];
@@ -141,7 +142,7 @@ export const FeatureHourlyCost = ({ expenses: initialExpenses }: Props) => {
 
             <div className="sticky bottom-0 flex items-center justify-between w-full rounded-br-md rounded-tl-md col-span-full bg-purple-200 h-14 opacity-95">
               <div className="h-full flex">
-                <button className="text-card-foreground flex items-center gap-2 bg-purple-100 h-full pl-4 pr-6 text-sm rounded-t-lg">
+                <TabButton isActive>
                   <Icon
                     name="work"
                     size="sm"
@@ -149,8 +150,8 @@ export const FeatureHourlyCost = ({ expenses: initialExpenses }: Props) => {
                     color="current"
                   />
                   Fixed costs
-                </button>
-                <button className="text-card-foreground flex items-center gap-2 bg-purple-200 h-full pl-4 pr-6 text-sm rounded-t-lg">
+                </TabButton>
+                <TabButton>
                   <Icon
                     name="work"
                     size="sm"
@@ -158,8 +159,8 @@ export const FeatureHourlyCost = ({ expenses: initialExpenses }: Props) => {
                     color="current"
                   />
                   Variable costs
-                </button>
-                <button className="text-card-foreground flex items-center gap-2 bg-purple-200 h-full pl-4 pr-6 text-sm rounded-t-lg">
+                </TabButton>
+                <TabButton>
                   <Icon
                     name="work"
                     size="sm"
@@ -167,7 +168,7 @@ export const FeatureHourlyCost = ({ expenses: initialExpenses }: Props) => {
                     color="current"
                   />
                   Equipment costs
-                </button>
+                </TabButton>
               </div>
             </div>
           </div>

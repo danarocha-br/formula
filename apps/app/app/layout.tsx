@@ -1,14 +1,14 @@
-import '@repo/design-system/styles/globals.css';
-import { Toaster } from '@repo/design-system/components/ui/sonner';
-import { TooltipProvider } from '@repo/design-system/components/ui/tooltip';
-import { cn } from '@repo/design-system/lib/utils';
-import { DesignSystemProvider } from '@repo/design-system/providers';
-import { ClerkProvider } from '@repo/design-system/providers/clerk';
-import { Analytics } from '@vercel/analytics/react';
-import { GeistMono } from 'geist/font/mono';
+import "@repo/design-system/styles/globals.css";
+import { Toaster } from "@repo/design-system/components/ui/sonner";
+import { TooltipProvider } from "@repo/design-system/components/ui/tooltip";
+import { cn } from "@repo/design-system/lib/utils";
+import { DesignSystemProvider } from "@repo/design-system/providers";
+import { ClerkProvider } from "@repo/design-system/providers/clerk";
+import { Analytics } from "@vercel/analytics/react";
+import { GeistMono } from "geist/font/mono";
 import localFont from "next/font/local";
 
-import type { ReactNode } from 'react';
+import type { ReactNode } from "react";
 
 const sans = localFont({
   src: "./fonts/Roobert.woff2",
@@ -26,26 +26,28 @@ type RootLayoutProperties = {
   readonly children: ReactNode;
 };
 
-const RootLayout = ({ children }: RootLayoutProperties) => (
-  <html
-    lang="en"
-    className={cn(
-      sans.variable,
-      GeistMono.variable,
-      'touch-manipulation font-sans antialiased'
-    )}
-    suppressHydrationWarning
-  >
-    <body>
-      <DesignSystemProvider>
-        <ClerkProvider>
-          <TooltipProvider>{children}</TooltipProvider>
-          <Toaster />
-          <Analytics />
-        </ClerkProvider>
-      </DesignSystemProvider>
-    </body>
-  </html>
-);
-
-export default RootLayout;
+export default async function RootLayout({ children }: RootLayoutProperties) {
+  // Providing all messages to the client
+  // side is the easiest way to get started
+  return (
+    <html
+      lang="en"
+      className={cn(
+        sans.variable,
+        GeistMono.variable,
+        "touch-manipulation font-sans antialiased"
+      )}
+      suppressHydrationWarning
+    >
+      <body>
+          <DesignSystemProvider>
+            <ClerkProvider>
+              <TooltipProvider>{children}</TooltipProvider>
+              <Toaster />
+              <Analytics />
+            </ClerkProvider>
+          </DesignSystemProvider>
+      </body>
+    </html>
+  );
+}

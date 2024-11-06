@@ -1,5 +1,6 @@
-import { cn } from "@repo/design-system/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
+
+import { cn } from "../../lib/utils";
 
 const heading = cva(
   ["font-medium", "mb-4", "tracking-[0.4px]", "text-text-color-default"],

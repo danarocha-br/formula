@@ -1,4 +1,4 @@
-import { cn } from '@repo/design-system/lib/utils';
+import { cn } from "../../lib/utils";
 
 export const Loader = ({ className }: { className?: string }) => {
   const animationDuration = 1;

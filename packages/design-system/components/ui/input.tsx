@@ -1,9 +1,9 @@
 "use client";
 import * as React from "react";
-
-import { cn } from "@repo/design-system/lib/utils";
 import { cva } from "class-variance-authority";
+
 import { Icon } from "./icon";
+import { cn } from "../../lib/utils";
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {

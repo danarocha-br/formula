@@ -119,6 +119,7 @@ export const inputWrapper = cva(
     "group/input",
     "peer/input",
     "min-h-[36px]",
+    "outline-none",
 
     "focus-visible:outline-none",
     "focus:bg-ring/60",

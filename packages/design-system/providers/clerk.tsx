@@ -3,7 +3,7 @@
 import { ClerkProvider as ClerkProviderRaw } from '@clerk/nextjs';
 import { dark } from '@clerk/themes';
 import type { Theme } from '@clerk/types';
-import { tailwind } from '@repo/design-system/lib/tailwind';
+import { tailwind } from '../lib/tailwind';
 import { useTheme } from 'next-themes';
 import type { ComponentProps } from 'react';
 

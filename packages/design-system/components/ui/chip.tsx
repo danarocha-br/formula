@@ -1,8 +1,9 @@
-import { cn } from "@repo/design-system/lib/utils";
+
 import { cva } from "class-variance-authority";
 import { useState } from "react";
 
 import { Icon } from "./icon";
+import { cn } from "../../lib/utils";
 
 export type ChipProps = {
   label: string;

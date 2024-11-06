@@ -1,6 +1,7 @@
 import * as React from "react";
-import { cn } from "@repo/design-system/lib/utils";
 import { cva } from "class-variance-authority";
+
+import { cn } from "../../lib/utils";
 
 const listItem = cva([
   "flex",

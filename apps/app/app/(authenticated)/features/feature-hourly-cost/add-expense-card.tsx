@@ -12,9 +12,9 @@ import { Combobox } from "@repo/design-system/components/ui/combobox";
 import { SliderCard } from "@repo/design-system/components/ui/slider-card";
 import { cn } from "@repo/design-system/lib/utils";
 import { useOutsideClick } from "@repo/design-system/hooks/use-outside-click";
-import { FIXED_COST_CATEGORIES } from "@/app/constants";
+import { CostStatus } from '../../../types';
+import { FIXED_COST_CATEGORIES } from '../../../constants';
 
-import { CostStatus } from "@/types";
 
 const card = cva(["relative", "rounded-lg", "transition-all"], {
   variants: {
@@ -59,6 +59,41 @@ const card = cva(["relative", "rounded-lg", "transition-all"], {
   },
 });
 
+const closeButton = cva([
+  "absolute",
+  "top-2",
+  "right-2",
+  "flex",
+  "items-center",
+  "justify-center",
+  "rounded-full",
+  "h-8",
+  "w-8",
+  "bg-neutral-50",
+  "hover:bg-neutral-100",
+  "focus-visible:outline-none",
+  "focus-visible:ring-2",
+  "focus-visible:ring-ring",
+  "focus-visible:ring-offset-2",
+]);
+
+const cardButton = cva([
+  "rounded-lg",
+  "w-full",
+  "h-full",
+  "cursor-pointer",
+  "group",
+  "focus-visible:outline-none",
+  "focus-visible:ring-2",
+  "focus-visible:ring-neutral-800/10",
+  "focus-visible:ring-offset-2",
+  "focus-visible:ring-offset-purple-300",
+
+  "[&>div]:focus-visible:opacity-100",
+  "[&>div]:focus-visible:opacity-100",
+  "[&>div]:focus-visible:translate-y-0",
+]);
+
 interface AddCardProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   onClose?: () => void;
   highlight?: boolean;
@@ -88,10 +123,12 @@ const expenseSchema = z.object({
     invalid_type_error: "Currency must be a string",
     required_error: "Currency is required",
   }),
-  title: z.string({
-    invalid_type_error: "Title must be a string",
-    required_error: "Title is required",
-  }).min(1),
+  title: z
+    .string({
+      invalid_type_error: "Title must be a string",
+      required_error: "Title is required",
+    })
+    .min(1),
   period: z.string({
     invalid_type_error: "Period must be a string",
     required_error: "Period is required",
@@ -122,6 +159,7 @@ export const AddCard: React.FC<AddCardProps> = ({
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<NewExpenseForm>({
     defaultValues,
@@ -150,6 +188,7 @@ export const AddCard: React.FC<AddCardProps> = ({
   }, [isActive, onClose]);
 
   useOutsideClick(ref, (event: MouseEvent) => {
+    reset(defaultValues);
     const target = event.target as HTMLElement;
     const isComboboxElement =
       target.closest('[role="listbox"]') ||
@@ -180,8 +219,6 @@ export const AddCard: React.FC<AddCardProps> = ({
       </div>
     ),
   }));
-
-  console.log(errors);
 
   return (
     <AnimatePresence>
@@ -227,7 +264,7 @@ export const AddCard: React.FC<AddCardProps> = ({
                 />
               </div>
               <button
-                className="absolute top-2 right-2 flex items-center justify-center rounded-full h-8 w-8 bg-neutral-50 hover:bg-neutral-100"
+                className={closeButton()}
                 onClick={() => {
                   setIsActive(false);
                   onClose?.();
@@ -293,14 +330,14 @@ export const AddCard: React.FC<AddCardProps> = ({
           </form>
         ) : (
           <button
-            className="w-full h-full cursor-pointer group"
+            className={cardButton()}
             onClick={() => {
               setIsActive(true);
             }}
           >
             <div
               className={cn(
-                "group-hover:opacity-100 text-white transition-all transform  duration-300",
+                "group-hover:opacity-100 text-white transition-all transform duration-300",
                 highlight
                   ? "opacity-100"
                   : "-translate-y-3 opacity-0 group-hover:translate-y-0"
