@@ -5,6 +5,7 @@ import { Heading } from '@repo/design-system/components/ui/heading';
 import { SliderCard } from '@repo/design-system/components/ui/slider-card';
 import { List } from '@repo/design-system/components/ui/list';
 import { ListItem } from '../../components/list-item';
+import { getTranslations } from '@/utils/translations';
 
 
 type BillableCostsForm = {
@@ -59,19 +60,16 @@ export const BillableCosts = () => {
   const formData = watch();
   const calculations = calculateMetrics(formData);
 
+  const t = getTranslations()
+
   return (
     <div className="flex flex-col py-5 px-6 h-full">
-      <Heading>Billable costs</Heading>
+      <Heading>{t.expenses.billable.title}</Heading>
       <div className="flex gap-2 text-text-color-caption text-sm mb-7">
         <i className="mt-1 mr-4">
           <Icon name="alert" color="caption" label="alert" />
         </i>
-        <p>
-          A general rule of thumb is to assume that around <b>75%</b> of your
-          working day will be spent on billable tasks. This means if you have an
-          8-hour workday, you can realistically estimate <b>6 billable hours</b>
-          .
-        </p>
+        <p>{t.expenses.billable.subtitle}</p>
       </div>
 
       <form
@@ -83,11 +81,11 @@ export const BillableCosts = () => {
           name="work_days"
           render={({ field }) => (
             <SliderCard
-              label="Work days"
+              label={t.expenses.billable.form["work-days"]}
               category="calendar"
               min={1}
               max={7}
-              suffix="days per week"
+              suffix={t.expenses.billable.form["work-days-period"]}
               {...field}
             />
           )}
@@ -97,11 +95,11 @@ export const BillableCosts = () => {
           name="hours_per_day"
           render={({ field }) => (
             <SliderCard
-              label="Billable hours"
+              label={t.expenses.billable.form["billable-hours"]}
               category="time"
               min={1}
               max={24}
-              suffix="hours per day"
+              suffix={t.expenses.billable.form["billable-hours-period"]}
               {...field}
             />
           )}
@@ -111,11 +109,11 @@ export const BillableCosts = () => {
           name="holiday_days"
           render={({ field }) => (
             <SliderCard
-              label="National holidays"
+              label={t.expenses.billable.form["holidays"]}
               category="flag"
               min={1}
               max={360}
-              suffix="days per year"
+              suffix={t.expenses.billable.form["holidays-period"]}
               {...field}
             />
           )}
@@ -125,11 +123,11 @@ export const BillableCosts = () => {
           name="vacation_days"
           render={({ field }) => (
             <SliderCard
-              label="Vacations"
+              label={t.expenses.billable.form["vacations"]}
               category="holiday"
               min={1}
               max={360}
-              suffix="days per year"
+              suffix={t.expenses.billable.form["vacations-period"]}
               {...field}
             />
           )}
@@ -139,11 +137,11 @@ export const BillableCosts = () => {
           name="sick_leave"
           render={({ field }) => (
             <SliderCard
-              label="Sick leave"
+              label={t.expenses.billable.form["sick-leave"]}
               category="pill"
               min={1}
               max={360 / 2}
-              suffix="days per year"
+              suffix={t.expenses.billable.form["sick-leave-period"]}
               {...field}
             />
           )}
@@ -153,12 +151,12 @@ export const BillableCosts = () => {
           name="monthly_salary"
           render={({ field }) => (
             <SliderCard
-              label="Monthly salary"
+              label={t.expenses.billable.form["monthly-salary"]}
               category="wallet"
-              currency="$"
+              currency={t.common['currency-symbol'] + " "}
               min={1}
               max={100000}
-              suffix="per month"
+              suffix={t.expenses.billable.form["monthly-salary-period"]}
               {...field}
             />
           )}
@@ -168,48 +166,61 @@ export const BillableCosts = () => {
       <List.Root className={"mt-5"}>
         <ListItem
           icon="time-off"
-          title="Time off"
+          title={t.expenses.billable.form["time-off"]}
           data={
             <>
-              <b>{calculations.timeOff}</b> days per year
+              <b>{calculations.timeOff}</b>{" "}
+              {t.expenses.billable.form["time-off-period"]}
             </>
           }
           itemsOnHover={
             <div className="flex gap-1">
               <span className="mr-2">=</span>
-              <Badge>Holidays</Badge>+<Badge>Vacations</Badge>+
-              <Badge>Sick leave</Badge>
+              <Badge>{t.expenses.billable.form["holidays"]}</Badge>+
+              <Badge>{t.expenses.billable.form["vacations"]}</Badge>+
+              <Badge>{t.expenses.billable.form["sick-leave"]}</Badge>
             </div>
           }
         />
         <ListItem
           icon="calendar"
-          title="Actual work days"
+          title={t.expenses.billable.form["actual-work-days"]}
           data={
             <>
-              <b>{calculations.actualWorkDays}</b> days per year
+              <b>{calculations.actualWorkDays}</b>{" "}
+              {t.expenses.billable.form["actual-work-days-period"]}
             </>
           }
           itemsOnHover={
             <div className="flex gap-1">
               <span className="mr-2">=</span>
-              <Badge>Work days per year</Badge>-<Badge>Time off</Badge>
+              <Badge>
+                {t.expenses.billable.form["work-days"] +
+                  " " +
+                  t.expenses.billable.form["holidays-period"]}
+              </Badge>
+              -
+              <Badge>
+                {t.expenses.billable.form["time-off"] +
+                  " " +
+                  t.expenses.billable.form["holidays-period"]}
+              </Badge>
             </div>
           }
         />
         <ListItem
           className="border-b-0"
           icon="work"
-          title="Billable hours"
+          title={t.expenses.billable.form["billable-hours"]}
           data={
             <>
-              <b>{calculations.billableHours}</b> hours per year
+              <b>{calculations.billableHours}</b> {t.expenses.billable.form["billable-hours-period"]}
             </>
           }
           itemsOnHover={
             <div className="flex gap-1">
               <span className="mr-2">=</span>
-              <Badge>Actual work days</Badge>*<Badge>Billable hours</Badge>
+              <Badge>{t.expenses.billable.form["work-days"]}</Badge>*<Badge>{t.expenses.billable.form["billable-hours"]}</Badge>
             </div>
           }
         />

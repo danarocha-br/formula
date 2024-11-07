@@ -190,9 +190,9 @@ export const FeatureHourlyCost = ({
             <BillableCosts />
 
             <div className="sticky bottom-0 mt-auto flex items-center justify-between w-full rounded-b-md h-14 px-5 py-4 bg-purple-200 opacity-95">
-              <p>Your total expenses are </p>
+              <p>{t.expenses.billable.total.title}</p>
               <span className="text-2xl font-semibold">
-                ${totalValue.toFixed(2)}
+                {t.common['currency-symbol']} {totalValue.toFixed(2)}
               </span>
             </div>
           </ScrollArea.Root>

@@ -9,8 +9,10 @@ import { createSecureHeaders } from "next-secure-headers";
 
 // Compose the base config first
 export const config: NextConfig = withVercelToolbar()({
-  locales: ["en", "pt-BR"],
-  defaultLocale: "en",
+  // i18n: {
+  //   locales: ["en", "pt-BR"],
+  //   defaultLocale: "en",
+  // },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [

@@ -111,33 +111,15 @@ interface NewExpenseForm {
   billing_period?: Date;
 }
 
-const expenseSchema = z.object({
-  category: z.object({
-    label: z.string(),
-    value: z.string(),
-    slot: z.any().optional(),
-  }),
-  value: z.number({
-    invalid_type_error: "Value must be a number",
-    required_error: "Value is required",
-  }),
-  currency: z.string({
-    invalid_type_error: "Currency must be a string",
-    required_error: "Currency is required",
-  }),
-  title: z
-    .string({
-      invalid_type_error: "Title must be a string",
-      required_error: "Title is required",
-    })
-    .min(1),
-  period: z.string({
-    invalid_type_error: "Period must be a string",
-    required_error: "Period is required",
-  }),
-});
+
 
 interface ComboboxOption {
+  label: string;
+  value: string;
+  slot?: React.ReactNode;
+}
+
+interface SelectOption {
   label: string;
   value: string;
   slot?: React.ReactNode;
@@ -153,10 +135,37 @@ export const AddCard: React.FC<AddCardProps> = ({
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
 
+  const expenseSchema = z.object({
+    category: z.object({
+      label: z.string(),
+      value: z.string(),
+      slot: z.any().optional(),
+    }, {
+      required_error: t.validation.form.required,
+      invalid_type_error: t.validation.form.select,
+    }),
+    value: z.number({
+      required_error: t.validation.form.required,
+    }),
+    currency: z.string({
+      required_error: t.validation.form.required,
+    }),
+    title: z
+      .string({
+        required_error: t.validation.form.required,
+      })
+      .min(1, {
+        message: t.validation.form.required,
+      }),
+    period: z.string({
+      required_error: t.validation.form.required,
+    }).optional(),
+  });
+
   const defaultValues: NewExpenseForm = {
     category: null,
     value: 0,
-    currency: "$",
+    currency: t.common['currency-symbol'],
     title: "",
     period: "month",
   };
@@ -247,15 +256,10 @@ export const AddCard: React.FC<AddCardProps> = ({
                       searchPlaceholder={t.common["search"]}
                       options={categoriesList}
                       value={field.value || undefined}
-                      onChange={(option: ComboboxOption | null) => {
-                        field.onChange(
-                          option
-                            ? {
-                                label: (option as ComboboxOption).label,
-                                value: (option as ComboboxOption).value,
-                              }
-                            : null
-                        );
+                      onChange={(option: SelectOption | SelectOption[]) => {
+                        if (!Array.isArray(option)) {
+                          field.onChange(option);
+                        }
                       }}
                       emptyMessage={t.common["not-found"]}
                       errors={
@@ -309,7 +313,7 @@ export const AddCard: React.FC<AddCardProps> = ({
                   render={({ field: { onChange, ...fieldProps } }) => (
                     <SliderCard
                       suffix={t.expenses.form.period}
-                      currency={t.common["currency-symbol"]}
+                      currency={t.common["currency-symbol"] + " "}
                       min={1}
                       max={5000}
                       {...fieldProps}
@@ -324,7 +328,7 @@ export const AddCard: React.FC<AddCardProps> = ({
                 />
 
                 <div className="mt-8">
-                  <Button>
+                  <Button type='submit' className='whitespace-nowrap'>
                     <Icon name="plus" label="add" color="on-dark" />
                     {t.expenses.actions["add-expense"]}
                   </Button>

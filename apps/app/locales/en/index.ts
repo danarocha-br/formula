@@ -23,8 +23,8 @@ export const en = {
         marketing: "Marketing",
         courses: "Courses/training",
         other: "Other",
-      }
-    }
+      },
+    },
   },
   navigation: {
     "top-level": {
@@ -45,7 +45,41 @@ export const en = {
       category: "Select category",
       name: "Expense name",
       value: "Expense cost",
-      period: "per month"
+      period: "per month",
+    },
+    billable: {
+      title: "Billable costs",
+      subtitle:
+        "A general rule of thumb is to assume that around 75% of your working day will be spent on billable tasks. This means if you have an 8-hour workday, you can realistically estimate 6 billable hours.",
+      form: {
+        "work-days": "Work days",
+        "work-days-period": "days per week",
+        "billable-hours": "Billable hours",
+        "billable-hours-period": "hours per day",
+        holidays: "National holidays",
+        "holidays-period": "days per year",
+        vacations: "Vacations",
+        "vacations-period": "days per year",
+        "sick-leave": "Sick leave",
+        "sick-leave-period": "days per year",
+        "monthly-salary": "Monthly salary",
+        "monthly-salary-period": "per month",
+        "time-off": "Time off",
+        "time-off-period": "days per year",
+        "actual-work-days": "Actual work days",
+        "actual-work-days-period": "days per year",
+        "billable-hours-summary": "Billable hours",
+        "billable-hours-summary-period": "hours per year",
+      },
+      total: {
+        title: "Your total expenses are",
+      }
+    },
+  },
+  validation: {
+    form: {
+      select: "Please select an item.",
+      required: "This field is required.",
     }
   },
   auth: {
