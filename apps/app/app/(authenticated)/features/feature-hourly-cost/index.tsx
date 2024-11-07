@@ -22,13 +22,13 @@ import { Icon } from "@repo/design-system/components/ui/icon";
 import { EmptyView } from "./empty-view";
 import { MasonryGrid } from "@repo/design-system/components/ui/masonry-grid";
 import { BillableCosts } from "../feature-billable-cost";
-import { ExpenseItem, Locale } from "@/app/types";
-import { useTranslations } from "@/hooks/use-translation";
+import { ExpenseItem } from "@/app/types";
 import { getTranslations } from "@/utils/translations";
+import LoadingView from "../../loading";
+import { AddCard } from "./add-expense-card";
 
 type Props = {
   expenses: ExpenseItem[];
-  locale: Locale;
 };
 
 const DragOverlayWrapper = dynamic(
@@ -53,12 +53,9 @@ const DragOverlayWrapper = dynamic(
   { ssr: false }
 );
 
-export const FeatureHourlyCost = ({
-  expenses: initialExpenses,
-  locale,
-}: Props) => {
-  const t = getTranslations(locale);
-  const [expenses, setExpenses] = useState(initialExpenses);
+export const FeatureHourlyCost = ({ expenses: initialExpenses }: Props) => {
+  const t = getTranslations();
+  const [expenses, setExpenses] = useState<ExpenseItem[]>(initialExpenses);
   const [activeCard, setActiveCard] = useState<ExpenseItem | null>(null);
 
   const sensors = useSensors(
@@ -69,12 +66,12 @@ export const FeatureHourlyCost = ({
     })
   );
 
-  const maxValue = Math.max(...expenses.map((item) => item.value));
+  const maxValue = Math.max(...expenses.map((item) => item.amount));
 
   const cardsId = useMemo(() => expenses.map((item) => item.id), [expenses]);
 
   const totalValue = useMemo(
-    () => expenses.reduce((sum, item) => sum + item.value, 0),
+    () => expenses.reduce((sum, item) => sum + item.amount, 0),
     [expenses]
   );
 
@@ -106,21 +103,23 @@ export const FeatureHourlyCost = ({
   return (
     <Resizable.Group direction="horizontal">
       <Resizable.Panel defaultSize={60} className="hidden md:block">
-        <ScrollArea.Root className="w-full h-[calc(100vh-70px)] rounded-b-lg">
-          <div className="bg-purple-300 text-card-foreground rounded-lg @container">
-            {expenses && expenses.length === 0 ? (
-              <EmptyView locale={locale} />
+        <ScrollArea.Root className="rounded-b-lg">
+          <div className="w-full bg-purple-300 text-card-foreground rounded-lg @container">
+            {!expenses ? (
+              <LoadingView />
+            ) : expenses && expenses.length === 0 ? (
+              <EmptyView />
             ) : (
               <DndContext
                 sensors={sensors}
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
               >
-                <div className="p-2 w-full">
+                <div className="p-2 w-full h-[calc(100vh-125px)] ">
                   <SortableContext items={cardsId}>
                     <MasonryGrid>
                       {expenses.map((expense) => {
-                        const isLarge = expense.value > maxValue * 0.4;
+                        const isLarge = expense.amount > maxValue * 0.4;
 
                         return (
                           <div
@@ -132,13 +131,21 @@ export const FeatureHourlyCost = ({
                             }}
                           >
                             <ItemCard
-                              data={expense}
+                              data={{
+                                ...expense,
+                                currency: t.common["currency-symbol"],
+                                period: t.common.period["per-month"],
+                              }}
                               className="w-full h-full"
-                              // loading={true}
                             />
                           </div>
                         );
                       })}
+                      {Array.from({ length: expenses.length === 1 ? 5 : 1 }).map(
+                        (_, columnIndex: number) => (
+                          <AddCard key={columnIndex} className="h-full min-h-[200px]" />
+                        )
+                      )}
                     </MasonryGrid>
                   </SortableContext>
                 </div>
@@ -147,7 +154,7 @@ export const FeatureHourlyCost = ({
               </DndContext>
             )}
 
-            <div className="sticky bottom-0 flex items-center justify-between w-full rounded-br-md rounded-tl-md col-span-full bg-purple-200 h-14 opacity-95">
+            <div className="mt-auto sticky bottom-0 flex items-center justify-between w-full rounded-br-md rounded-tl-md col-span-full bg-purple-200 h-14 opacity-95">
               <div className="h-full flex">
                 <TabButton isActive>
                   <Icon
@@ -192,7 +199,7 @@ export const FeatureHourlyCost = ({
             <div className="sticky bottom-0 mt-auto flex items-center justify-between w-full rounded-b-md h-14 px-5 py-4 bg-purple-200 opacity-95">
               <p>{t.expenses.billable.total.title}</p>
               <span className="text-2xl font-semibold">
-                {t.common['currency-symbol']} {totalValue.toFixed(2)}
+                {t.common["currency-symbol"]} {totalValue.toFixed(2)}
               </span>
             </div>
           </ScrollArea.Root>

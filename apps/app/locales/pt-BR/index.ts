@@ -27,6 +27,10 @@ export const ptBR: Messages = {
         other: "Outros",
       },
     },
+    period: {
+      "per-month": "mês",
+      "per-year": "ano",
+    },
   },
   navigation: {
     "top-level": {
@@ -44,7 +48,7 @@ export const ptBR: Messages = {
       "add-expense": "Adicionar custo",
     },
     form: {
-      category: "Selecione uma categoria",
+      category: "Selecione categoria",
       name: "Nome do custo",
       value: "Valor do custo",
       period: "por mês",

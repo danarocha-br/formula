@@ -23,3 +23,6 @@ const pool = new Pool({ connectionString: databaseUrl });
 const adapter = new PrismaNeon(pool);
 
 export const database = new PrismaClient({ adapter });
+
+export { PrismaFixedCostExpensesRepository as FixedCostExpensesRepository } from "./repositories/prisma-fixed-cost-expenses";
+export { type IFixedCostExpensesRepository } from "./repositories/dtos/fixed-cost-expenses-repository";

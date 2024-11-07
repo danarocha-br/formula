@@ -16,8 +16,7 @@ const AppLayout = async ({
   const user = await currentUser();
   const { redirectToSignIn } = await auth();
   const betaFeature = await showBetaFeature();
-  const locale = "pt-BR";
-  const t = await getTranslations(locale);
+  const t = await getTranslations();
 
   if (!user) {
     redirectToSignIn();

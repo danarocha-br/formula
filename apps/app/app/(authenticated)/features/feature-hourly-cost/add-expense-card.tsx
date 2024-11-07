@@ -3,7 +3,7 @@ import { cva } from "class-variance-authority";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, SubmitHandler, useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import * as z from "zod";
 import { Icon, iconPath } from "@repo/design-system/components/ui/icon";
 import { Button } from "@repo/design-system/components/ui/button";
@@ -12,10 +12,11 @@ import { Combobox } from "@repo/design-system/components/ui/combobox";
 import { SliderCard } from "@repo/design-system/components/ui/slider-card";
 import { cn } from "@repo/design-system/lib/utils";
 import { useOutsideClick } from "@repo/design-system/hooks/use-outside-click";
-import { CostStatus, Locale } from '../../../types';
-import { FIXED_COST_CATEGORIES } from '../../../constants';
-import { getTranslations } from '@/utils/translations';
 
+import { CostStatus, Locale } from "../../../types";
+import { FIXED_COST_CATEGORIES } from "../../../constants";
+import { getTranslations } from "@/utils/translations";
+import { createFixedExpense } from "./actions";
 
 const card = cva(["relative", "rounded-lg", "transition-all"], {
   variants: {
@@ -98,20 +99,16 @@ const cardButton = cva([
 interface AddCardProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   onClose?: () => void;
   highlight?: boolean;
-  locale: Locale;
+  className?: string;
 }
 
 interface NewExpenseForm {
-  category: ComboboxOption | null;
-  value: number;
-  currency: string;
-  title: string | undefined;
-  period: string;
+  category: ComboboxOption | undefined;
+  amount: number;
+  name: string | undefined;
   status?: CostStatus;
   billing_period?: Date;
 }
-
-
 
 interface ComboboxOption {
   label: string;
@@ -128,46 +125,41 @@ interface SelectOption {
 export const AddCard: React.FC<AddCardProps> = ({
   onClose,
   highlight = false,
-  locale,
+  className
 }) => {
-  const t = getTranslations(locale);
+  const t = getTranslations();
   const [isActive, setIsActive] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
 
   const expenseSchema = z.object({
-    category: z.object({
-      label: z.string(),
-      value: z.string(),
-      slot: z.any().optional(),
-    }, {
+    category: z.object(
+      {
+        label: z.string(),
+        value: z.string(),
+        slot: z.any().optional(),
+      },
+      {
+        required_error: t.validation.form.required,
+        invalid_type_error: t.validation.form.select,
+      }
+    ),
+    amount: z.number({
       required_error: t.validation.form.required,
-      invalid_type_error: t.validation.form.select,
     }),
-    value: z.number({
-      required_error: t.validation.form.required,
-    }),
-    currency: z.string({
-      required_error: t.validation.form.required,
-    }),
-    title: z
+    name: z
       .string({
         required_error: t.validation.form.required,
       })
       .min(1, {
         message: t.validation.form.required,
       }),
-    period: z.string({
-      required_error: t.validation.form.required,
-    }).optional(),
   });
 
   const defaultValues: NewExpenseForm = {
-    category: null,
-    value: 0,
-    currency: t.common['currency-symbol'],
-    title: "",
-    period: "month",
+    name: "",
+    category: undefined,
+    amount: 0,
   };
   const {
     control,
@@ -180,7 +172,18 @@ export const AddCard: React.FC<AddCardProps> = ({
     mode: "onBlur",
   });
 
-  const onSubmit: SubmitHandler<NewExpenseForm> = (data) => console.log(data);
+  async function onSubmit(data: NewExpenseForm) {
+    if (!data.category || !data.name) return;
+    console.log(data);
+    reset(defaultValues);
+    setIsActive(false);
+    onClose?.();
+    await createFixedExpense({
+      category: data.category.value,
+      name: data.name,
+      amount: data.amount,
+    });
+  }
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -238,7 +241,7 @@ export const AddCard: React.FC<AddCardProps> = ({
       <motion.div
         layoutId={`card-add-${id}`}
         ref={ref}
-        className={card({ isActive, highlight })}
+        className={cn(card({ isActive, highlight }), className)}
       >
         {isActive ? (
           <form
@@ -290,7 +293,7 @@ export const AddCard: React.FC<AddCardProps> = ({
               <div className="flex flex-col gap-2">
                 <Controller
                   control={control}
-                  name="title"
+                  name="name"
                   render={({ field }) => (
                     <Input
                       variant="secondary"
@@ -299,8 +302,8 @@ export const AddCard: React.FC<AddCardProps> = ({
                       id={id}
                       {...field}
                       errors={
-                        errors?.title?.message
-                          ? { message: errors.title.message }
+                        errors?.name?.message
+                          ? { message: errors.name.message }
                           : undefined
                       }
                     />
@@ -309,18 +312,19 @@ export const AddCard: React.FC<AddCardProps> = ({
 
                 <Controller
                   control={control}
-                  name="value"
-                  render={({ field: { onChange, ...fieldProps } }) => (
+                  name="amount"
+                  render={({ field }) => (
                     <SliderCard
                       suffix={t.expenses.form.period}
                       currency={t.common["currency-symbol"] + " "}
                       min={1}
                       max={5000}
-                      {...fieldProps}
+                      value={field.value}
+                      onChange={field.onChange}
                       removePaddings
                       errors={
-                        errors?.value?.message
-                          ? { message: errors.value.message }
+                        errors?.amount?.message
+                          ? { message: errors.amount.message }
                           : undefined
                       }
                     />
@@ -328,7 +332,7 @@ export const AddCard: React.FC<AddCardProps> = ({
                 />
 
                 <div className="mt-8">
-                  <Button type='submit' className='whitespace-nowrap'>
+                  <Button type="submit" className="whitespace-nowrap">
                     <Icon name="plus" label="add" color="on-dark" />
                     {t.expenses.actions["add-expense"]}
                   </Button>

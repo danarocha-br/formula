@@ -2,19 +2,19 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-import { Icon, iconPath } from "./icon";
+import { Icon } from "./icon";
 import { Skeleton } from "./skeleton";
-import { cn } from '../../lib/utils';
-import { cva } from 'class-variance-authority';
+import { cn } from "../../lib/utils";
+import { cva } from "class-variance-authority";
 
 type ItemCardProps = {
   data: {
-    id: string;
-    label: string;
-    value: number;
+    id: string | number;
+    name: string;
+    amount: number;
     currency?: string;
-    period: string;
-    category?: keyof typeof iconPath;
+    period?: string | null;
+    category?: string | undefined;
     className?: string;
     isEmpty?: boolean;
   };
@@ -36,11 +36,16 @@ const card = cva([
   "transform-gpu",
 ]);
 
-export const ItemCard = ({ data, loading=false,className, ...props }: ItemCardProps) => {
+export const ItemCard = ({
+  data,
+  loading = false,
+  className,
+  ...props
+}: ItemCardProps) => {
   const {
     id,
-    label,
-    value,
+    name,
+    amount,
     currency = "$",
     period,
     category,
@@ -97,6 +102,7 @@ export const ItemCard = ({ data, loading=false,className, ...props }: ItemCardPr
         !!category && (
           <span className="text-card-foreground flex items-center justify-center bg-froly-100 rounded-[12px] h-10 w-10">
             <Icon
+              // @ts-ignore
               name={category}
               label="category icon"
               size="lg"
@@ -112,17 +118,15 @@ export const ItemCard = ({ data, loading=false,className, ...props }: ItemCardPr
       {!isEmpty && (
         <div className="flex flex-col">
           {!loading ? (
-            <span className="text-muted font-normal truncate">{label}</span>
+            <span className="text-muted font-normal truncate">{name}</span>
           ) : (
             <Skeleton className="h-5 w-1/2" />
           )}
           {!loading ? (
             <p className="text-card-foreground font-medium @[200px]:text-lg @[380px]:text-2xl @[600px]:text-3xl">
               <span>{currency}</span>
-              <span className="mx-1">{value}</span>
-              <span className="text-muted text-md truncate">
-                / {period}
-              </span>
+              <span className="mx-1">{amount}</span>
+              <span className="text-muted text-md truncate">/ {period}</span>
             </p>
           ) : (
             <Skeleton className="h-5 w-full mt-2" />

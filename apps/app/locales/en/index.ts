@@ -25,6 +25,10 @@ export const en = {
         other: "Other",
       },
     },
+    period: {
+      "per-month": "mo",
+      "per-year": "year",
+    }
   },
   navigation: {
     "top-level": {

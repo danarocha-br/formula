@@ -1,10 +1,10 @@
 export type Locale = "en" | "pt-BR";
 export interface ExpenseItem {
-  id: string;
-  label: string;
-  value: number;
-  period: string;
-  category: "energy" | "rental" | "internet" | "transport";
+  id: string | number;
+  name: string;
+  amount: number;
+  category: string;
+  period?: string | null;
   createdAt: Date;
 }
 

@@ -12,10 +12,30 @@ datasource db {
   relationMode = "prisma"
 }
 
-// This is a stub model.
-// Delete it and add your own Prisma models.
-model Page {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+model ExpensesFixedCost {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  name      String
+  amount    Float
+  period    String?
+  category  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@map("expenses-fixed-cost")
+}
+
+model ExpensesBillableCost {
+  id            Int      @id @default(autoincrement())
+  userId        String   @unique
+  workDays      Float
+  billableHours Float
+  holidaysDays  Float
+  vacationsDays Float
+  sickLeaveDays Float
+  monthlySalary Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+
+  @@map("expenses-billabe-cost")
 }

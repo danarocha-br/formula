@@ -1,9 +1,9 @@
-import { database } from "@repo/database";
+import { FixedCostExpensesRepository } from "@repo/database";
 
 import type { Metadata } from "next";
-import type { ReactElement } from "react";
+import { type ReactElement } from "react";
 import { FeatureHourlyCost } from "./features/feature-hourly-cost";
-import { ExpenseItem, Locale } from "../types";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
 const title = "Formula by Compasso";
 const description = "Manage your expenses";
@@ -13,93 +13,23 @@ export const metadata: Metadata = {
   description,
 };
 
-const expenses: ExpenseItem[] = [
-  {
-    id: "1",
-    label: "Energy",
-    value: 400,
-    category: "energy",
-    period: "month",
-    createdAt: new Date(),
-  },
-  {
-    id: "2",
-    label: "Rental",
-    value: 50,
-    category: "rental",
-    period: "month",
-    createdAt: new Date(),
-  },
-  {
-    id: "3",
-    label: "Internet",
-    value: 700,
-    category: "internet",
-    period: "month",
-    createdAt: new Date(),
-  },
-  {
-    id: "4",
-    label: "Energy",
-    value: 80,
-    category: "energy",
-    period: "month",
-    createdAt: new Date(),
-  },
-  {
-    id: "5",
-    label: "Internet",
-    value: 80,
-    category: "internet",
-    period: "month",
-    createdAt: new Date(),
-  },
-  {
-    id: "6",
-    label: "Car",
-    value: 400,
-    category: "transport",
-    period: "month",
-    createdAt: new Date(),
-  },
-  {
-    id: "7",
-    label: "Internet",
-    value: 230,
-    category: "internet",
-    period: "month",
-    createdAt: new Date(),
-  },
-  {
-    id: "8",
-    label: "Internet",
-    value: 40,
-    category: "internet",
-    period: "month",
-    createdAt: new Date(),
-  },
-  {
-    id: "9",
-    label: "Internet",
-    value: 40,
-    category: "internet",
-    period: "month",
-    createdAt: new Date(),
-  },
-  {
-    id: "10",
-    label: "Internet",
-    value: 40,
-    category: "internet",
-    period: "month",
-    createdAt: new Date(),
-  },
-];
-
 const App = async (): Promise<ReactElement> => {
+  const user = await currentUser();
+  const { redirectToSignIn } = await auth();
+
+  if (!user) {
+    redirectToSignIn();
+    throw new Error("User is not authenticated.");
+  }
+
+  const fixedCostExpensesRepository = new FixedCostExpensesRepository();
+  const fixedCostExpenses = await fixedCostExpensesRepository.findByUserId(
+    user.id
+  );
+
   return (
     <main className="pt-2">
-      <FeatureHourlyCost locale={"pt-BR"} expenses={[]} />
+      <FeatureHourlyCost expenses={fixedCostExpenses ?? []} />
     </main>
   );
 };
