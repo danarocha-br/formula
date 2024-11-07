@@ -2,14 +2,14 @@
 
 import { ModeToggle } from '@repo/design-system/components/mode-toggle';
 import { Button } from '@repo/design-system/components/ui/button';
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from '@repo/design-system/components/ui/navigation-menu';
+// import {
+//   NavigationMenu,
+//   NavigationMenuContent,
+//   NavigationMenuItem,
+//   NavigationMenuLink,
+//   NavigationMenuList,
+//   NavigationMenuTrigger,
+// } from '@repo/design-system/components/ui/
 import { appUrl } from '@repo/design-system/lib/consts';
 import { docsUrl } from '@repo/design-system/lib/consts';
 import { Menu, MoveRight, X } from 'lucide-react';
@@ -65,7 +65,7 @@ export const Header = () => {
     <header className="sticky top-0 left-0 z-40 w-full border-b bg-background">
       <div className="container relative mx-auto flex min-h-20 flex-row items-center gap-4 lg:grid lg:grid-cols-3">
         <div className="hidden flex-row items-center justify-start gap-4 lg:flex">
-          <NavigationMenu className="flex items-start justify-start">
+          {/* <NavigationMenu className="flex items-start justify-start">
             <NavigationMenuList className="flex flex-row justify-start gap-4">
               {navigationItems.map((item) => (
                 <NavigationMenuItem key={item.title}>
@@ -114,7 +114,7 @@ export const Header = () => {
                 </NavigationMenuItem>
               ))}
             </NavigationMenuList>
-          </NavigationMenu>
+          </NavigationMenu> */}
         </div>
         <div className="flex items-center gap-2 lg:justify-center">
           <Image

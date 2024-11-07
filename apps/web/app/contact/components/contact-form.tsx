@@ -6,8 +6,6 @@ import { Input } from '@repo/design-system/components/ui/input';
 import { Label } from '@repo/design-system/components/ui/label';
 import {
   Popover,
-  PopoverContent,
-  PopoverTrigger,
 } from '@repo/design-system/components/ui/popover';
 import { cn } from '@repo/design-system/lib/utils';
 import { format } from 'date-fns';
@@ -68,8 +66,8 @@ export const ContactForm = () => {
               <p>Book a meeting</p>
               <div className="grid w-full max-w-sm items-center gap-1">
                 <Label htmlFor="picture">Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
+                <Popover.Root>
+                  <Popover.Trigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
@@ -80,16 +78,16 @@ export const ContactForm = () => {
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {date ? format(date, 'PPP') : <span>Pick a date</span>}
                     </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  </Popover.Trigger>
+                  <Popover.Content className="w-auto p-0">
                     <Calendar
                       mode="single"
                       selected={date}
                       onSelect={setDate}
                       initialFocus
                     />
-                  </PopoverContent>
-                </Popover>
+                  </Popover.Content>
+                </Popover.Root>
               </div>
               <div className="grid w-full max-w-sm items-center gap-1">
                 <Label htmlFor="firstname">First name</Label>

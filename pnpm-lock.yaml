@@ -176,12 +176,6 @@ importers:
         specifier: ^2.1.4
         version: 2.1.4(@types/node@22.8.7)(jsdom@25.0.1)
 
-  apps/docs:
-    devDependencies:
-      typescript:
-        specifier: ^5.6.3
-        version: 5.6.3
-
   apps/email:
     dependencies:
       '@react-email/components':
@@ -10386,7 +10380,7 @@ packages:
       whatwg-encoding: 3.1.1
       whatwg-mimetype: 4.0.0
       whatwg-url: 14.0.0
-      ws: 8.18.0
+      ws: 8.18.0(bufferutil@4.0.8)
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - bufferutil
@@ -15069,19 +15063,6 @@ packages:
         optional: true
     dev: false
 
-  /ws@8.18.0:
-    resolution: {integrity: sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: '>=5.0.2'
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
-    dev: true
-
   /ws@8.18.0(bufferutil@4.0.8):
     resolution: {integrity: sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==}
     engines: {node: '>=10.0.0'}
@@ -15095,7 +15076,6 @@ packages:
         optional: true
     dependencies:
       bufferutil: 4.0.8
-    dev: false
 
   /xml-name-validator@5.0.0:
     resolution: {integrity: sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg==}

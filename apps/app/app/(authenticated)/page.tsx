@@ -96,7 +96,7 @@ const expenses: ExpenseItem[] = [
   },
 ];
 
-const App = async ({ locale }: { locale: Locale }): Promise<ReactElement> => {
+const App = async (): Promise<ReactElement> => {
   return (
     <main className="pt-2">
       <FeatureHourlyCost locale={"pt-BR"} expenses={[]} />
