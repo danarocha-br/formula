@@ -46,16 +46,73 @@ export const config: NextConfig = withVercelToolbar()({
 
   // biome-ignore lint/suspicious/useAwait: headers is async
   async headers() {
+    const apiPathPattern =
+      process.env.NEXT_PUBLIC_API_URL?.replace(/^https?:\/\/[^\/]+/, "") ||
+      "/api/:path*";
+
+    const isDevelopment = process.env.NODE_ENV === "development";
+
     return [
       {
         source: "/(.*)",
-        headers: createSecureHeaders({
-          // HSTS Preload: https://hstspreload.org/
-          forceHTTPSRedirect: [
-            true,
-            { maxAge: 63_072_000, includeSubDomains: true, preload: true },
-          ],
-        }),
+        headers: [
+          ...createSecureHeaders({
+            forceHTTPSRedirect: [
+              true,
+              { maxAge: 63_072_000, includeSubDomains: true, preload: true },
+            ],
+          }),
+          {
+            key: "Access-Control-Allow-Origin",
+            value: isDevelopment
+              ? "http://localhost:3002"
+              : process.env.NEXT_PUBLIC_API_URL || "",
+          },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET,OPTIONS,PATCH,DELETE,POST,PUT",
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value:
+              "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization",
+          },
+          {
+            key: "Access-Control-Allow-Credentials",
+            value: "true",
+          },
+        ],
+      },
+      {
+        source: apiPathPattern,
+        headers: [
+          ...createSecureHeaders({
+            forceHTTPSRedirect: [
+              true,
+              { maxAge: 63_072_000, includeSubDomains: true, preload: true },
+            ],
+          }),
+          // Add CORS headers
+          {
+            key: "Access-Control-Allow-Origin",
+            value: isDevelopment
+              ? "http://localhost:3000"
+              : process.env.NEXT_PUBLIC_APP_URL || "",
+          },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET,OPTIONS,PATCH,DELETE,POST,PUT",
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value:
+              "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization",
+          },
+          {
+            key: "Access-Control-Allow-Credentials",
+            value: "true",
+          },
+        ],
       },
     ];
   },

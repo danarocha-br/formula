@@ -4,8 +4,8 @@ import { Badge } from '@repo/design-system/components/ui/badge';
 import { Heading } from '@repo/design-system/components/ui/heading';
 import { SliderCard } from '@repo/design-system/components/ui/slider-card';
 import { List } from '@repo/design-system/components/ui/list';
-import { ListItem } from '../../components/list-item';
 import { getTranslations } from '@/utils/translations';
+import { ListItem } from '@/app/(authenticated)/components/list-item';
 
 
 type BillableCostsForm = {

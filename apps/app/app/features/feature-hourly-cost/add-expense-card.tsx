@@ -1,6 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { cva } from "class-variance-authority";
-
 import { AnimatePresence, motion } from "framer-motion";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
@@ -13,22 +12,16 @@ import { SliderCard } from "@repo/design-system/components/ui/slider-card";
 import { cn } from "@repo/design-system/lib/utils";
 import { useOutsideClick } from "@repo/design-system/hooks/use-outside-click";
 
-import { CostStatus, Locale } from "../../../types";
-import { FIXED_COST_CATEGORIES } from "../../../constants";
 import { getTranslations } from "@/utils/translations";
-import { createFixedExpense } from "./actions";
+import { CostStatus } from "@/app/types";
+import { FIXED_COST_CATEGORIES } from "@/app/constants";
+import { useCreateFixedExpenses } from "./server/create-fixed-expenses";
 
 const card = cva(["relative", "rounded-lg", "transition-all"], {
   variants: {
     isActive: {
       true: ["bg-card", "hover:bg-card", "h-[394px]", "shadow-lg"],
-      false: [
-        "h-48",
-        "hover:border-2",
-        "border-purple-200/80",
-        "border-dashed",
-        "border-neutral-300",
-      ],
+      false: ["h-48", "hover:border-2", "border-dashed", "border-white/30"],
     },
     highlight: {
       true: [],
@@ -97,9 +90,10 @@ const cardButton = cva([
 ]);
 
 interface AddCardProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  onClose?: () => void;
   highlight?: boolean;
   className?: string;
+  userId: string;
+  rankIndex: number;
 }
 
 interface NewExpenseForm {
@@ -123,9 +117,10 @@ interface SelectOption {
 }
 
 export const AddCard: React.FC<AddCardProps> = ({
-  onClose,
   highlight = false,
-  className
+  className,
+  userId,
+  rankIndex,
 }) => {
   const t = getTranslations();
   const [isActive, setIsActive] = useState(false);
@@ -172,16 +167,20 @@ export const AddCard: React.FC<AddCardProps> = ({
     mode: "onBlur",
   });
 
+  const { mutate: createFixedExpense } = useCreateFixedExpenses();
   async function onSubmit(data: NewExpenseForm) {
     if (!data.category || !data.name) return;
-    console.log(data);
     reset(defaultValues);
     setIsActive(false);
-    onClose?.();
-    await createFixedExpense({
-      category: data.category.value,
-      name: data.name,
-      amount: data.amount,
+
+    createFixedExpense({
+      json: {
+        name: data.name,
+        amount: data.amount,
+        category: data.category.value,
+        userId,
+        rank: rankIndex,
+      },
     });
   }
 
@@ -189,7 +188,6 @@ export const AddCard: React.FC<AddCardProps> = ({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setIsActive(false);
-        onClose?.();
       }
     };
 
@@ -201,7 +199,7 @@ export const AddCard: React.FC<AddCardProps> = ({
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isActive, onClose]);
+  }, [isActive]);
 
   useOutsideClick(ref, (event: MouseEvent) => {
     reset(defaultValues);
@@ -213,7 +211,6 @@ export const AddCard: React.FC<AddCardProps> = ({
 
     if (!isComboboxElement) {
       setIsActive(false);
-      onClose?.();
     }
   });
 
@@ -278,7 +275,6 @@ export const AddCard: React.FC<AddCardProps> = ({
                 className={closeButton()}
                 onClick={() => {
                   setIsActive(false);
-                  onClose?.();
                 }}
               >
                 <Icon

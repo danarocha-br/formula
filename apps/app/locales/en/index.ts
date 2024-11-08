@@ -28,7 +28,7 @@ export const en = {
     period: {
       "per-month": "mo",
       "per-year": "year",
-    }
+    },
   },
   navigation: {
     "top-level": {
@@ -77,14 +77,22 @@ export const en = {
       },
       total: {
         title: "Your total expenses are",
-      }
+      },
     },
   },
   validation: {
     form: {
       select: "Please select an item.",
       required: "This field is required.",
-    }
+    },
+    error: {
+      unauthorized: "You are not authorized to perform this action.",
+      "not-found": "Resource not found.",
+      "create-failed": "Oops! We couldn't create the item. Let's try again!",
+      "update-failed": "Oops! We couldn't update the item(s). Let's try again!",
+      "list-update-failed":
+        "Oops! We couldn't update your list. Let's try again!",
+    },
   },
   auth: {
     signIn: "Sign In",

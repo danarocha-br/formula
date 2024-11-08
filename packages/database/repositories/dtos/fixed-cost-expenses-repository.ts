@@ -4,13 +4,13 @@ export interface IFixedCostExpensesRepository {
   create(data: Prisma.ExpensesFixedCostCreateInput): Promise<ExpensesFixedCost>;
   findById(
     userId: string,
-    id: number
+    id: string
   ): Promise<ExpensesFixedCost | null>;
   findByUserId(userId: string): Promise<ExpensesFixedCost[] | null>;
   update(
     userId: string,
-    id: number,
+    id: string,
     data: Prisma.ExpensesFixedCostUncheckedUpdateInput
   ): Promise<ExpensesFixedCost | null>;
-  delete(userId: string, id: number): Promise<void>;
+  delete(userId: string, id: string): Promise<void>;
 }

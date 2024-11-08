@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
@@ -15,6 +16,7 @@ type ItemCardProps = {
     currency?: string;
     period?: string | null;
     category?: string | undefined;
+    color?: string;
     className?: string;
     isEmpty?: boolean;
   };
@@ -40,8 +42,11 @@ export const ItemCard = ({
   data,
   loading = false,
   className,
+
   ...props
 }: ItemCardProps) => {
+  const [isMounted, setIsMounted] = useState(false);
+
   const {
     id,
     name,
@@ -50,6 +55,7 @@ export const ItemCard = ({
     period,
     category,
     isEmpty = false,
+    color = "bg-froly-100",
   } = data;
   const {
     setNodeRef,
@@ -59,19 +65,23 @@ export const ItemCard = ({
     transition,
     isDragging,
   } = useSortable({
-    id,
+    id: data.id,
     data: {
       type: "card",
       data,
     },
   });
 
-  const style = {
-    transition,
-    transform: CSS.Transform.toString(transform),
-    // "--translate-x": transform ? `${transform.x}px` : "0",
-    // "--translate-y": transform ? `${transform.y}px` : "0",
-  } as React.CSSProperties;
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const style: React.CSSProperties = isMounted
+    ? {
+        transition: transition || undefined,
+        transform: transform ? CSS.Transform.toString(transform) : undefined,
+      }
+    : {};
 
   if (isDragging) {
     return (
@@ -88,8 +98,12 @@ export const ItemCard = ({
     );
   }
 
+  if (!isMounted) {
+    return;
+  }
+
   return (
-    <div
+    <button
       ref={setNodeRef}
       {...listeners}
       {...attributes}
@@ -100,7 +114,12 @@ export const ItemCard = ({
       {!loading ? (
         !isEmpty &&
         !!category && (
-          <span className="text-card-foreground flex items-center justify-center bg-froly-100 rounded-[12px] h-10 w-10">
+          <span
+            className={cn(
+              "text-card-foreground flex items-center justify-center rounded-[12px] h-10 w-10",
+              color
+            )}
+          >
             <Icon
               // @ts-ignore
               name={category}
@@ -116,11 +135,11 @@ export const ItemCard = ({
       )}
 
       {!isEmpty && (
-        <div className="flex flex-col">
+        <div className="flex flex-col items-start w-full">
           {!loading ? (
             <span className="text-muted font-normal truncate">{name}</span>
           ) : (
-            <Skeleton className="h-5 w-1/2" />
+            <Skeleton className="h-6 w-1/2" />
           )}
           {!loading ? (
             <p className="text-card-foreground font-medium @[200px]:text-lg @[380px]:text-2xl @[600px]:text-3xl">
@@ -129,10 +148,10 @@ export const ItemCard = ({
               <span className="text-muted text-md truncate">/ {period}</span>
             </p>
           ) : (
-            <Skeleton className="h-5 w-full mt-2" />
+            <Skeleton className="h-6 w-full mt-2" />
           )}
         </div>
       )}
-    </div>
+    </button>
   );
 };

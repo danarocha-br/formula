@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useToast } from "@repo/design-system/hooks/use-toast"
+import { useToast } from "@repo/design-system/hooks/use-toast";
 import {
   Toast,
   ToastClose,
@@ -8,10 +8,11 @@ import {
   ToastProvider,
   ToastTitle,
   ToastViewport,
-} from "@repo/design-system/components/ui/toast"
+} from "@repo/design-system/components/ui/toast";
+import { Icon } from "./icon";
 
 export function Toaster() {
-  const { toasts } = useToast()
+  const { toasts } = useToast();
 
   return (
     <ToastProvider>
@@ -19,7 +20,15 @@ export function Toaster() {
         return (
           <Toast key={id} {...props}>
             <div className="grid gap-1">
-              {title && <ToastTitle>{title}</ToastTitle>}
+              <div className='flex gap-2'>
+                {props.variant === "destructive" ? (
+                  <i>
+                    <Icon name="alert" label="error" color='on-dark' />
+                  </i>
+                ) : null}
+
+                {title && <ToastTitle>{title}</ToastTitle>}
+              </div>
               {description && (
                 <ToastDescription>{description}</ToastDescription>
               )}
@@ -27,9 +36,9 @@ export function Toaster() {
             {action}
             <ToastClose />
           </Toast>
-        )
+        );
       })}
       <ToastViewport />
     </ToastProvider>
-  )
+  );
 }

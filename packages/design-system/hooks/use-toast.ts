@@ -9,7 +9,7 @@ import type {
 } from "@repo/design-system/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_REMOVE_DELAY = 100000
 
 type ToasterToast = ToastProps & {
   id: string

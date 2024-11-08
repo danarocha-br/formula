@@ -16,12 +16,12 @@ export class PrismaFixedCostExpensesRepository
 
   async findById(
     userId: string,
-    id: number
+    id: string
   ): Promise<ExpensesFixedCost | null> {
     const expense = await database.expensesFixedCost.findUnique({
       where: {
         userId: userId,
-        id,
+        id: Number(id),
       },
     });
 
@@ -72,13 +72,13 @@ export class PrismaFixedCostExpensesRepository
 
   async update(
     userId: string,
-    id: number,
+    id: string ,
     data: Prisma.ExpensesFixedCostUncheckedUpdateInput
   ): Promise<ExpensesFixedCost> {
     const expense = await database.expensesFixedCost.update({
       where: {
         userId,
-        id,
+        id: Number(id),
       },
       data,
     });
@@ -94,11 +94,11 @@ export class PrismaFixedCostExpensesRepository
    * @returns {Promise<void>} Nothing.
    */
 
-  async delete(userId: string, id: number): Promise<void> {
+  async delete(userId: string, id: string): Promise<void> {
     await database.expensesFixedCost.delete({
       where: {
         userId,
-        id,
+        id: Number(id),
       },
     });
   }

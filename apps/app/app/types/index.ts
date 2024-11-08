@@ -1,11 +1,14 @@
 export type Locale = "en" | "pt-BR";
 export interface ExpenseItem {
-  id: string | number;
   name: string;
+  userId: string;
+  id: number;
   amount: number;
+  rank: number;
+  period: string | null;
   category: string;
-  period?: string | null;
-  createdAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type FixedCostCategory =

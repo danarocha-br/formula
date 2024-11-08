@@ -1,9 +1,7 @@
-import { FixedCostExpensesRepository } from "@repo/database";
-
 import type { Metadata } from "next";
 import { type ReactElement } from "react";
-import { FeatureHourlyCost } from "./features/feature-hourly-cost";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { FeatureHourlyCost } from "../features/feature-hourly-cost";
 
 const title = "Formula by Compasso";
 const description = "Manage your expenses";
@@ -22,14 +20,9 @@ const App = async (): Promise<ReactElement> => {
     throw new Error("User is not authenticated.");
   }
 
-  const fixedCostExpensesRepository = new FixedCostExpensesRepository();
-  const fixedCostExpenses = await fixedCostExpensesRepository.findByUserId(
-    user.id
-  );
-
   return (
     <main className="pt-2">
-      <FeatureHourlyCost expenses={fixedCostExpenses ?? []} />
+      <FeatureHourlyCost userId={user.id} />
     </main>
   );
 };

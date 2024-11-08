@@ -1,11 +1,12 @@
-import { GoogleAnalytics } from '@next/third-parties/google';
-import { Analytics as VercelAnalytics } from '@vercel/analytics/react';
-import { VercelToolbar } from '@vercel/toolbar/next';
-import type { ThemeProviderProps } from 'next-themes/dist/types';
-import { Toaster } from '../components/ui/sonner';
-import { TooltipProvider } from '../components/ui/tooltip';
-import { PostHogProvider } from './posthog';
-import { ThemeProvider } from './theme';
+import { GoogleAnalytics } from "@next/third-parties/google";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
+import { VercelToolbar } from "@vercel/toolbar/next";
+import type { ThemeProviderProps } from "next-themes/dist/types";
+// import { Toaster } from '../components/ui/sonner';
+import { TooltipProvider } from "../components/ui/tooltip";
+import { Toaster } from "../components/ui/toaster";
+import { PostHogProvider } from "./posthog";
+import { ThemeProvider } from "./theme";
 
 const gaMeasurementId = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 
@@ -22,6 +23,6 @@ export const DesignSystemProvider = ({
     <Toaster />
     <VercelAnalytics />
     {gaMeasurementId && <GoogleAnalytics gaId={gaMeasurementId} />}
-    {process.env.NODE_ENV === 'development' && <VercelToolbar />}
+    {process.env.NODE_ENV === "development" && <VercelToolbar />}
   </PostHogProvider>
 );

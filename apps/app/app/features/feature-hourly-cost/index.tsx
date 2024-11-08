@@ -1,10 +1,11 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { ItemCard } from "@repo/design-system/components/ui/item-card";
 import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
 import { Resizable } from "@repo/design-system/components/ui/resizable-panel";
 import { TabButton } from "@repo/design-system/components/ui/tab-button";
+import { useToast } from "@repo/design-system/hooks/use-toast";
 
 import {
   DndContext,
@@ -24,17 +25,28 @@ import { MasonryGrid } from "@repo/design-system/components/ui/masonry-grid";
 import { BillableCosts } from "../feature-billable-cost";
 import { ExpenseItem } from "@/app/types";
 import { getTranslations } from "@/utils/translations";
-import LoadingView from "../../loading";
 import { AddCard } from "./add-expense-card";
+import { useGetFixedExpenses } from "./server/get-fixed-expenses";
+import { LoadingView } from "./loading-view";
+import { useUpdateFixedExpense } from "./server/update-fixed-expense";
+import { ToastAction } from "@repo/design-system/components/ui/toast";
 
 type Props = {
-  expenses: ExpenseItem[];
+  userId: string;
 };
 
 const DragOverlayWrapper = dynamic(
   () =>
-    Promise.resolve(({ activeCard }: { activeCard: ExpenseItem | null }) =>
-      createPortal(
+    Promise.resolve(({ activeCard }: { activeCard: ExpenseItem | null }) => {
+      const [mounted, setMounted] = useState(false);
+
+      useEffect(() => {
+        setMounted(true);
+      }, []);
+
+      if (!mounted) return null;
+
+      return createPortal(
         <DragOverlay>
           {activeCard && (
             <div
@@ -48,15 +60,27 @@ const DragOverlayWrapper = dynamic(
           )}
         </DragOverlay>,
         document.body
-      )
-    ),
+      );
+    }),
   { ssr: false }
 );
 
-export const FeatureHourlyCost = ({ expenses: initialExpenses }: Props) => {
+export const FeatureHourlyCost = ({ userId }: Props) => {
   const t = getTranslations();
-  const [expenses, setExpenses] = useState<ExpenseItem[]>(initialExpenses);
+  const { data: initialExpenses, isLoading: isLoadingExpenses } =
+    useGetFixedExpenses({ userId });
+  const { mutate: updateExpense } = useUpdateFixedExpense();
+
   const [activeCard, setActiveCard] = useState<ExpenseItem | null>(null);
+  const [expenses, setExpenses] = useState<ExpenseItem[] | []>([]);
+
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (initialExpenses) {
+      setExpenses(initialExpenses);
+    }
+  }, [initialExpenses]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -66,7 +90,10 @@ export const FeatureHourlyCost = ({ expenses: initialExpenses }: Props) => {
     })
   );
 
-  const maxValue = Math.max(...expenses.map((item) => item.amount));
+  const maxValue = useMemo(
+    () => Math.max(...expenses.map((item) => item.amount)),
+    [expenses]
+  );
 
   const cardsId = useMemo(() => expenses.map((item) => item.id), [expenses]);
 
@@ -95,27 +122,67 @@ export const FeatureHourlyCost = ({ expenses: initialExpenses }: Props) => {
         (expense) => expense.id === active.id
       );
       const overIndex = expenses.findIndex((expense) => expense.id === over.id);
+      const newExpenses = arrayMove(expenses, activeIndex, overIndex);
 
-      return arrayMove(expenses, activeIndex, overIndex);
+      let hasShownError = false;
+
+      Promise.all(
+        newExpenses.map((expense, index) =>
+          updateExpense(
+            {
+              json: {
+                rank: index,
+                userId,
+              },
+              param: { id: expense.id.toString() },
+            },
+            {
+              onError: () => {
+                if (!hasShownError) {
+                  toast({
+                    title: t.validation.error["update-failed"],
+                    variant: "destructive",
+                  });
+                  hasShownError = true;
+                }
+              },
+            }
+          )
+        )
+      );
+
+      return newExpenses;
     });
   }
 
+  useEffect(() => {
+    if (initialExpenses) {
+      const sortedExpenses = [...initialExpenses].sort(
+        (a, b) => (a.rank ?? 0) - (b.rank ?? 0)
+      );
+      setExpenses(sortedExpenses);
+    }
+  }, [initialExpenses]);
+
   return (
     <Resizable.Group direction="horizontal">
-      <Resizable.Panel defaultSize={60} className="hidden md:block">
+      <Resizable.Panel
+        defaultSize={60}
+        className="hidden md:block bg-purple-300 rounded-lg"
+      >
         <ScrollArea.Root className="rounded-b-lg">
-          <div className="w-full bg-purple-300 text-card-foreground rounded-lg @container">
-            {!expenses ? (
+          <div className="w-full text-card-foreground @container h-[calc(100vh-72px)]">
+            {isLoadingExpenses ? (
               <LoadingView />
             ) : expenses && expenses.length === 0 ? (
-              <EmptyView />
+              <EmptyView userId={userId} />
             ) : (
               <DndContext
                 sensors={sensors}
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
               >
-                <div className="p-2 w-full h-[calc(100vh-125px)] ">
+                <div className="p-2 w-full h-dvh">
                   <SortableContext items={cardsId}>
                     <MasonryGrid>
                       {expenses.map((expense) => {
@@ -136,16 +203,18 @@ export const FeatureHourlyCost = ({ expenses: initialExpenses }: Props) => {
                                 currency: t.common["currency-symbol"],
                                 period: t.common.period["per-month"],
                               }}
+                              loading={isLoadingExpenses}
                               className="w-full h-full"
                             />
                           </div>
                         );
                       })}
-                      {Array.from({ length: expenses.length === 1 ? 5 : 1 }).map(
-                        (_, columnIndex: number) => (
-                          <AddCard key={columnIndex} className="h-full min-h-[200px]" />
-                        )
-                      )}
+
+                      <AddCard
+                        className="h-full "
+                        userId={userId}
+                        rankIndex={expenses.length + 1}
+                      />
                     </MasonryGrid>
                   </SortableContext>
                 </div>

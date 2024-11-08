@@ -2,9 +2,9 @@ import { MasonryGrid } from "@repo/design-system/components/ui/masonry-grid";
 
 import { ItemCard } from "@repo/design-system/components/ui/item-card";
 
-export const EmptyView = () => {
+export const LoadingView = () => {
   return (
-    <div className="p-6 mb-10 relative">
+    <div className="p-6 mb-10 relative h-dvh">
       <MasonryGrid>
         {Array.from({ length: 9 }).map((_, columnIndex: number) => (
           <ItemCard

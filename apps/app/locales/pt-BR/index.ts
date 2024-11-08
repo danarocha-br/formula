@@ -86,7 +86,14 @@ export const ptBR: Messages = {
     form: {
       select: "Por favor, selecione um item.",
       required: "Este campo é obrigatório.",
-    }
+    },
+    error: {
+      unauthorized: "Voce não tem permissão para realizar essa operação.",
+      "not-found": "Item não encontrado.",
+      "create-failed": "Ops! Não conseguimos criar o item. Tente novamente!",
+      "update-failed": "Ops! Não conseguimos atualizar o item(s). Tente novamente!",
+      "list-update-failed": "Oops! Não conseguimos atualizar sua lista. Tente novamente!",
+    },
   },
   auth: {
     signIn: "Entrar",

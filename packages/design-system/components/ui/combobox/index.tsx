@@ -18,9 +18,9 @@ import { IconButton } from "../icon-button";
 import * as S from "./styles";
 
 type SelectOption = {
-   label: string;
-   value: string;
-   slot?: React.ReactNode;
+  label: string;
+  value: string;
+  slot?: React.ReactNode;
 };
 
 export type ComboboxProps = {
@@ -133,6 +133,10 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
 
       if (onChange) {
         onChange(newValue);
+      }
+
+      if (!isMulti) {
+        setOpenCombobox(false);
       }
     };
 

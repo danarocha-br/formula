@@ -15,6 +15,7 @@ datasource db {
 model ExpensesFixedCost {
   id        Int      @id @default(autoincrement())
   userId    String
+  rank      Int      @default(0)
   name      String
   amount    Float
   period    String?
