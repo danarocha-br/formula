@@ -4,7 +4,7 @@ import { ItemCard } from "@repo/design-system/components/ui/item-card";
 
 export const LoadingView = () => {
   return (
-    <div className="p-6 mb-10 relative h-dvh">
+    <div className="p-6 mb-10 relative min-h-dvh">
       <MasonryGrid>
         {Array.from({ length: 9 }).map((_, columnIndex: number) => (
           <ItemCard

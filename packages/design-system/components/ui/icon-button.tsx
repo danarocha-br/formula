@@ -5,7 +5,7 @@ import { cn } from "../../lib/utils";
 
 const button = cva(
   [
-    "bg-action-color-background-transparent-enabled",
+    "bg-neutral-100/50",
     "flex",
     "items-center",
     "justify-center",
@@ -16,11 +16,11 @@ const button = cva(
     "transition-all",
     "leading-none",
 
-    "hover:bg-action-color-background-transparent-hover",
+    "hover:bg-neutral-100",
 
     "focus:outline-2",
     "focus:outline-offset-2",
-    "focus:outline-action-color-background-transparent-hover",
+    "focus:outline-neutral-100",
 
     "aria-disabled:opacity-60",
     "aria-disabled:cursor-not-allowed",
@@ -31,8 +31,8 @@ const button = cva(
     variants: {
       size: {
         xs: ["w-[22px]", "h-[22px]", "p-0", "rounded-sm"],
-        sm: ["w-[28px]", "h-[28px]", "p-0", "rounded-sm"],
-        md: ["w-[40px]", "h-[40px]", "p-0", "rounded-md"],
+        sm: ["w-[28px]", "h-[28px]", "p-0", "rounded-[12px]"],
+        md: ["w-[40px]", "h-[40px]", "p-0", "rounded-lg"],
       },
 
       variant: {

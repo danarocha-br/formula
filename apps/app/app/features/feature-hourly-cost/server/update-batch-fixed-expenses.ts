@@ -4,25 +4,22 @@ import { client } from "@repo/design-system/lib/rpc";
 import { getTranslations } from "@/utils/translations";
 
 type ResponseType = InferResponseType<
-  (typeof client.api.expenses)["fixed-costs"][":id"]["$patch"],
+  (typeof client.api.expenses)["fixed-costs"]["$put"],
   200
 >;
 type RequestType = InferRequestType<
-  (typeof client.api.expenses)["fixed-costs"][":id"]["$patch"]
+  (typeof client.api.expenses)["fixed-costs"]["$put"]
 >;
 
-export const useUpdateFixedExpense = () => {
+export const useUpdateBatchFixedExpense = () => {
   const queryClient = useQueryClient();
   const t = getTranslations();
 
   const mutation = useMutation<ResponseType, Error, RequestType>({
-    mutationFn: async ({ json, param: { id } }) => {
+    mutationFn: async ({ json }) => {
       try {
-        const response = await client.api.expenses["fixed-costs"][":id"][
-          "$patch"
-        ]({
+        const response = await client.api.expenses["fixed-costs"]["$put"]({
           json,
-          param: { id },
         });
 
         const data = await response.json();

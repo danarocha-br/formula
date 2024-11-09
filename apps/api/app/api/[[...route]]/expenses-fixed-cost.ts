@@ -20,6 +20,21 @@ const updateExpenseSchema = z.object({
   rank: z.number().optional(),
 });
 
+const updateExpensesSchema = z.object({
+  userId: z.string(),
+  updates: z.array(
+    z.object({
+      id: z.number(),
+      data: z.object({
+        category: z.string().optional(),
+        amount: z.number().optional(),
+        name: z.string().min(1).optional(),
+        rank: z.number().optional(),
+      }),
+    })
+  ),
+});
+
 export const expensesFixedCosts = new Hono()
   .get(
     "/fixed-costs",
@@ -35,7 +50,7 @@ export const expensesFixedCosts = new Hono()
       return c.json({ status: 200, success: true, data: fixedCostExpenses });
     }
   )
-  .put(
+  .patch(
     "/fixed-costs/:id",
     zValidator("json", updateExpenseSchema),
     async (c) => {
@@ -71,6 +86,32 @@ export const expensesFixedCosts = new Hono()
       }
     }
   )
+  .put("/fixed-costs", zValidator("json", updateExpensesSchema), async (c) => {
+    const { updates, userId } = c.req.valid("json");
+    try {
+      if (!userId) {
+        throw new Error("Unauthorized");
+      }
+
+      const repository = new PrismaFixedCostExpensesRepository();
+
+      const updatedExpenses = await repository.updateBatch(userId, updates);
+
+      return c.json({
+        status: 201,
+        success: true,
+        data: updatedExpenses,
+      });
+    } catch (error) {
+      console.error("Failed to update fixed expense:", error);
+      return c.json({
+        status: 400,
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to update expense",
+      });
+    }
+  })
   .post("/fixed-costs", zValidator("json", createExpenseSchema), async (c) => {
     const { name, amount, category, userId } = c.req.valid("json");
     try {

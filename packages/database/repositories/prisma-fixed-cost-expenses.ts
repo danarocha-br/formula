@@ -72,7 +72,7 @@ export class PrismaFixedCostExpensesRepository
 
   async update(
     userId: string,
-    id: string ,
+    id: string,
     data: Prisma.ExpensesFixedCostUncheckedUpdateInput
   ): Promise<ExpensesFixedCost> {
     const expense = await database.expensesFixedCost.update({
@@ -84,6 +84,35 @@ export class PrismaFixedCostExpensesRepository
     });
 
     return expense;
+  }
+
+  /**
+   * Updates multiple fixed cost expenses in a single transaction.
+   *
+   * @param {string} userId The ID of the user that owns the expenses.
+   * @param {Array<{id: number, data: Prisma.ExpensesFixedCostUncheckedUpdateInput}>} updates An array of objects. Each object should contain the ID of the expense to update and the data to update it with.
+   * @returns {Promise<Array<ExpensesFixedCost>>} A promise that resolves to an array of the updated expenses.
+   */
+  async updateBatch(
+    userId: string,
+    updates: Array<{
+      id: number;
+      data: Prisma.ExpensesFixedCostUncheckedUpdateInput;
+    }>
+  ): Promise<Array<ExpensesFixedCost>> {
+    const transaction = await database.$transaction(
+      updates.map(({ id, data }) =>
+        database.expensesFixedCost.update({
+          where: {
+            userId,
+            id,
+          },
+          data,
+        })
+      )
+    );
+
+    return transaction;
   }
 
   /**

@@ -29,7 +29,8 @@ import { AddCard } from "./add-expense-card";
 import { useGetFixedExpenses } from "./server/get-fixed-expenses";
 import { LoadingView } from "./loading-view";
 import { useUpdateFixedExpense } from "./server/update-fixed-expense";
-import { ToastAction } from "@repo/design-system/components/ui/toast";
+import { FIXED_COST_CATEGORIES } from "@/app/constants";
+import { useUpdateBatchFixedExpense } from "./server/update-batch-fixed-expenses";
 
 type Props = {
   userId: string;
@@ -70,11 +71,27 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
   const { data: initialExpenses, isLoading: isLoadingExpenses } =
     useGetFixedExpenses({ userId });
   const { mutate: updateExpense } = useUpdateFixedExpense();
+  const { mutate: updateBatchExpenses } = useUpdateBatchFixedExpense();
 
   const [activeCard, setActiveCard] = useState<ExpenseItem | null>(null);
   const [expenses, setExpenses] = useState<ExpenseItem[] | []>([]);
 
   const { toast } = useToast();
+
+  const getExpenseCategoryColor = useMemo(
+    () => (category: string) => {
+      const normalizedCategory = category?.toLowerCase().trim();
+
+      const matchingCategory = FIXED_COST_CATEGORIES.find(
+        (item) =>
+          item.value.toLowerCase().includes(normalizedCategory) ||
+          normalizedCategory.includes(item.value.toLowerCase())
+      );
+
+      return matchingCategory?.color ?? "bg-neutral-100";
+    },
+    []
+  );
 
   useEffect(() => {
     if (initialExpenses) {
@@ -126,29 +143,24 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
 
       let hasShownError = false;
 
-      Promise.all(
-        newExpenses.map((expense, index) =>
-          updateExpense(
-            {
-              json: {
-                rank: index,
-                userId,
-              },
-              param: { id: expense.id.toString() },
-            },
-            {
-              onError: () => {
-                if (!hasShownError) {
-                  toast({
-                    title: t.validation.error["update-failed"],
-                    variant: "destructive",
-                  });
-                  hasShownError = true;
-                }
-              },
-            }
-          )
-        )
+      updateBatchExpenses(
+        {
+          json: {
+            updates: newExpenses.map((expense, index) => ({
+              id: expense.id,
+              data: { rank: index },
+            })),
+            userId,
+          },
+        },
+        {
+          onError: () => {
+            toast({
+              title: t.validation.error["update-failed"],
+              variant: "destructive",
+            });
+          },
+        }
       );
 
       return newExpenses;
@@ -182,7 +194,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
               >
-                <div className="p-2 w-full h-dvh">
+                <div className="p-2 w-full min-h-dvh">
                   <SortableContext items={cardsId}>
                     <MasonryGrid>
                       {expenses.map((expense) => {
@@ -202,6 +214,9 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
                                 ...expense,
                                 currency: t.common["currency-symbol"],
                                 period: t.common.period["per-month"],
+                                color: getExpenseCategoryColor(
+                                  expense.category
+                                ),
                               }}
                               loading={isLoadingExpenses}
                               className="w-full h-full"

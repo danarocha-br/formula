@@ -7,6 +7,10 @@ import { Icon } from "./icon";
 import { Skeleton } from "./skeleton";
 import { cn } from "../../lib/utils";
 import { cva } from "class-variance-authority";
+import { IconButton } from "./icon-button";
+import { Dropdown } from "./dropdown-menu";
+import { DeleteIcon } from "./animated-icon/delete";
+import { EditIcon } from "./animated-icon/edit";
 
 type ItemCardProps = {
   data: {
@@ -22,6 +26,10 @@ type ItemCardProps = {
   };
   loading?: boolean;
   className?: string;
+  actionEditLabel?: string;
+  actionDeleteLabel?: string;
+  onEdit?: () => void;
+  onDelete?: () => void;
 };
 
 const card = cva([
@@ -36,13 +44,23 @@ const card = cva([
   "min-h-40",
   "select-none",
   "transform-gpu",
+  "transition-all",
+  "group/card",
+  "relative",
+  "duration-300",
+
+  // "hover:shadow-lg",
+  "hover:scale-[1.01]",
 ]);
 
 export const ItemCard = ({
   data,
   loading = false,
   className,
-
+  actionEditLabel = "Edit",
+  actionDeleteLabel = "Delete",
+  onEdit,
+  onDelete,
   ...props
 }: ItemCardProps) => {
   const [isMounted, setIsMounted] = useState(false);
@@ -55,7 +73,7 @@ export const ItemCard = ({
     period,
     category,
     isEmpty = false,
-    color = "bg-froly-100",
+    color,
   } = data;
   const {
     setNodeRef,
@@ -103,7 +121,7 @@ export const ItemCard = ({
   }
 
   return (
-    <button
+    <div
       ref={setNodeRef}
       {...listeners}
       {...attributes}
@@ -111,12 +129,42 @@ export const ItemCard = ({
       style={style}
       className={cn(card(), className)}
     >
+      <Dropdown.Menu>
+        <Dropdown.Trigger
+          asChild
+          className="opacity-0 group-hover/card:opacity-100 group-hover/card:transition-all data-[state=open]:opacity-100"
+        >
+          <IconButton
+            label="Menu"
+            icon="options"
+            className="absolute top-2 right-2 "
+          />
+        </Dropdown.Trigger>
+
+        <Dropdown.Content align="end">
+          <Dropdown.Item
+            className="rounded-t-md hover:bg-neutral-200"
+            onSelect={onEdit}
+          >
+            <EditIcon width={20} className="mt-1" /> {actionEditLabel}
+          </Dropdown.Item>
+          <Dropdown.Separator />
+          <Dropdown.Item
+            className="bg-froly-100/50 hover:bg-neutral-200 rounded-b-md"
+            onSelect={onDelete}
+          >
+            <DeleteIcon />
+            {actionDeleteLabel}
+          </Dropdown.Item>
+        </Dropdown.Content>
+      </Dropdown.Menu>
+
       {!loading ? (
         !isEmpty &&
         !!category && (
           <span
             className={cn(
-              "text-card-foreground flex items-center justify-center rounded-[12px] h-10 w-10",
+              "text-card-foreground flex items-center justify-center rounded-[12px] h-10 w-10 bg-opacity-50",
               color
             )}
           >
@@ -152,6 +200,6 @@ export const ItemCard = ({
           )}
         </div>
       )}
-    </button>
+    </div>
   );
 };
