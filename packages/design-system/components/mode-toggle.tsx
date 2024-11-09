@@ -5,10 +5,7 @@ import { useTheme } from 'next-themes';
 import type { FC } from 'react';
 import { Button } from '../components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  Dropdown
 } from '../components/ui/dropdown-menu';
 
 export const ModeToggle: FC = () => {
@@ -21,8 +18,8 @@ export const ModeToggle: FC = () => {
   ];
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <Dropdown.Menu>
+      <Dropdown.Trigger asChild>
         <Button
           variant="outline"
           size="icon"
@@ -32,14 +29,14 @@ export const ModeToggle: FC = () => {
           <MoonIcon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           <span className="sr-only">Toggle theme</span>
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      </Dropdown.Trigger>
+      <Dropdown.Content>
         {themes.map(({ onClick, children }) => (
-          <DropdownMenuItem key={children} onClick={onClick}>
+          <Dropdown.Item key={children} onClick={onClick}>
             {children}
-          </DropdownMenuItem>
+          </Dropdown.Item>
         ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </Dropdown.Content>
+    </Dropdown.Menu>
   );
 };
