@@ -1,27 +1,19 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { cva } from "class-variance-authority";
 import { AnimatePresence, motion } from "framer-motion";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
-import * as z from "zod";
-import { Icon, iconPath } from "@repo/design-system/components/ui/icon";
-import { Button } from "@repo/design-system/components/ui/button";
-import { Input } from "@repo/design-system/components/ui/input";
-import { Combobox } from "@repo/design-system/components/ui/combobox";
-import { SliderCard } from "@repo/design-system/components/ui/slider-card";
+import { Icon } from "@repo/design-system/components/ui/icon";
 import { cn } from "@repo/design-system/lib/utils";
 import { useOutsideClick } from "@repo/design-system/hooks/use-outside-click";
 
 import { getTranslations } from "@/utils/translations";
 import { CostStatus } from "@/app/types";
-import { FIXED_COST_CATEGORIES } from "@/app/constants";
-import { useCreateFixedExpenses } from "./server/create-fixed-expenses";
+import { AddExpenseForm } from "./add-expense-form";
 
 const card = cva(["relative", "rounded-lg", "transition-all"], {
   variants: {
     isActive: {
-      true: ["bg-card", "hover:bg-card", "h-[394px]", "shadow-lg"],
-      false: ["h-48", "hover:border-2", "border-dashed", "border-white/30"],
+      true: ["bg-card", "hover:bg-card", "min-h-[380px]", "shadow-lg"],
+      false: ["min-h-48", "hover:border-2", "border-dashed", "border-white/30"],
     },
     highlight: {
       true: [],
@@ -53,24 +45,6 @@ const card = cva(["relative", "rounded-lg", "transition-all"], {
     isActive: false,
   },
 });
-
-const closeButton = cva([
-  "absolute",
-  "top-2",
-  "right-2",
-  "flex",
-  "items-center",
-  "justify-center",
-  "rounded-full",
-  "h-8",
-  "w-8",
-  "bg-neutral-50",
-  "hover:bg-neutral-100",
-  "focus-visible:outline-none",
-  "focus-visible:ring-2",
-  "focus-visible:ring-ring",
-  "focus-visible:ring-offset-2",
-]);
 
 const cardButton = cva([
   "rounded-lg",
@@ -127,63 +101,6 @@ export const AddCard: React.FC<AddCardProps> = ({
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
 
-  const expenseSchema = z.object({
-    category: z.object(
-      {
-        label: z.string(),
-        value: z.string(),
-        slot: z.any().optional(),
-      },
-      {
-        required_error: t.validation.form.required,
-        invalid_type_error: t.validation.form.select,
-      }
-    ),
-    amount: z.number({
-      required_error: t.validation.form.required,
-    }),
-    name: z
-      .string({
-        required_error: t.validation.form.required,
-      })
-      .min(1, {
-        message: t.validation.form.required,
-      }),
-  });
-
-  const defaultValues: NewExpenseForm = {
-    name: "",
-    category: undefined,
-    amount: 0,
-  };
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<NewExpenseForm>({
-    defaultValues,
-    resolver: zodResolver(expenseSchema),
-    mode: "onBlur",
-  });
-
-  const { mutate: createFixedExpense } = useCreateFixedExpenses();
-  async function onSubmit(data: NewExpenseForm) {
-    if (!data.category || !data.name) return;
-    reset(defaultValues);
-    setIsActive(false);
-
-    createFixedExpense({
-      json: {
-        name: data.name,
-        amount: data.amount,
-        category: data.category.value,
-        userId,
-        rank: rankIndex,
-      },
-    });
-  }
-
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -202,36 +119,18 @@ export const AddCard: React.FC<AddCardProps> = ({
   }, [isActive]);
 
   useOutsideClick(ref, (event: MouseEvent) => {
-    reset(defaultValues);
     const target = event.target as HTMLElement;
     const isComboboxElement =
       target.closest('[role="listbox"]') ||
       target.closest('[role="combobox"]') ||
       target.closest('[role="option"]');
 
-    if (!isComboboxElement) {
+    // Only reset and close if clicking outside the form entirely
+    if (!isComboboxElement && !ref.current?.contains(target)) {
+      // reset(defaultValues);
       setIsActive(false);
     }
   });
-
-  const categoriesList = FIXED_COST_CATEGORIES.map((category) => ({
-    label: category.label,
-    value: category.icon,
-    slot: (
-      <div
-        className={cn(
-          "flex items-center justify-center p-1 h-6 w-6 rounded-[4px]",
-          category.color
-        )}
-      >
-        <Icon
-          name={category.icon as keyof typeof iconPath}
-          label={category.label}
-          color="body"
-        />
-      </div>
-    ),
-  }));
 
   return (
     <AnimatePresence>
@@ -239,103 +138,16 @@ export const AddCard: React.FC<AddCardProps> = ({
         layoutId={`card-add-${id}`}
         ref={ref}
         className={cn(card({ isActive, highlight }), className)}
+        transition={{
+          layout: { duration: 0.2, ease: "easeOut" },
+        }}
       >
         {isActive ? (
-          <form
-            className="p-3 flex flex-col justify-between h-full"
-            onSubmit={handleSubmit(onSubmit)}
-          >
-            <div className="flex w-full justify-between">
-              <div onClick={(e) => e.stopPropagation()}>
-                <Controller
-                  name="category"
-                  control={control}
-                  render={({ field }) => (
-                    <Combobox
-                      placeholder={t.expenses.form.category}
-                      searchPlaceholder={t.common["search"]}
-                      options={categoriesList}
-                      value={field.value || undefined}
-                      onChange={(option: SelectOption | SelectOption[]) => {
-                        if (!Array.isArray(option)) {
-                          field.onChange(option);
-                        }
-                      }}
-                      emptyMessage={t.common["not-found"]}
-                      errors={
-                        errors?.category?.message
-                          ? { message: errors.category.message }
-                          : undefined
-                      }
-                    />
-                  )}
-                />
-              </div>
-              <button
-                className={closeButton()}
-                onClick={() => {
-                  setIsActive(false);
-                }}
-              >
-                <Icon
-                  name="close"
-                  className="w-4 h-4"
-                  label="close"
-                  color="body"
-                />
-              </button>
-            </div>
-            <div>
-              <div className="flex flex-col gap-2">
-                <Controller
-                  control={control}
-                  name="name"
-                  render={({ field }) => (
-                    <Input
-                      variant="secondary"
-                      placeholder={t.expenses.form.name}
-                      className="w-full"
-                      id={id}
-                      {...field}
-                      errors={
-                        errors?.name?.message
-                          ? { message: errors.name.message }
-                          : undefined
-                      }
-                    />
-                  )}
-                />
-
-                <Controller
-                  control={control}
-                  name="amount"
-                  render={({ field }) => (
-                    <SliderCard
-                      suffix={t.expenses.form.period}
-                      currency={t.common["currency-symbol"] + " "}
-                      min={1}
-                      max={5000}
-                      value={field.value}
-                      onChange={field.onChange}
-                      removePaddings
-                      errors={
-                        errors?.amount?.message
-                          ? { message: errors.amount.message }
-                          : undefined
-                      }
-                    />
-                  )}
-                />
-
-                <div className="mt-8">
-                  <Button type="submit" className="whitespace-nowrap">
-                    <Icon name="plus" label="add" color="on-dark" />
-                    {t.expenses.actions["add-expense"]}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </form>
+          <AddExpenseForm
+            setIsActive={setIsActive}
+            userId={userId}
+            rankIndex={rankIndex}
+          />
         ) : (
           <button
             className={cardButton()}
