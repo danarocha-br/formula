@@ -1,19 +1,13 @@
-'use client';
+"use client";
 
-import { OrganizationSwitcher, UserButton } from '@clerk/nextjs';
-import { ModeToggle } from '@repo/design-system/components/mode-toggle';
+import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
+import { ModeToggle } from "@repo/design-system/components/mode-toggle";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@repo/design-system/components/ui/collapsible';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@repo/design-system/components/ui/dropdown-menu';
+} from "@repo/design-system/components/ui/collapsible";
+import { Dropdown } from "@repo/design-system/components/ui/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -31,8 +25,8 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   useSidebar,
-} from '@repo/design-system/components/ui/sidebar';
-import { cn } from '@repo/design-system/lib/utils';
+} from "@repo/design-system/components/ui/sidebar";
+import { cn } from "@repo/design-system/lib/utils";
 import {
   BookOpenIcon,
   BotIcon,
@@ -48,8 +42,8 @@ import {
   ShareIcon,
   SquareTerminalIcon,
   Trash2Icon,
-} from 'lucide-react';
-import type { ReactNode } from 'react';
+} from "lucide-react";
+import type { ReactNode } from "react";
 
 type GlobalSidebarProperties = {
   readonly children: ReactNode;
@@ -57,123 +51,123 @@ type GlobalSidebarProperties = {
 
 const data = {
   user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
+    name: "shadcn",
+    email: "m@example.com",
+    avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
     {
-      title: 'Playground',
-      url: '#',
+      title: "Playground",
+      url: "#",
       icon: SquareTerminalIcon,
       isActive: true,
       items: [
         {
-          title: 'History',
-          url: '#',
+          title: "History",
+          url: "#",
         },
         {
-          title: 'Starred',
-          url: '#',
+          title: "Starred",
+          url: "#",
         },
         {
-          title: 'Settings',
-          url: '#',
+          title: "Settings",
+          url: "#",
         },
       ],
     },
     {
-      title: 'Models',
-      url: '#',
+      title: "Models",
+      url: "#",
       icon: BotIcon,
       items: [
         {
-          title: 'Genesis',
-          url: '#',
+          title: "Genesis",
+          url: "#",
         },
         {
-          title: 'Explorer',
-          url: '#',
+          title: "Explorer",
+          url: "#",
         },
         {
-          title: 'Quantum',
-          url: '#',
+          title: "Quantum",
+          url: "#",
         },
       ],
     },
     {
-      title: 'Documentation',
-      url: '#',
+      title: "Documentation",
+      url: "#",
       icon: BookOpenIcon,
       items: [
         {
-          title: 'Introduction',
-          url: '#',
+          title: "Introduction",
+          url: "#",
         },
         {
-          title: 'Get Started',
-          url: '#',
+          title: "Get Started",
+          url: "#",
         },
         {
-          title: 'Tutorials',
-          url: '#',
+          title: "Tutorials",
+          url: "#",
         },
         {
-          title: 'Changelog',
-          url: '#',
+          title: "Changelog",
+          url: "#",
         },
       ],
     },
     {
-      title: 'Settings',
-      url: '#',
+      title: "Settings",
+      url: "#",
       icon: Settings2Icon,
       items: [
         {
-          title: 'General',
-          url: '#',
+          title: "General",
+          url: "#",
         },
         {
-          title: 'Team',
-          url: '#',
+          title: "Team",
+          url: "#",
         },
         {
-          title: 'Billing',
-          url: '#',
+          title: "Billing",
+          url: "#",
         },
         {
-          title: 'Limits',
-          url: '#',
+          title: "Limits",
+          url: "#",
         },
       ],
     },
   ],
   navSecondary: [
     {
-      title: 'Support',
-      url: '#',
+      title: "Support",
+      url: "#",
       icon: LifeBuoyIcon,
     },
     {
-      title: 'Feedback',
-      url: '#',
+      title: "Feedback",
+      url: "#",
       icon: SendIcon,
     },
   ],
   projects: [
     {
-      name: 'Design Engineering',
-      url: '#',
+      name: "Design Engineering",
+      url: "#",
       icon: FrameIcon,
     },
     {
-      name: 'Sales & Marketing',
-      url: '#',
+      name: "Sales & Marketing",
+      url: "#",
       icon: PieChartIcon,
     },
     {
-      name: 'Travel',
-      url: '#',
+      name: "Travel",
+      url: "#",
       icon: MapIcon,
     },
   ],
@@ -190,8 +184,8 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
             <SidebarMenuItem>
               <div
                 className={cn(
-                  'h-[36px] overflow-hidden transition-all [&>div]:w-full',
-                  sidebar.open ? '' : '-mx-1'
+                  "h-[36px] overflow-hidden transition-all [&>div]:w-full",
+                  sidebar.open ? "" : "-mx-1"
                 )}
               >
                 <OrganizationSwitcher
@@ -258,33 +252,33 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                       <span>{item.name}</span>
                     </a>
                   </SidebarMenuButton>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                  <Dropdown.Menu>
+                    <Dropdown.Trigger asChild>
                       <SidebarMenuAction showOnHover>
                         <MoreHorizontalIcon />
                         <span className="sr-only">More</span>
                       </SidebarMenuAction>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
+                    </Dropdown.Trigger>
+                    <Dropdown.Content
                       className="w-48"
                       side="bottom"
                       align="end"
                     >
-                      <DropdownMenuItem>
+                      <Dropdown.Item>
                         <FolderIcon className="text-muted-foreground" />
                         <span>View Project</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      </Dropdown.Item>
+                      <Dropdown.Item>
                         <ShareIcon className="text-muted-foreground" />
                         <span>Share Project</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem>
+                      </Dropdown.Item>
+                      <Dropdown.Separator />
+                      <Dropdown.Item>
                         <Trash2Icon className="text-muted-foreground" />
                         <span>Delete Project</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                      </Dropdown.Item>
+                    </Dropdown.Content>
+                  </Dropdown.Menu>
                 </SidebarMenuItem>
               ))}
               <SidebarMenuItem>
@@ -319,9 +313,9 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                 showName
                 appearance={{
                   elements: {
-                    rootBox: 'flex overflow-hidden',
-                    userButtonBox: 'flex-row-reverse',
-                    userButtonOuterIdentifier: 'truncate pl-0',
+                    rootBox: "flex overflow-hidden",
+                    userButtonBox: "flex-row-reverse",
+                    userButtonOuterIdentifier: "truncate pl-0",
                   },
                 }}
               />
