@@ -71,7 +71,7 @@ export const expensesFixedCosts = new Hono()
         });
 
         return c.json({
-          status: 201,
+          status: 200,
           success: true,
           data: { name, amount, category },
         });
@@ -98,7 +98,7 @@ export const expensesFixedCosts = new Hono()
       const updatedExpenses = await repository.updateBatch(userId, updates);
 
       return c.json({
-        status: 201,
+        status: 200,
         success: true,
         data: updatedExpenses,
       });
@@ -140,6 +140,28 @@ export const expensesFixedCosts = new Hono()
         success: false,
         error:
           error instanceof Error ? error.message : "Failed to create expense",
+      });
+    }
+  })
+  .delete("/fixed-costs/:userId/:id", async (c) => {
+    const { id, userId } = c.req.param();
+    try {
+      if (!id) {
+        throw new Error("Unauthorized");
+      }
+
+      const repository = new PrismaFixedCostExpensesRepository();
+
+      await repository.delete(userId, id);
+
+      return c.json({ status: 204, success: true });
+    } catch (error) {
+      console.error("Failed to delete fixed expense:", error);
+      return c.json({
+        status: 400,
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to delete expense",
       });
     }
   });

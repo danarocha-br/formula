@@ -8,6 +8,8 @@ export const ptBR: Messages = {
     "currency-symbol": "R$",
     "not-found": "Nenhum resultado encontrado.",
     search: "Procurar...",
+    delete: "Excluir",
+    edit: "Editar",
     categories: {
       "fixed-cost": {
         rent: "Aluguel",
@@ -92,6 +94,7 @@ export const ptBR: Messages = {
       "not-found": "Item não encontrado.",
       "create-failed": "Ops! Não conseguimos criar o item. Tente novamente!",
       "update-failed": "Ops! Não conseguimos atualizar o item(s). Tente novamente!",
+      "delete-failed": "Ops! Não conseguimos excluir o item(s). Tente novamente!",
       "list-update-failed": "Oops! Não conseguimos atualizar sua lista. Tente novamente!",
     },
   },

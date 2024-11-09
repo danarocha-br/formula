@@ -31,6 +31,7 @@ import { LoadingView } from "./loading-view";
 import { useUpdateFixedExpense } from "./server/update-fixed-expense";
 import { FIXED_COST_CATEGORIES } from "@/app/constants";
 import { useUpdateBatchFixedExpense } from "./server/update-batch-fixed-expenses";
+import { useDeleteFixedExpenses } from "./server/delete-fixed-expenses";
 
 type Props = {
   userId: string;
@@ -71,6 +72,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
   const { data: initialExpenses, isLoading: isLoadingExpenses } =
     useGetFixedExpenses({ userId });
   const { mutate: updateExpense } = useUpdateFixedExpense();
+  const { mutate: deleteExpense } = useDeleteFixedExpenses();
   const { mutate: updateBatchExpenses } = useUpdateBatchFixedExpense();
 
   const [activeCard, setActiveCard] = useState<ExpenseItem | null>(null);
@@ -167,6 +169,10 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
     });
   }
 
+  function handleDeleteExpense(id: number) {
+    deleteExpense({ param: { id: String(id), userId } });
+  }
+
   useEffect(() => {
     if (initialExpenses) {
       const sortedExpenses = [...initialExpenses].sort(
@@ -218,6 +224,10 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
                                   expense.category
                                 ),
                               }}
+                              actionDeleteLabel={t.common["delete"]}
+                              actionEditLabel={t.common["edit"]}
+                              onDelete={() => handleDeleteExpense(expense.id)}
+                              // onEdit={() => setActiveCard(expense)}
                               loading={isLoadingExpenses}
                               className="w-full h-full"
                             />

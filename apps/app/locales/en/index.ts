@@ -6,6 +6,8 @@ export const en = {
     "currency-symbol": "$",
     "not-found": "No results found.",
     search: "Search...",
+    delete: "Delete",
+    edit: "Edit",
     categories: {
       "fixed-cost": {
         rent: "Rent",
@@ -90,6 +92,7 @@ export const en = {
       "not-found": "Resource not found.",
       "create-failed": "Oops! We couldn't create the item. Let's try again!",
       "update-failed": "Oops! We couldn't update the item(s). Let's try again!",
+      "delete-failed": "Oops! We couldn't delete the item(s). Let's try again!",
       "list-update-failed":
         "Oops! We couldn't update your list. Let's try again!",
     },
