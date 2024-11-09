@@ -1,24 +1,30 @@
 "use client";
 
-import { cn } from "@repo/design-system/lib/utils";
+import { cn } from '@repo/design-system/lib/utils';
 import type { Variants } from "framer-motion";
 import { motion, useAnimation } from "framer-motion";
 import { useEffect } from "react";
 
-const penVariants: Variants = {
+const pathVariants: Variants = {
   normal: {
-    rotate: 0,
-    x: 0,
-    y: 0,
+    opacity: 1,
+    pathLength: 1,
+    transition: {
+      duration: 0.3,
+      opacity: { duration: 0.1 },
+    },
   },
   animate: {
-    rotate: [-0.5, 0.5, -0.5],
-    x: [0, -1, 1.5, 0],
-    y: [0, 1.5, -1, 0],
+    opacity: [0, 1],
+    pathLength: [0, 1],
+    transition: {
+      duration: 0.4,
+      opacity: { duration: 0.1 },
+    },
   },
 };
 
-const EditIcon = ({
+const CheckIcon = ({
   size = 18,
   className,
   animated,
@@ -38,12 +44,7 @@ const EditIcon = ({
   }, [animated, controls]);
 
   return (
-    <div
-      className={cn(
-        "select-none transition-colors duration-200 flex items-center justify-center",
-        className
-      )}
-    >
+    <div className={cn("select-none transition-colors duration-200 flex items-center justify-center", className)}>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width={size}
@@ -55,19 +56,16 @@ const EditIcon = ({
         strokeLinecap="round"
         strokeLinejoin="round"
       >
+        <circle cx="12" cy="12" r="10" />
         <motion.path
-          d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"
-          variants={penVariants}
+          variants={pathVariants}
+          initial="normal"
           animate={controls}
-          transition={{
-            duration: 0.5,
-            repeat: 1,
-            ease: "easeInOut",
-          }}
+          d="m9 12 2 2 4-4"
         />
       </svg>
     </div>
   );
 };
 
-export { EditIcon };
+export { CheckIcon };

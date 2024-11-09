@@ -48,6 +48,7 @@ export const ptBR: Messages = {
   expenses: {
     actions: {
       "add-expense": "Adicionar custo",
+      "edit-expense": "Salvar",
     },
     form: {
       category: "Selecione categoria",

@@ -1,66 +1,39 @@
-import React from "react";
+import React, { useState } from "react";
 import { z } from "zod";
 
 import { getTranslations } from "@/utils/translations";
 import { CostStatus } from "@/app/types";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreateFixedExpenses } from "./server/create-fixed-expenses";
 import { Combobox } from "@repo/design-system/components/ui/combobox";
 import { FIXED_COST_CATEGORIES } from "@/app/constants";
 import { cn } from "@repo/design-system/lib/utils";
 import { Icon, iconPath } from "@repo/design-system/components/ui/icon";
-import { cva } from "class-variance-authority";
 import { Input } from "@repo/design-system/components/ui/input";
 import { SliderCard } from "@repo/design-system/components/ui/slider-card";
 import { Button } from "@repo/design-system/components/ui/button";
-
-interface NewExpenseForm {
+import { closeButton, ComboboxOption, SelectOption } from "./add-expense-form";
+import { useUpdateFixedExpense } from "./server/update-fixed-expense";
+import { CheckIcon } from "@repo/design-system/components/ui/animated-icon/check";
+import { useToast } from '@repo/design-system/hooks/use-toast';
+interface EditExpenseForm {
   category: ComboboxOption | undefined;
   amount: number;
   name: string | undefined;
   status?: CostStatus;
   billing_period?: Date;
 }
-
-export interface ComboboxOption {
-  label: string;
-  value: string;
-  slot?: React.ReactNode;
-}
-
-export interface SelectOption {
-  label: string;
-  value: string;
-  slot?: React.ReactNode;
-}
-interface AddExpenseFormProps {
-  setIsActive: React.Dispatch<React.SetStateAction<boolean>>;
+interface EditExpenseFormProps {
+  onClose: () => void;
   userId: string;
   rankIndex: number;
-  defaultValues?: NewExpenseForm;
+  expenseId: number;
+  defaultValues?: EditExpenseForm;
 }
 
-export const closeButton = cva([
-  "absolute",
-  "top-2",
-  "right-2",
-  "flex",
-  "items-center",
-  "justify-center",
-  "rounded-full",
-  "h-8",
-  "w-8",
-  "bg-neutral-50",
-  "hover:bg-neutral-100",
-  "focus-visible:outline-none",
-  "focus-visible:ring-2",
-  "focus-visible:ring-ring",
-  "focus-visible:ring-offset-2",
-]);
-
-export const AddExpenseForm = ({
-  setIsActive,
+export const EditExpenseForm = ({
+  onClose,
+  expenseId,
   userId,
   rankIndex,
   defaultValues = {
@@ -68,8 +41,10 @@ export const AddExpenseForm = ({
     category: undefined,
     amount: 0,
   },
-}: AddExpenseFormProps) => {
+}: EditExpenseFormProps) => {
   const t = getTranslations();
+
+  const [isHovered, setIsHovered] = useState(false);
 
   const categoriesList = FIXED_COST_CATEGORIES.map((category) => ({
     label: category.label,
@@ -114,33 +89,56 @@ export const AddExpenseForm = ({
       }),
   });
 
+  const { toast } = useToast();
+
   const {
     control,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<NewExpenseForm>({
+  } = useForm<EditExpenseForm>({
     defaultValues,
     resolver: zodResolver(expenseSchema),
     mode: "onBlur",
   });
 
-  const { mutate: createFixedExpense } = useCreateFixedExpenses();
-  async function onSubmit(data: NewExpenseForm) {
+  const { mutate: updateFixedExpense } = useUpdateFixedExpense();
+  async function onSubmit(data: EditExpenseForm) {
     if (!data.category || !data.name) return;
-    reset(defaultValues);
-    setIsActive(false);
 
-    createFixedExpense({
-      json: {
-        name: data.name,
-        amount: data.amount,
-        category: data.category.value,
-        userId,
-        rank: rankIndex,
+    updateFixedExpense(
+      {
+        param: { id: String(expenseId) },
+        json: {
+          name: data.name,
+          amount: data.amount,
+          category: data.category.value,
+          userId,
+          rank: rankIndex,
+        },
       },
-    });
+      {
+        onSuccess: () => {
+          reset(defaultValues);
+          onClose();
+        },
+        onError: () => {
+          toast({
+            title: t.validation.error["update-failed"],
+            variant: "destructive",
+          });
+        },
+      }
+    );
   }
+
+  const handleClose = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Closing form");
+    onClose();
+  };
+
   return (
     <form
       className="p-3 flex flex-col justify-between h-full"
@@ -172,12 +170,7 @@ export const AddExpenseForm = ({
             )}
           />
         </div>
-        <button
-          className={closeButton()}
-          onClick={() => {
-            setIsActive(false);
-          }}
-        >
+        <button type="button" className={closeButton()} onClick={handleClose}>
           <Icon name="close" className="w-4 h-4" label="close" color="body" />
         </button>
       </div>
@@ -224,11 +217,16 @@ export const AddExpenseForm = ({
           />
 
           <div className="mt-8">
-            <Button type="submit" className="whitespace-nowrap">
+            <Button
+              type="submit"
+              className="whitespace-nowrap group/edit-button"
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+            >
               <i>
-                <Icon name="plus" label="add" color="on-dark" />
+                <CheckIcon size={20} animated={isHovered} />
               </i>
-              {t.expenses.actions["add-expense"]}
+              {t.expenses.actions["edit-expense"]}
             </Button>
           </div>
         </div>

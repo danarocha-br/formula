@@ -1,8 +1,9 @@
 "use client";
 
-import { cn } from '@repo/design-system/lib/utils';
+import { cn } from "@repo/design-system/lib/utils";
 import type { Variants } from "framer-motion";
 import { motion, useAnimation } from "framer-motion";
+import { useEffect } from "react";
 
 const lidVariants: Variants = {
   normal: { y: 0 },
@@ -15,8 +16,24 @@ const springTransition = {
   damping: 30,
 };
 
-const DeleteIcon = ({ size = 18, className }: { size?: number; className?: string }) => {
+const DeleteIcon = ({
+  size = 18,
+  className,
+  animated,
+}: {
+  size?: number;
+  className?: string;
+  animated?: boolean;
+}) => {
   const controls = useAnimation();
+
+  useEffect(() => {
+    if (animated) {
+      controls.start("animate");
+    } else {
+      controls.start("normal");
+    }
+  }, [animated, controls]);
 
   return (
     <div
@@ -24,8 +41,6 @@ const DeleteIcon = ({ size = 18, className }: { size?: number; className?: strin
         "select-none transition-colors duration-200 flex items-center justify-center",
         className
       )}
-      onMouseEnter={() => controls.start("animate")}
-      onMouseLeave={() => controls.start("normal")}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

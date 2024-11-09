@@ -70,26 +70,6 @@ interface AddCardProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   rankIndex: number;
 }
 
-interface NewExpenseForm {
-  category: ComboboxOption | undefined;
-  amount: number;
-  name: string | undefined;
-  status?: CostStatus;
-  billing_period?: Date;
-}
-
-interface ComboboxOption {
-  label: string;
-  value: string;
-  slot?: React.ReactNode;
-}
-
-interface SelectOption {
-  label: string;
-  value: string;
-  slot?: React.ReactNode;
-}
-
 export const AddCard: React.FC<AddCardProps> = ({
   highlight = false,
   className,

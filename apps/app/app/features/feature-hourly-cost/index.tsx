@@ -28,10 +28,10 @@ import { getTranslations } from "@/utils/translations";
 import { AddCard } from "./add-expense-card";
 import { useGetFixedExpenses } from "./server/get-fixed-expenses";
 import { LoadingView } from "./loading-view";
-import { useUpdateFixedExpense } from "./server/update-fixed-expense";
 import { FIXED_COST_CATEGORIES } from "@/app/constants";
 import { useUpdateBatchFixedExpense } from "./server/update-batch-fixed-expenses";
 import { useDeleteFixedExpenses } from "./server/delete-fixed-expenses";
+import { EditExpenseForm } from "./edit-expense-form";
 
 type Props = {
   userId: string;
@@ -71,12 +71,12 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
   const t = getTranslations();
   const { data: initialExpenses, isLoading: isLoadingExpenses } =
     useGetFixedExpenses({ userId });
-  const { mutate: updateExpense } = useUpdateFixedExpense();
   const { mutate: deleteExpense } = useDeleteFixedExpenses();
   const { mutate: updateBatchExpenses } = useUpdateBatchFixedExpense();
 
   const [activeCard, setActiveCard] = useState<ExpenseItem | null>(null);
   const [expenses, setExpenses] = useState<ExpenseItem[] | []>([]);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   const { toast } = useToast();
 
@@ -91,6 +91,21 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
       );
 
       return matchingCategory?.color ?? "bg-neutral-100";
+    },
+    []
+  );
+
+  const getExpenseCategoryLabel = useMemo(
+    () => (category: string) => {
+      const normalizedCategory = category?.toLowerCase().trim();
+
+      const matchingCategory = FIXED_COST_CATEGORIES.find(
+        (item) =>
+          item.value.toLowerCase().includes(normalizedCategory) ||
+          normalizedCategory.includes(item.value.toLowerCase())
+      );
+
+      return matchingCategory?.label ?? "";
     },
     []
   );
@@ -170,8 +185,26 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
   }
 
   function handleDeleteExpense(id: number) {
-    deleteExpense({ param: { id: String(id), userId } });
+    deleteExpense(
+      { param: { id: String(id), userId } },
+      {
+        onError: () => {
+          toast({
+            title: t.validation.error["delete-failed"],
+            variant: "destructive",
+          });
+        },
+      }
+    );
   }
+
+  function handleEditCard(id: number) {
+    setEditingId((currentId) => (currentId === id ? null : id));
+  }
+  const handleEditOnClose = React.useCallback(() => {
+    console.log("Handling edit close");
+    setEditingId(null);
+  }, []);
 
   useEffect(() => {
     if (initialExpenses) {
@@ -211,7 +244,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
                             key={expense.id}
                             className="relative"
                             style={{
-                              height: isLarge ? "300px" : "200px",
+                              height: isLarge ? "380px" : "260px",
                               width: "100%",
                             }}
                           >
@@ -223,13 +256,35 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
                                 color: getExpenseCategoryColor(
                                   expense.category
                                 ),
+                                categoryLabel: getExpenseCategoryLabel(
+                                  expense.category
+                                ),
                               }}
+                              loading={isLoadingExpenses}
+                              className="w-full h-full"
                               actionDeleteLabel={t.common["delete"]}
                               actionEditLabel={t.common["edit"]}
                               onDelete={() => handleDeleteExpense(expense.id)}
-                              // onEdit={() => setActiveCard(expense)}
-                              loading={isLoadingExpenses}
-                              className="w-full h-full"
+                              onEdit={() => handleEditCard(expense.id)}
+                              isEditMode={editingId === expense.id}
+                              editModeContent={
+                                <EditExpenseForm
+                                  onClose={handleEditOnClose}
+                                  userId={userId}
+                                  expenseId={expense.id}
+                                  rankIndex={expense.rank ?? 0}
+                                  defaultValues={{
+                                    name: expense.name,
+                                    category: {
+                                      value: expense.category,
+                                      label: getExpenseCategoryLabel(
+                                        expense.category
+                                      ),
+                                    },
+                                    amount: expense.amount,
+                                  }}
+                                />
+                              }
                             />
                           </div>
                         );

@@ -1,4 +1,3 @@
-import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { InferRequestType, InferResponseType } from "hono";
 import { client } from "@repo/design-system/lib/rpc";
@@ -22,12 +21,15 @@ export const useDeleteFixedExpenses = () => {
         const response = await client.api.expenses["fixed-costs"][":userId"][
           ":id"
         ]["$delete"]({
-          param,
+          param: {
+            id: param.id,
+            userId: param.userId,
+          },
         });
 
         const data = await response.json();
 
-        if (!response.ok) {
+        if (data.success === false) {
           throw new Error(t.validation.error["delete-failed"]);
         }
         return data;
@@ -40,9 +42,6 @@ export const useDeleteFixedExpenses = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fixed-expenses-list"] });
-    },
-    onError: () => {
-      toast.error(t.validation.error["delete-failed"]);
     },
   });
 

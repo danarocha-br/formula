@@ -20,6 +20,7 @@ type ItemCardProps = {
     currency?: string;
     period?: string | null;
     category?: string | undefined;
+    categoryLabel: string;
     color?: string;
     className?: string;
     isEmpty?: boolean;
@@ -30,28 +31,39 @@ type ItemCardProps = {
   actionDeleteLabel?: string;
   onEdit?: () => void;
   onDelete?: () => void;
+  isEditMode?: boolean;
+  editModeContent?: React.ReactNode;
 };
 
-const card = cva([
-  "flex",
-  "flex-col",
-  "justify-between",
-  "rounded-md",
-  "bg-card",
-  "w-full",
-  "h-full",
-  "p-3",
-  "min-h-40",
-  "select-none",
-  "transform-gpu",
-  "transition-all",
-  "group/card",
-  "relative",
-  "duration-300",
+const card = cva(
+  [
+    "flex",
+    "flex-col",
+    "justify-between",
+    "rounded-md",
+    "bg-card",
+    "w-full",
+    "h-full",
 
-  // "hover:shadow-lg",
-  "hover:scale-[1.01]",
-]);
+    "select-none",
+    "transform-gpu",
+    "transition-transform",
+    "group/card",
+    "relative",
+    "duration-500",
+    "min-h-60",
+
+    "hover:scale-[1.01]",
+  ],
+  {
+    variants: {
+      isEditMode: {
+        true: ["min-h-60", "p-0"],
+        false: ["min-h-60", "p-3"],
+      },
+    },
+  }
+);
 
 export const ItemCard = ({
   data,
@@ -61,9 +73,13 @@ export const ItemCard = ({
   actionDeleteLabel = "Delete",
   onEdit,
   onDelete,
+  isEditMode = false,
+  editModeContent,
   ...props
 }: ItemCardProps) => {
   const [isMounted, setIsMounted] = useState(false);
+  const [isEditButtonHovered, setIsEditButtonHovered] = useState(false);
+  const [isDeleteButtonHovered, setIsDeleteButtonHovered] = useState(false);
 
   const {
     id,
@@ -74,6 +90,7 @@ export const ItemCard = ({
     category,
     isEmpty = false,
     color,
+    categoryLabel,
   } = data;
   const {
     setNodeRef,
@@ -127,78 +144,101 @@ export const ItemCard = ({
       {...attributes}
       {...props}
       style={style}
-      className={cn(card(), className)}
+      className={cn(card({ isEditMode }), className)}
     >
-      <Dropdown.Menu>
-        <Dropdown.Trigger
-          asChild
-          className="opacity-0 group-hover/card:opacity-100 group-hover/card:transition-all data-[state=open]:opacity-100"
-        >
-          <IconButton
-            label="Menu"
-            icon="options"
-            className="absolute top-2 right-2 "
-          />
-        </Dropdown.Trigger>
+      {!isEditMode ? (
+        <>
+          <Dropdown.Menu>
+            <Dropdown.Trigger
+              asChild
+              className="opacity-0 group-hover/card:opacity-100 group-hover/card:transition-all data-[state=open]:opacity-100"
+            >
+              <IconButton
+                label="Menu"
+                icon="options"
+                className="absolute top-2 right-2 "
+              />
+            </Dropdown.Trigger>
 
-        <Dropdown.Content align="end">
-          <Dropdown.Item
-            className="rounded-t-md hover:bg-neutral-200"
-            onSelect={onEdit}
-          >
-            <EditIcon width={20} className="mt-1" /> {actionEditLabel}
-          </Dropdown.Item>
-          <Dropdown.Separator />
-          <Dropdown.Item
-            className="bg-froly-100/50 hover:bg-neutral-200 rounded-b-md"
-            onSelect={onDelete}
-          >
-            <DeleteIcon />
-            {actionDeleteLabel}
-          </Dropdown.Item>
-        </Dropdown.Content>
-      </Dropdown.Menu>
+            <Dropdown.Content align="end">
+              <Dropdown.Item
+                className="rounded-t-md hover:bg-neutral-200"
+                onSelect={onEdit}
+                onMouseEnter={() => setIsEditButtonHovered(true)}
+                onMouseLeave={() => setIsEditButtonHovered(false)}
+              >
+                <EditIcon
+                  size={20}
+                  animated={isEditButtonHovered}
+                  className="mt-1"
+                />{" "}
+                {actionEditLabel}
+              </Dropdown.Item>
+              <Dropdown.Separator />
+              <Dropdown.Item
+                className="bg-froly-100/50  focus:bg-froly-100 rounded-b-md"
+                onSelect={onDelete}
+                onMouseEnter={() => setIsDeleteButtonHovered(true)}
+                onMouseLeave={() => setIsDeleteButtonHovered(false)}
+              >
+                <DeleteIcon size={18} animated={isDeleteButtonHovered} />
+                {actionDeleteLabel}
+              </Dropdown.Item>
+            </Dropdown.Content>
+          </Dropdown.Menu>
 
-      {!loading ? (
-        !isEmpty &&
-        !!category && (
-          <span
-            className={cn(
-              "text-card-foreground flex items-center justify-center rounded-[12px] h-10 w-10 bg-opacity-50",
-              color
-            )}
-          >
-            <Icon
-              // @ts-ignore
-              name={category}
-              label="category icon"
-              size="lg"
-              color="current"
-              className="opacity-80"
-            />
-          </span>
-        )
+          {!loading ? (
+            !isEmpty &&
+            !!category && (
+              <div className="flex gap-3 items-center">
+                <span
+                  className={cn(
+                    "text-card-foreground flex items-center justify-center rounded-[12px] h-10 w-10 bg-opacity-50",
+                    color
+                  )}
+                >
+                  <Icon
+                    // @ts-ignore
+                    name={category}
+                    label="category icon"
+                    size="lg"
+                    color="current"
+                    className="opacity-80"
+                  />
+                </span>
+
+                <span className="capitalize text-sm text-muted font-medium">
+                  {categoryLabel}
+                </span>
+              </div>
+            )
+          ) : (
+            <Skeleton className="h-10 w-10 rounded-[12px]" />
+          )}
+
+          {!isEmpty && (
+            <div className="flex flex-col items-start w-full">
+              {!loading ? (
+                <span className="text-muted font-normal truncate">{name}</span>
+              ) : (
+                <Skeleton className="h-6 w-1/2" />
+              )}
+              {!loading ? (
+                <p className="text-card-foreground font-medium @[200px]:text-lg @[380px]:text-2xl @[600px]:text-3xl">
+                  <span>{currency}</span>
+                  <span className="mx-1">{amount}</span>
+                  <span className="text-muted text-md truncate">
+                    / {period}
+                  </span>
+                </p>
+              ) : (
+                <Skeleton className="h-6 w-full mt-2" />
+              )}
+            </div>
+          )}
+        </>
       ) : (
-        <Skeleton className="h-10 w-10 rounded-[12px]" />
-      )}
-
-      {!isEmpty && (
-        <div className="flex flex-col items-start w-full">
-          {!loading ? (
-            <span className="text-muted font-normal truncate">{name}</span>
-          ) : (
-            <Skeleton className="h-6 w-1/2" />
-          )}
-          {!loading ? (
-            <p className="text-card-foreground font-medium @[200px]:text-lg @[380px]:text-2xl @[600px]:text-3xl">
-              <span>{currency}</span>
-              <span className="mx-1">{amount}</span>
-              <span className="text-muted text-md truncate">/ {period}</span>
-            </p>
-          ) : (
-            <Skeleton className="h-6 w-full mt-2" />
-          )}
-        </div>
+        <div className="h-[inherit]">{editModeContent}</div>
       )}
     </div>
   );

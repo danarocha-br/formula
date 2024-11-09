@@ -46,6 +46,7 @@ export const en = {
   expenses: {
     actions: {
       "add-expense": "Add expense",
+      "edit-expense": "Save changes",
     },
     form: {
       category: "Select category",
