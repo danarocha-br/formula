@@ -39,9 +39,6 @@ export const useCreateFixedExpenses = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fixed-expenses-list"] });
     },
-    onError: () => {
-      toast.error(t.validation.error["create-failed"]);
-    },
   });
 
   return mutation;

@@ -14,6 +14,7 @@ import { cva } from "class-variance-authority";
 import { Input } from "@repo/design-system/components/ui/input";
 import { SliderCard } from "@repo/design-system/components/ui/slider-card";
 import { Button } from "@repo/design-system/components/ui/button";
+import { useToast } from '@repo/design-system/hooks/use-toast';
 
 interface NewExpenseForm {
   category: ComboboxOption | undefined;
@@ -70,6 +71,7 @@ export const AddExpenseForm = ({
   },
 }: AddExpenseFormProps) => {
   const t = getTranslations();
+  const {toast} = useToast();
 
   const categoriesList = FIXED_COST_CATEGORIES.map((category) => ({
     label: category.label,
@@ -139,6 +141,13 @@ export const AddExpenseForm = ({
         userId,
         rank: rankIndex,
       },
+    }, {
+      onError: () => {
+        toast({
+          title: t.validation.error["create-failed"],
+          variant: "destructive",
+        });
+      }
     });
   }
   return (
