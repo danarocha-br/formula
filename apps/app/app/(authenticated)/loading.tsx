@@ -12,7 +12,13 @@ export default function LoadingView() {
             <ItemCard
               key={columnIndex}
               loading
-              data={{ id: columnIndex, name: "", amount: 0, category: "" }}
+              data={{
+                id: columnIndex,
+                name: "",
+                amount: 0,
+                category: "",
+                categoryLabel: "",
+              }}
             />
           ))}
         </MasonryGrid>
@@ -27,19 +33,43 @@ export default function LoadingView() {
         <div className="grid grid-cols-2 gap-3">
           <ItemCard
             loading
-            data={{ id: 1, name: "", amount: 0, category: "" }}
+            data={{
+              id: 1,
+              name: "",
+              amount: 0,
+              category: "",
+              categoryLabel: "",
+            }}
           />
           <ItemCard
             loading
-            data={{ id: 2, name: "", amount: 0, category: "" }}
+            data={{
+              id: 2,
+              name: "",
+              amount: 0,
+              category: "",
+              categoryLabel: "",
+            }}
           />
           <ItemCard
             loading
-            data={{ id: 3, name: "", amount: 0, category: "" }}
+            data={{
+              id: 3,
+              name: "",
+              amount: 0,
+              category: "",
+              categoryLabel: "",
+            }}
           />
           <ItemCard
             loading
-            data={{ id: 4, name: "", amount: 0, category: "" }}
+            data={{
+              id: 4,
+              name: "",
+              amount: 0,
+              category: "",
+              categoryLabel: "",
+            }}
           />
         </div>
       </div>
