@@ -1,7 +1,9 @@
 {
   "extends": "@repo/typescript-config/nextjs.json",
   "compilerOptions": {
-    "baseUrl": "."
+    "baseUrl": ".",
+    "declarationMap": false,
+    "declaration": false,
   },
   "include": [
     "next-env.d.ts",
