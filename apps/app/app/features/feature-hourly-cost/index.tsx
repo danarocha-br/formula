@@ -39,7 +39,7 @@ type Props = {
 
 const DragOverlayWrapper = dynamic(
   () =>
-    Promise.resolve(({ activeCard }: { activeCard: ExpenseItem | null }) => {
+    Promise.resolve(({ activeCard }: { activeCard: ExpenseItem  | null }) => {
       const [mounted, setMounted] = useState(false);
 
       useEffect(() => {

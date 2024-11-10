@@ -20,7 +20,7 @@ type ItemCardProps = {
     currency?: string;
     period?: string | null;
     category?: string | undefined;
-    categoryLabel: string;
+    categoryLabel?: string;
     color?: string;
     className?: string;
     isEmpty?: boolean;
