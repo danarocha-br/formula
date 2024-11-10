@@ -3,6 +3,13 @@
 import { cn } from "@repo/design-system/lib/utils";
 import { Navigation } from "@repo/design-system/components/ui/navigation";
 import { usePathname, useRouter } from "next/navigation";
+import { useCurrencyStore } from "@/app/store/currency-store";
+import {
+  Combobox,
+  SelectOption,
+} from "@repo/design-system/components/ui/combobox";
+import { getTranslations } from "@/utils/translations";
+import { UserButton } from '@clerk/nextjs';
 
 type HeaderProps = {
   items: {
@@ -15,6 +22,9 @@ type HeaderProps = {
 export const Header = ({ items }: HeaderProps) => {
   const pathname = usePathname();
   const router = useRouter();
+  const { currencies, selectedCurrency, setSelectedCurrency } =
+    useCurrencyStore();
+  const t = getTranslations();
 
   const navigate = (href: string) => {
     router.push(href);
@@ -65,6 +75,49 @@ export const Header = ({ items }: HeaderProps) => {
           </div>
         )}
       </Navigation>
+
+      <div className="flex items-center gap-2">
+        <div>
+          <Combobox
+            searchPlaceholder={t.common["search"]}
+            options={currencies.map((currency) => ({
+              label: currency.code,
+              value: currency.code,
+              slot: (
+                <b className="bg-neutral-900/15 w-7 h-7 flex items-center justify-center rounded-full">
+                  {currency.symbol}
+                </b>
+              ),
+            }))}
+            value={{
+              label: selectedCurrency.label,
+              value: selectedCurrency.code,
+            }}
+            onChange={(option: SelectOption | SelectOption[]) => {
+              if (!Array.isArray(option)) {
+                const currency = currencies.find(
+                  (c) => c.code === option.value
+                );
+                if (currency) setSelectedCurrency(currency);
+              }
+            }}
+            emptyMessage={t.common["not-found"]}
+            triggerClassName="bg-transparent w-24 rounded-md pl-1 mr-6 text-foreground"
+          />
+        </div>
+
+        <UserButton
+          showName
+          appearance={{
+            elements: {
+              rootBox: "flex items-center",
+              userButtonBox: "items-center justify-center pr-2.5 ",
+              userButtonTrigger: "rounded-full",
+              userButtonOuterIdentifier: "truncate p-0",
+            },
+          }}
+        />
+      </div>
     </header>
   );
 };

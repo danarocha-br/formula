@@ -47,6 +47,7 @@ export type ComboboxProps = {
   actionIcon?: keyof typeof iconPath;
   errors?: any | undefined;
   className?: string;
+  triggerClassName?: string;
 };
 
 export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
@@ -70,6 +71,7 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
       isMulti = false,
       keepMinWidth = true,
       className,
+      triggerClassName,
       errors,
       value,
       onChange,
@@ -231,11 +233,14 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
                 aria-readonly={readOnly}
                 onFocus={() => toggleFocus()}
                 onBlur={() => toggleFocus()}
-                className={S.inputWrapper({
-                  isFocused: openCombobox,
-                  isDisabled: disabled,
-                  isReadOnly: readOnly,
-                })}
+                className={cn(
+                  S.inputWrapper({
+                    isFocused: openCombobox,
+                    isDisabled: disabled,
+                    isReadOnly: readOnly,
+                  }),
+                  triggerClassName
+                )}
               >
                 <span
                   className={S.chips({
@@ -327,6 +332,7 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
                     name="down"
                     label="open menu"
                     size="xs"
+                    color="current"
                     className={`ml-auto shrink-0 ${S.placeholder({
                       isDisabled: disabled,
                     })}`}

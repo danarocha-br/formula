@@ -27,6 +27,7 @@ export const item = cva(
     "[&_button]:transition",
     "[&_button]:tracking-wide",
 
+
     "[&_button]:focus-visible:outline-none",
     "[&_button]:focus-visible:ring-2",
     "[&_button]:focus-visible:ring-offset-2",
@@ -129,7 +130,7 @@ export function Root({
 
   return (
     <RootContext.Provider value={context}>
-      <Component className={cn("relative", className)} {...props}>
+      <Component className={cn("relative w-full", className)} {...props}>
         {typeof children === "function"
           ? children({
               ready: isReady,

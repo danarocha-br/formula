@@ -1,12 +1,13 @@
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
-import { Icon } from '@repo/design-system/components/ui/icon';
-import { Badge } from '@repo/design-system/components/ui/badge';
-import { Heading } from '@repo/design-system/components/ui/heading';
-import { SliderCard } from '@repo/design-system/components/ui/slider-card';
-import { List } from '@repo/design-system/components/ui/list';
-import { getTranslations } from '@/utils/translations';
-import { ListItem } from '@/app/(authenticated)/components/list-item';
-
+import { Icon } from "@repo/design-system/components/ui/icon";
+import { Badge } from "@repo/design-system/components/ui/badge";
+import { Heading } from "@repo/design-system/components/ui/heading";
+import { SliderCard } from "@repo/design-system/components/ui/slider-card";
+import { List } from "@repo/design-system/components/ui/list";
+import { getTranslations } from "@/utils/translations";
+import { ListItem } from "@/app/(authenticated)/components/list-item";
+import { useCurrencyStore } from "@/app/store/currency-store";
+import { Header } from "../feature-hourly-cost/header";
 
 type BillableCostsForm = {
   work_days: number;
@@ -60,11 +61,14 @@ export const BillableCosts = () => {
   const formData = watch();
   const calculations = calculateMetrics(formData);
 
-  const t = getTranslations()
+  const t = getTranslations();
+
+  const { selectedCurrency } = useCurrencyStore();
 
   return (
     <div className="flex flex-col py-5 px-6 h-full">
       <Heading>{t.expenses.billable.title}</Heading>
+
       <div className="flex gap-2 text-text-color-caption text-sm mb-7">
         <i className="mt-1 mr-4">
           <Icon name="alert" color="caption" label="alert" />
@@ -153,7 +157,7 @@ export const BillableCosts = () => {
             <SliderCard
               label={t.expenses.billable.form["monthly-salary"]}
               category="wallet"
-              currency={t.common['currency-symbol'] + " "}
+              currency={selectedCurrency.symbol}
               min={1}
               max={100000}
               suffix={t.expenses.billable.form["monthly-salary-period"]}
@@ -214,13 +218,15 @@ export const BillableCosts = () => {
           title={t.expenses.billable.form["billable-hours"]}
           data={
             <>
-              <b>{calculations.billableHours}</b> {t.expenses.billable.form["billable-hours-period"]}
+              <b>{calculations.billableHours}</b>{" "}
+              {t.expenses.billable.form["billable-hours-period"]}
             </>
           }
           itemsOnHover={
             <div className="flex gap-1">
               <span className="mr-2">=</span>
-              <Badge>{t.expenses.billable.form["work-days"]}</Badge>*<Badge>{t.expenses.billable.form["billable-hours"]}</Badge>
+              <Badge>{t.expenses.billable.form["work-days"]}</Badge>*
+              <Badge>{t.expenses.billable.form["billable-hours"]}</Badge>
             </div>
           }
         />

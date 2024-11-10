@@ -6,7 +6,6 @@ import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
 import { Resizable } from "@repo/design-system/components/ui/resizable-panel";
 import { TabButton } from "@repo/design-system/components/ui/tab-button";
 import { useToast } from "@repo/design-system/hooks/use-toast";
-
 import {
   DndContext,
   DragEndEvent,
@@ -32,6 +31,8 @@ import { FIXED_COST_CATEGORIES } from "@/app/constants";
 import { useUpdateBatchFixedExpense } from "./server/update-batch-fixed-expenses";
 import { useDeleteFixedExpenses } from "./server/delete-fixed-expenses";
 import { EditExpenseForm } from "./edit-expense-form";
+import { Header } from "./header";
+import { useCurrencyStore } from '@/app/store/currency-store';
 
 type Props = {
   userId: string;
@@ -39,7 +40,7 @@ type Props = {
 
 const DragOverlayWrapper = dynamic(
   () =>
-    Promise.resolve(({ activeCard }: { activeCard: ExpenseItem  | null }) => {
+    Promise.resolve(({ activeCard }: { activeCard: ExpenseItem | null }) => {
       const [mounted, setMounted] = useState(false);
 
       useEffect(() => {
@@ -73,6 +74,9 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
     useGetFixedExpenses({ userId });
   const { mutate: deleteExpense } = useDeleteFixedExpenses();
   const { mutate: updateBatchExpenses } = useUpdateBatchFixedExpense();
+
+   const {selectedCurrency,  } =
+     useCurrencyStore();
 
   const [activeCard, setActiveCard] = useState<ExpenseItem | null>(null);
   const [expenses, setExpenses] = useState<ExpenseItem[] | []>([]);
@@ -251,7 +255,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
                             <ItemCard
                               data={{
                                 ...expense,
-                                currency: t.common["currency-symbol"],
+                                currency: selectedCurrency.symbol,
                                 period: t.common.period["per-month"],
                                 color: getExpenseCategoryColor(
                                   expense.category
@@ -348,7 +352,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
             <div className="sticky bottom-0 mt-auto flex items-center justify-between w-full rounded-b-md h-14 px-5 py-4 bg-purple-200 opacity-95">
               <p>{t.expenses.billable.total.title}</p>
               <span className="text-2xl font-semibold">
-                {t.common["currency-symbol"]} {totalValue.toFixed(2)}
+                {selectedCurrency.symbol} {totalValue.toFixed(2)}
               </span>
             </div>
           </ScrollArea.Root>
