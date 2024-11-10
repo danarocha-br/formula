@@ -17,7 +17,7 @@ import { Chip } from "../chip";
 import { IconButton } from "../icon-button";
 import * as S from "./styles";
 
-type SelectOption = {
+export type SelectOption = {
   label: string;
   value: string;
   slot?: React.ReactNode;
