@@ -20,19 +20,16 @@ import dynamic from "next/dynamic";
 
 import { Icon } from "@repo/design-system/components/ui/icon";
 import { EmptyView } from "./empty-view";
-import { MasonryGrid } from "@repo/design-system/components/ui/masonry-grid";
 import { BillableCosts } from "../feature-billable-cost";
 import { ExpenseItem } from "@/app/types";
 import { getTranslations } from "@/utils/translations";
-import { AddCard } from "./add-expense-card";
 import { useGetFixedExpenses } from "./server/get-fixed-expenses";
 import { LoadingView } from "./loading-view";
 import { FIXED_COST_CATEGORIES } from "@/app/constants";
 import { useUpdateBatchFixedExpense } from "./server/update-batch-fixed-expenses";
 import { useDeleteFixedExpenses } from "./server/delete-fixed-expenses";
-import { EditExpenseForm } from "./edit-expense-form";
-import { Header } from "./header";
 import { useCurrencyStore } from "@/app/store/currency-store";
+import { CardsView } from "./cards-view";
 
 type Props = {
   userId: string;
@@ -127,11 +124,6 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
     })
   );
 
-  const maxValue = useMemo(
-    () => Math.max(...expenses.map((item) => item.amount)),
-    [expenses]
-  );
-
   const cardsId = useMemo(() => expenses.map((item) => item.id), [expenses]);
 
   const totalValue = useMemo(
@@ -160,8 +152,6 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
       );
       const overIndex = expenses.findIndex((expense) => expense.id === over.id);
       const newExpenses = arrayMove(expenses, activeIndex, overIndex);
-
-      let hasShownError = false;
 
       updateBatchExpenses(
         {
@@ -205,7 +195,6 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
     setEditingId((currentId) => (currentId === id ? null : id));
   }
   const handleEditOnClose = React.useCallback(() => {
-    console.log("Handling edit close");
     setEditingId(null);
   }, []);
 
@@ -238,67 +227,19 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
               >
                 <div className="p-2 w-full min-h-dvh">
                   <SortableContext items={cardsId}>
-                    <MasonryGrid>
-                      {expenses.map((expense) => {
-                        const isLarge = expense.amount > maxValue * 0.4;
-
-                        return (
-                          <div
-                            key={expense.id}
-                            className="relative"
-                            style={{
-                              height: isLarge ? "380px" : "260px",
-                              width: "100%",
-                            }}
-                          >
-                            <ItemCard
-                              data={{
-                                ...expense,
-                                currency: selectedCurrency.symbol + " ",
-                                period: t.common.period["per-month"],
-                                color: getExpenseCategoryColor(
-                                  expense.category
-                                ),
-                                categoryLabel: getExpenseCategoryLabel(
-                                  expense.category
-                                ),
-                              }}
-                              loading={isLoadingExpenses}
-                              className="w-full h-full"
-                              actionDeleteLabel={t.common["delete"]}
-                              actionEditLabel={t.common["edit"]}
-                              onDelete={() => handleDeleteExpense(expense.id)}
-                              onEdit={() => handleEditCard(expense.id)}
-                              isEditMode={editingId === expense.id}
-                              editModeContent={
-                                <EditExpenseForm
-                                  onClose={handleEditOnClose}
-                                  userId={userId}
-                                  expenseId={expense.id}
-                                  rankIndex={expense.rank ?? 0}
-                                  defaultValues={{
-                                    name: expense.name,
-                                    category: {
-                                      value: expense.category,
-                                      label: getExpenseCategoryLabel(
-                                        expense.category
-                                      ),
-                                    },
-                                    amount: expense.amount,
-                                  }}
-                                />
-                              }
-                            />
-                          </div>
-                        );
-                      })}
-
-                      <AddCard
-                        className="h-full "
+                    {expenses && (
+                      <CardsView
                         userId={userId}
-                        rankIndex={expenses.length + 1}
+                        data={expenses}
+                        getCategoryColor={getExpenseCategoryColor}
+                        getCategoryLabel={getExpenseCategoryLabel}
+                        loading={isLoadingExpenses}
+                        onEdit={handleEditCard}
+                        onDelete={handleDeleteExpense}
+                        onEditClose={handleEditOnClose}
+                        editingId={editingId}
                       />
-                    </MasonryGrid>
+                    )}
                   </SortableContext>
                 </div>
 
@@ -351,7 +292,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
             <div className="sticky bottom-0 mt-auto flex items-center justify-between w-full rounded-b-md h-14 px-5 py-4 bg-purple-200 opacity-95">
               <p>{t.expenses.billable.total.title}</p>
               <span className="text-2xl font-semibold">
-                {selectedCurrency.symbol} {totalValue.toFixed(2)}
+                {selectedCurrency.symbol} {totalValue.toFixed(2).toString()}
               </span>
             </div>
           </ScrollArea.Root>

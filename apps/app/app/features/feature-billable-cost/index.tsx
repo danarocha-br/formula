@@ -40,7 +40,6 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
   const { toast } = useToast();
   const {
     control,
-    handleSubmit,
     watch,
     reset,
     formState: { isDirty },
@@ -317,7 +316,7 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
           title={t.expenses.billable.form["time-off"]}
           data={
             <>
-              <b>{calculations.timeOff}</b>{" "}
+              <b>{calculations.timeOff.toString()}</b>{" "}
               {t.expenses.billable.form["time-off-period"]}
             </>
           }
@@ -335,7 +334,7 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
           title={t.expenses.billable.form["actual-work-days"]}
           data={
             <>
-              <b>{calculations.actualWorkDays}</b>{" "}
+              <b>{calculations.actualWorkDays.toString()}</b>{" "}
               {t.expenses.billable.form["actual-work-days-period"]}
             </>
           }
@@ -362,7 +361,7 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
           title={t.expenses.billable.form["billable-hours"]}
           data={
             <>
-              <b>{calculations.billableHours}</b>{" "}
+              <b>{calculations.billableHours.toString()}</b>{" "}
               {t.expenses.billable.form["billable-hours-period"]}
             </>
           }

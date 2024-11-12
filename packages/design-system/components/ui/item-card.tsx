@@ -148,44 +148,46 @@ export const ItemCard = ({
     >
       {!isEditMode ? (
         <>
-          <Dropdown.Menu>
-            <Dropdown.Trigger
-              asChild
-              className="opacity-0 group-hover/card:opacity-100 group-hover/card:transition-all data-[state=open]:opacity-100"
-            >
-              <IconButton
-                label="Menu"
-                icon="options"
-                className="absolute top-2 right-2 "
-              />
-            </Dropdown.Trigger>
+          {!loading && (
+            <Dropdown.Menu>
+              <Dropdown.Trigger
+                asChild
+                className="opacity-0 group-hover/card:opacity-100 group-hover/card:transition-all data-[state=open]:opacity-100"
+              >
+                <IconButton
+                  label="Menu"
+                  icon="options"
+                  className="absolute top-2 right-2 "
+                />
+              </Dropdown.Trigger>
 
-            <Dropdown.Content align="end">
-              <Dropdown.Item
-                className="rounded-t-md hover:bg-neutral-200"
-                onSelect={onEdit}
-                onMouseEnter={() => setIsEditButtonHovered(true)}
-                onMouseLeave={() => setIsEditButtonHovered(false)}
-              >
-                <EditIcon
-                  size={20}
-                  animated={isEditButtonHovered}
-                  className="mt-1"
-                />{" "}
-                {actionEditLabel}
-              </Dropdown.Item>
-              <Dropdown.Separator />
-              <Dropdown.Item
-                className="bg-froly-100/50  focus:bg-froly-100 rounded-b-md"
-                onSelect={onDelete}
-                onMouseEnter={() => setIsDeleteButtonHovered(true)}
-                onMouseLeave={() => setIsDeleteButtonHovered(false)}
-              >
-                <DeleteIcon size={18} animated={isDeleteButtonHovered} />
-                {actionDeleteLabel}
-              </Dropdown.Item>
-            </Dropdown.Content>
-          </Dropdown.Menu>
+              <Dropdown.Content align="end">
+                <Dropdown.Item
+                  className="rounded-t-md hover:bg-neutral-200"
+                  onSelect={onEdit}
+                  onMouseEnter={() => setIsEditButtonHovered(true)}
+                  onMouseLeave={() => setIsEditButtonHovered(false)}
+                >
+                  <EditIcon
+                    size={20}
+                    animated={isEditButtonHovered}
+                    className="mt-1"
+                  />{" "}
+                  {actionEditLabel}
+                </Dropdown.Item>
+                <Dropdown.Separator />
+                <Dropdown.Item
+                  className="bg-froly-100/50  focus:bg-froly-100 rounded-b-md"
+                  onSelect={onDelete}
+                  onMouseEnter={() => setIsDeleteButtonHovered(true)}
+                  onMouseLeave={() => setIsDeleteButtonHovered(false)}
+                >
+                  <DeleteIcon size={18} animated={isDeleteButtonHovered} />
+                  {actionDeleteLabel}
+                </Dropdown.Item>
+              </Dropdown.Content>
+            </Dropdown.Menu>
+          )}
 
           {!loading ? (
             !isEmpty &&
