@@ -15,6 +15,7 @@ import { useUpdateBillableExpense } from "./server/update-billable-expense";
 import { useToast } from "@repo/design-system/hooks/use-toast";
 import { ExpenseItem } from "@/app/types";
 import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
+import { formatCurrency } from "@/utils/format-currency";
 
 type BillableCostsForm = {
   work_days: number;
@@ -458,8 +459,9 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
           data={
             <>
               <b>
-                {selectedCurrency.symbol}{" "}
-                {breakEvenMetrics.hourlyRate.toFixed(2)}
+                {formatCurrency(breakEvenMetrics.hourlyRate, {
+                  currency: selectedCurrency.code,
+                })}
               </b>{" "}
               {t.expenses.billable.breakeven["per-hour"]}
             </>
@@ -481,7 +483,9 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
           data={
             <>
               <b>
-                {selectedCurrency.symbol} {breakEvenMetrics.dayRate.toFixed(2)}
+                {formatCurrency(breakEvenMetrics.dayRate, {
+                  currency: selectedCurrency.code,
+                })}
               </b>{" "}
               {t.expenses.billable.breakeven["per-day"]}
             </>
@@ -502,7 +506,9 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
           data={
             <>
               <b>
-                {selectedCurrency.symbol} {breakEvenMetrics.weekRate.toFixed(2)}
+                {formatCurrency(breakEvenMetrics.weekRate, {
+                  currency: selectedCurrency.code,
+                })}
               </b>{" "}
               {t.expenses.billable.breakeven["per-week"]}
             </>
@@ -524,8 +530,9 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
           data={
             <>
               <b>
-                {selectedCurrency.symbol}{" "}
-                {breakEvenMetrics.monthlyRate.toFixed(2)}
+                {formatCurrency(breakEvenMetrics.monthlyRate, {
+                  currency: selectedCurrency.code,
+                })}
               </b>{" "}
               {t.expenses.billable.breakeven["per-month"]}
             </>

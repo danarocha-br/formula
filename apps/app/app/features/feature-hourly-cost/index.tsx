@@ -31,6 +31,7 @@ import { useDeleteFixedExpenses } from "./server/delete-fixed-expenses";
 import { useCurrencyStore } from "@/app/store/currency-store";
 import { CardsView } from "./cards-view";
 import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
+import { formatCurrency } from "@/utils/format-currency";
 
 type Props = {
   userId: string;
@@ -297,15 +298,14 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
       <Resizable.Panel defaultSize={40}>
         <section className="bg-neutral-100 text-card-foreground rounded-lg relative flex flex-col justify-between @container">
           <ScrollArea.Root className="w-full h-[calc(100vh-70px)] rounded-b-lg">
-            <BillableCosts
-              userId={userId}
-            />
+            <BillableCosts userId={userId} />
 
             <div className="sticky bottom-0 mt-auto flex items-center justify-between w-full rounded-b-md h-14 px-5 py-4 bg-purple-200 opacity-95">
               <p>{t.expenses.billable.total.title}</p>
               <span className="text-2xl font-semibold">
-                {selectedCurrency.symbol}{" "}
-                {hourlyCost.toFixed(2).toString()}
+                {formatCurrency(hourlyCost, {
+                  currency: selectedCurrency.code,
+                })}
               </span>
             </div>
           </ScrollArea.Root>

@@ -1,4 +1,4 @@
-export type Locale = "en" | "pt-BR";
+export type Locale = "en-US" | "pt-BR";
 export interface ExpenseItem {
   name: string;
   userId: string;

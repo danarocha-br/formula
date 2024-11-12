@@ -80,17 +80,19 @@ export const Header = ({ items }: HeaderProps) => {
         <div>
           <Combobox
             searchPlaceholder={t.common["search"]}
-            options={currencies.map((currency) => ({
-              label: currency.code,
-              value: currency.code,
-              slot: (
-                <b className="bg-neutral-900/15 w-7 h-7 flex items-center justify-center rounded-full">
-                  {currency.symbol}
-                </b>
-              ),
-            }))}
+            options={currencies
+              .sort((a, b) => a.code.localeCompare(b.code))
+              .map((currency) => ({
+                label: currency.code,
+                value: currency.code,
+                slot: (
+                  <b className="text-xs bg-neutral-900/15 w-8 h-8 flex items-center justify-center rounded-full">
+                    {currency.symbol}
+                  </b>
+                ),
+              }))}
             value={{
-              label: selectedCurrency.label,
+              label: selectedCurrency.code,
               value: selectedCurrency.code,
             }}
             onChange={(option: SelectOption | SelectOption[]) => {
