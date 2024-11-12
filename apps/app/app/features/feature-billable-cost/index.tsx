@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useDebounce } from "react-use";
 import { Icon } from "@repo/design-system/components/ui/icon";
@@ -13,6 +13,8 @@ import { useCurrencyStore } from "@/app/store/currency-store";
 import { useGetBillableExpenses } from "./server/get-billable-expenses";
 import { useUpdateBillableExpense } from "./server/update-billable-expense";
 import { useToast } from "@repo/design-system/hooks/use-toast";
+import { ExpenseItem } from "@/app/types";
+import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
 
 type BillableCostsForm = {
   work_days: number;
@@ -32,12 +34,23 @@ type Calculations = {
   billableHours: number;
 };
 
+type BreakEvenCalculations = {
+  breakEven: number;
+  hourlyRate: number;
+  dayRate: number;
+  weekRate: number;
+  monthlyRate: number;
+};
+
 export const BillableCosts = ({ userId }: { userId: string }) => {
   const { data: initialExpenses, isLoading: isLoadingExpenses } =
     useGetBillableExpenses({ userId });
   const { mutate: updateBillableExpenses } = useUpdateBillableExpense();
-
+  const t = getTranslations();
   const { toast } = useToast();
+
+  const { selectedCurrency } = useCurrencyStore();
+  const { setHourlyCost, totalMonthlyExpenses } = useHourlyCostStore();
   const {
     control,
     watch,
@@ -126,11 +139,74 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
     };
   };
 
-  const calculations = calculateMetrics(formData);
+  const hourlyCalculations = useMemo(
+    () => calculateMetrics(formData),
+    [formData]
+  );
 
-  const t = getTranslations();
+  const calculateBreakEven = (
+    billableHours: number,
+    monthlySalary: number,
+    taxRate: number,
+    fees: number,
+    margin: number,
+    totalExpensesCostPerMonth: number
+  ): BreakEvenCalculations => {
+    const yearlySalary = monthlySalary * 12;
+    const totalYearlyExpenses = totalExpensesCostPerMonth * 12;
+    const totalExpenses = yearlySalary + totalYearlyExpenses;
 
-  const { selectedCurrency } = useCurrencyStore();
+    const totalYearlyTaxes = calculateTaxes(totalExpenses, taxRate);
+    const totalYearlyCosts =
+      yearlySalary + totalYearlyTaxes + totalYearlyExpenses;
+
+    const baseHourlyRate = totalYearlyCosts / billableHours;
+    const marginMultiplier = 1 + margin / 100;
+    const hourlyRate = baseHourlyRate * marginMultiplier;
+    const dayRate = hourlyRate * formData.hours_per_day;
+    const weekRate = dayRate * formData.work_days;
+    const monthlyRate = (hourlyRate * billableHours) / 12;
+
+    return {
+      breakEven: roundToTwoDecimals(totalYearlyCosts),
+      hourlyRate: roundToTwoDecimals(hourlyRate),
+      dayRate: roundToTwoDecimals(dayRate),
+      weekRate: roundToTwoDecimals(weekRate),
+      monthlyRate: roundToTwoDecimals(monthlyRate),
+    };
+  };
+
+  const calculateTaxes = (totalExpenses: number, taxRate: number): number => {
+    return (totalExpenses * taxRate) / 100;
+  };
+
+  const roundToTwoDecimals = (value: number): number => {
+    return Math.round(value * 100) / 100;
+  };
+
+  const breakEvenMetrics = useMemo(
+    () =>
+      calculateBreakEven(
+        hourlyCalculations.billableHours,
+        formData.monthly_salary,
+        formData.taxes,
+        formData.fees,
+        formData.margin,
+        totalMonthlyExpenses
+      ),
+    [
+      hourlyCalculations.billableHours,
+      formData.monthly_salary,
+      formData.taxes,
+      formData.fees,
+      formData.margin,
+      totalMonthlyExpenses,
+    ]
+  );
+
+  useEffect(() => {
+    setHourlyCost(breakEvenMetrics.hourlyRate);
+  }, [breakEvenMetrics.hourlyRate, setHourlyCost]);
 
   return (
     <div className="flex flex-col py-5 px-6 h-full">
@@ -316,7 +392,7 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
           title={t.expenses.billable.form["time-off"]}
           data={
             <>
-              <b>{calculations.timeOff.toString()}</b>{" "}
+              <b>{hourlyCalculations.timeOff.toString()}</b>{" "}
               {t.expenses.billable.form["time-off-period"]}
             </>
           }
@@ -334,7 +410,7 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
           title={t.expenses.billable.form["actual-work-days"]}
           data={
             <>
-              <b>{calculations.actualWorkDays.toString()}</b>{" "}
+              <b>{hourlyCalculations.actualWorkDays.toString()}</b>{" "}
               {t.expenses.billable.form["actual-work-days-period"]}
             </>
           }
@@ -361,8 +437,8 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
           title={t.expenses.billable.form["billable-hours"]}
           data={
             <>
-              <b>{calculations.billableHours.toString()}</b>{" "}
-              {t.expenses.billable.form["billable-hours-period"]}
+              <b>{hourlyCalculations.billableHours.toString()}</b>{" "}
+              {t.expenses.billable.form["billable-hours-summary-period"]}
             </>
           }
           itemsOnHover={
@@ -370,6 +446,98 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
               <span className="mr-2">=</span>
               <Badge>{t.expenses.billable.form["work-days"]}</Badge>*
               <Badge>{t.expenses.billable.form["billable-hours"]}</Badge>
+            </div>
+          }
+        />
+      </List.Root>
+
+      <List.Root className="mb-5">
+        <ListItem
+          icon="money-up"
+          title={t.expenses.billable.breakeven["hourly-rate"]}
+          data={
+            <>
+              <b>
+                {selectedCurrency.symbol}{" "}
+                {breakEvenMetrics.hourlyRate.toFixed(2)}
+              </b>{" "}
+              {t.expenses.billable.breakeven["per-hour"]}
+            </>
+          }
+          itemsOnHover={
+            <div className="flex gap-1">
+              <span className="mr-2">=</span>
+              <Badge>
+                {t.expenses.billable.breakeven["break-even"] + " "}
+              </Badge>{" "}
+              /{" "}
+              <Badge>{t.expenses.billable.form["billable-hours"] + " "}</Badge>
+            </div>
+          }
+        />
+        <ListItem
+          icon="money-up"
+          title={t.expenses.billable.breakeven["day-rate"]}
+          data={
+            <>
+              <b>
+                {selectedCurrency.symbol} {breakEvenMetrics.dayRate.toFixed(2)}
+              </b>{" "}
+              {t.expenses.billable.breakeven["per-day"]}
+            </>
+          }
+          itemsOnHover={
+            <div className="flex gap-1">
+              <span className="mr-2">=</span>
+              <Badge>
+                {t.expenses.billable.breakeven["hourly-rate"] + " "}
+              </Badge>{" "}
+              * <Badge> {t.expenses.billable.form["billable-hours"]}</Badge>
+            </div>
+          }
+        />
+        <ListItem
+          icon="money-up"
+          title={t.expenses.billable.breakeven["week-rate"]}
+          data={
+            <>
+              <b>
+                {selectedCurrency.symbol} {breakEvenMetrics.weekRate.toFixed(2)}
+              </b>{" "}
+              {t.expenses.billable.breakeven["per-week"]}
+            </>
+          }
+          itemsOnHover={
+            <div className="flex gap-1">
+              <span className="mr-2">=</span>
+              <Badge>
+                {t.expenses.billable.breakeven["day-rate"] + " "}
+              </Badge> *{" "}
+              <Badge> {t.expenses.billable.form["billable-hours"]}</Badge>
+            </div>
+          }
+        />
+        <ListItem
+          className="border-b-0"
+          icon="money-up"
+          title={t.expenses.billable.breakeven["monthly-rate"]}
+          data={
+            <>
+              <b>
+                {selectedCurrency.symbol}{" "}
+                {breakEvenMetrics.monthlyRate.toFixed(2)}
+              </b>{" "}
+              {t.expenses.billable.breakeven["per-month"]}
+            </>
+          }
+          itemsOnHover={
+            <div className="flex gap-1 items-center">
+              <span className="mr-2">=</span>
+              <Badge>
+                {t.expenses.billable.breakeven["hourly-rate"] + " "}
+              </Badge>{" "}
+              * <Badge> {t.expenses.billable.form["billable-hours"]}</Badge>
+              <span className="text-sm">/ 12</span>
             </div>
           }
         />

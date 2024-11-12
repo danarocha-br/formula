@@ -94,8 +94,20 @@ export const en = {
       summary: {
         title: "Summary",
       },
+      breakeven: {
+        "break-even": "Break even point",
+        "per-year": "per year",
+        "monthly-rate": "Monthly rate",
+        "per-month": "per month",
+        "hourly-rate": "Hourly rate",
+        "per-hour": "per hour",
+        "day-rate": "Day rate",
+        "per-day": "per day",
+        "week-rate": "Week rate",
+        "per-week": "per week",
+      },
       total: {
-        title: "Your total expenses are",
+        title: "Your hourly cost is:",
       },
     },
   },

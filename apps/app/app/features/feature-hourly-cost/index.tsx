@@ -30,6 +30,7 @@ import { useUpdateBatchFixedExpense } from "./server/update-batch-fixed-expenses
 import { useDeleteFixedExpenses } from "./server/delete-fixed-expenses";
 import { useCurrencyStore } from "@/app/store/currency-store";
 import { CardsView } from "./cards-view";
+import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
 
 type Props = {
   userId: string;
@@ -79,6 +80,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const { toast } = useToast();
+  const { hourlyCost, setTotalMonthlyExpenses } = useHourlyCostStore();
 
   const getExpenseCategoryColor = useMemo(
     () => (category: string) => {
@@ -126,8 +128,16 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
 
   const cardsId = useMemo(() => expenses.map((item) => item.id), [expenses]);
 
-  const totalValue = useMemo(
-    () => expenses.reduce((sum, item) => sum + item.amount, 0),
+  const totalExpensesCostPerMonth = useMemo(
+    () =>
+      expenses.reduce((sum, item) => {
+        const cost =
+          sum + (item.period === "monthly" ? item.amount * 1 : item.amount);
+
+        setTotalMonthlyExpenses(cost);
+
+        return cost;
+      }, 0),
     [expenses]
   );
 
@@ -156,7 +166,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
       updateBatchExpenses(
         {
           json: {
-            updates: newExpenses.map((expense, index) => ({
+            updates: newExpenses.map((expense) => ({
               id: expense.id,
               data: { rank: expense.rank },
             })),
@@ -287,12 +297,15 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
       <Resizable.Panel defaultSize={40}>
         <section className="bg-neutral-100 text-card-foreground rounded-lg relative flex flex-col justify-between @container">
           <ScrollArea.Root className="w-full h-[calc(100vh-70px)] rounded-b-lg">
-            <BillableCosts userId={userId} />
+            <BillableCosts
+              userId={userId}
+            />
 
             <div className="sticky bottom-0 mt-auto flex items-center justify-between w-full rounded-b-md h-14 px-5 py-4 bg-purple-200 opacity-95">
               <p>{t.expenses.billable.total.title}</p>
               <span className="text-2xl font-semibold">
-                {selectedCurrency.symbol} {totalValue.toFixed(2).toString()}
+                {selectedCurrency.symbol}{" "}
+                {hourlyCost.toFixed(2).toString()}
               </span>
             </div>
           </ScrollArea.Root>
