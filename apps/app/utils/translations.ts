@@ -6,6 +6,6 @@ const translations = {
   "pt-BR": ptBR,
 };
 
-export const getTranslations = (locale: string = "pt-BR") => {
+export const getTranslations = (locale: string = "en") => {
   return translations[locale as keyof typeof translations] || translations.en;
 };

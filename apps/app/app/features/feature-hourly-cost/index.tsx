@@ -5,6 +5,7 @@ import { ItemCard } from "@repo/design-system/components/ui/item-card";
 import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
 import { Resizable } from "@repo/design-system/components/ui/resizable-panel";
 import { TabButton } from "@repo/design-system/components/ui/tab-button";
+import { AnimatedNumber } from "@repo/design-system/components/ui/animated-number";
 import { useToast } from "@repo/design-system/hooks/use-toast";
 import {
   DndContext,
@@ -259,34 +260,37 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
             )}
 
             <div className="mt-auto sticky bottom-0 flex items-center justify-between w-full rounded-br-md rounded-tl-md col-span-full bg-purple-200 h-14 opacity-95">
-              <div className="h-full flex">
-                <TabButton isActive>
-                  <Icon
-                    name="work"
-                    size="sm"
-                    label={t.navigation["bottom-level"]["fixed-cost"]}
-                    color="current"
+              <div className="h-full w-full flex justify-between items-center pr-8">
+                <div className="flex h-full">
+                  <TabButton isActive>
+                    <Icon
+                      name="work"
+                      size="sm"
+                      label={t.navigation["bottom-level"]["fixed-cost"]}
+                      color="current"
+                    />
+                    {t.navigation["bottom-level"]["fixed-cost"]}
+                  </TabButton>
+                  <TabButton>
+                    <Icon
+                      name="work"
+                      size="sm"
+                      label={t.navigation["bottom-level"]["variable-cost"]}
+                      color="current"
+                    />
+                    {t.navigation["bottom-level"]["variable-cost"]}
+                  </TabButton>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <AnimatedNumber
+                    className="text-2xl font-semibold"
+                    value={totalExpensesCostPerMonth}
+                    currency={selectedCurrency.code}
+                    locale={selectedCurrency.locale}
                   />
-                  {t.navigation["bottom-level"]["fixed-cost"]}
-                </TabButton>
-                <TabButton>
-                  <Icon
-                    name="work"
-                    size="sm"
-                    label={t.navigation["bottom-level"]["variable-cost"]}
-                    color="current"
-                  />
-                  {t.navigation["bottom-level"]["variable-cost"]}
-                </TabButton>
-                <TabButton>
-                  <Icon
-                    name="work"
-                    size="sm"
-                    label={t.navigation["bottom-level"]["equipment-cost"]}
-                    color="current"
-                  />
-                  {t.navigation["bottom-level"]["equipment-cost"]}
-                </TabButton>
+                  / {t.expenses.billable.breakeven["per-month"]}
+                </div>
               </div>
             </div>
           </div>
@@ -302,11 +306,12 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
 
             <div className="sticky bottom-0 mt-auto flex items-center justify-between w-full rounded-b-md h-14 px-5 py-4 bg-purple-200 opacity-95">
               <p>{t.expenses.billable.total.title}</p>
-              <span className="text-2xl font-semibold">
-                {formatCurrency(hourlyCost, {
-                  currency: selectedCurrency.code,
-                })}
-              </span>
+              <AnimatedNumber
+                className="text-2xl font-semibold"
+                value={hourlyCost}
+                currency={selectedCurrency.code}
+                locale={selectedCurrency.locale}
+              />
             </div>
           </ScrollArea.Root>
         </section>

@@ -400,6 +400,9 @@ importers:
       '@next/third-parties':
         specifier: ^15.0.2
         version: 15.0.2(next@15.0.2)(react@18.3.1)
+      '@number-flow/react':
+        specifier: ^0.3.1
+        version: 0.3.1(react-dom@18.3.1)(react@18.3.1)
       '@radix-ui/react-accordion':
         specifier: ^1.2.1
         version: 1.2.1(@types/react@18.3.12)(react-dom@18.3.1)(react@18.3.1)
@@ -3072,6 +3075,17 @@ packages:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.17.1
+
+  /@number-flow/react@0.3.1(react-dom@18.3.1)(react@18.3.1):
+    resolution: {integrity: sha512-uEh9zGkteHNm4MvTSPRFaQSIQpcJqCZjypQBw27UEcfo1dxxOC+X5Wg/eJswy5juPWpbM5A+lq7JXz8X7KmJjA==}
+    peerDependencies:
+      react: ^18 || ^19.0.0-rc-915b914b3a-20240515
+      react-dom: ^18
+    dependencies:
+      number-flow: 0.3.6
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    dev: false
 
   /@octokit/auth-token@2.5.0:
     resolution: {integrity: sha512-r5FVUJCOLl19AxiuZD2VRZ/ORjp/4IN98Of6YJoJOkY75CIBuYfmiNHGrDwXr+aLGG55igl9QrxX3hbiXlLb+g==}
@@ -11901,6 +11915,10 @@ packages:
     resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}
     dependencies:
       boolbase: 1.0.0
+    dev: false
+
+  /number-flow@0.3.6:
+    resolution: {integrity: sha512-EKT4Z0/h68rrappc4ehU5mj4kFDIav0H9+QI7Xqz8IQ9Q4xbjvh5RpY784VXsVFkiypn3Nq8BSXCD87MwDmznQ==}
     dev: false
 
   /nwsapi@2.2.13:

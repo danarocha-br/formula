@@ -123,7 +123,7 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
         );
       }
     },
-    500,
+    1000,
     [formData, isLoadingExpenses, userId, isDirty]
   );
 

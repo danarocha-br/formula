@@ -94,21 +94,3 @@ export const formatCurrency = (
   }
 };
 
-/**
- * Helper function to format currency using the current locale from the store
- * @param amount - The amount to format
- * @param currency - Optional currency code
- * @returns Formatted currency string
- */
-export const formatLocaleCurrency = (
-  amount: number,
-  currency?: string
-): string => {
-  // You would typically get the current locale from your currency store here
-  // const currentLocale = getCurrentLocale(); // Implement this based on your store
-
-  return formatCurrency(amount, {
-    // locale: currentLocale,
-    currency: currency,
-  });
-};
