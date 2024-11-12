@@ -1,6 +1,5 @@
 import { zValidator } from "@hono/zod-validator";
 import { FixedCostExpensesRepository } from "@repo/database";
-import { PrismaFixedCostExpensesRepository } from "@repo/database/repositories/prisma-fixed-cost-expenses";
 import { Hono } from "hono";
 import { z } from "zod";
 
@@ -61,7 +60,7 @@ export const expensesFixedCosts = new Hono()
           throw new Error("Unauthorized");
         }
 
-        const repository = new PrismaFixedCostExpensesRepository();
+        const repository = new FixedCostExpensesRepository();
 
         await repository.update(userId, id, {
           name,
@@ -93,7 +92,7 @@ export const expensesFixedCosts = new Hono()
         throw new Error("Unauthorized");
       }
 
-      const repository = new PrismaFixedCostExpensesRepository();
+      const repository = new FixedCostExpensesRepository();
 
       const updatedExpenses = await repository.updateBatch(userId, updates);
 
@@ -119,7 +118,7 @@ export const expensesFixedCosts = new Hono()
         throw new Error("Unauthorized");
       }
 
-      const repository = new PrismaFixedCostExpensesRepository();
+      const repository = new FixedCostExpensesRepository();
 
       await repository.create({
         name,
@@ -150,7 +149,7 @@ export const expensesFixedCosts = new Hono()
         throw new Error("Unauthorized");
       }
 
-      const repository = new PrismaFixedCostExpensesRepository();
+      const repository = new FixedCostExpensesRepository();
 
       await repository.delete(userId, id);
 

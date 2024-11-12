@@ -24,7 +24,7 @@ const thumb = cva([
   "focus-visible:ring-offset-2",
 
   "disabled:pointer-events-none",
-  "disabled:opacity-50",
+  "disabled:bg-neutral-100",
 
   "hover:cursor-grab",
   "hover:scale-125",
@@ -46,6 +46,8 @@ const track = cva([
   "bg-neutral-200/30",
   "hover:bg-neutral-200/60",
   "transition-colors",
+
+  "disabled:bg-neutral-100",
 ]);
 
 const Slider = React.forwardRef<

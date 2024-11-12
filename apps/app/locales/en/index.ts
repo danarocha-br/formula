@@ -77,6 +77,22 @@ export const en = {
         "actual-work-days-period": "days per year",
         "billable-hours-summary": "Billable hours",
         "billable-hours-summary-period": "hours per year",
+        taxes: "Taxes",
+        fees: "Other fees",
+        margin: "Margin",
+      },
+      taxes: {
+        title: "Taxes & fees",
+        subtitle:
+          "Just a friendly reminder that as a freelancer, you won't keep all of your earnings. You'll need to set aside some for taxes and possibly cover fees for invoicing or payment processing. It's a good idea to plan for these expenses to keep everything running smoothly!",
+      },
+      margin: {
+        title: "Your margin",
+        subtitle:
+          "When figuring out your ideal rate, it's interesting to add a little extra on top of your break-even point. Consider factors like your skill level, where you're located, and what your competitors are charging. This way, you can ensure you're getting the value you deserve!",
+      },
+      summary: {
+        title: "Summary",
       },
       total: {
         title: "Your total expenses are",

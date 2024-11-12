@@ -15,6 +15,7 @@ import { Input } from "@repo/design-system/components/ui/input";
 import { SliderCard } from "@repo/design-system/components/ui/slider-card";
 import { Button } from "@repo/design-system/components/ui/button";
 import { useToast } from '@repo/design-system/hooks/use-toast';
+import { useCurrencyStore } from '@/app/store/currency-store';
 
 interface NewExpenseForm {
   category: ComboboxOption | undefined;
@@ -91,6 +92,7 @@ export const AddExpenseForm = ({
       </div>
     ),
   }));
+  const {selectedCurrency} = useCurrencyStore()
 
   const expenseSchema = z.object({
     category: z.object(
@@ -217,7 +219,7 @@ export const AddExpenseForm = ({
             render={({ field }) => (
               <SliderCard
                 suffix={t.expenses.form.period}
-                currency={t.common["currency-symbol"] + " "}
+                currency={selectedCurrency.symbol}
                 min={1}
                 max={5000}
                 value={field.value}

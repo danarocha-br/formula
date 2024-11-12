@@ -6,6 +6,7 @@ import { Icon, iconPath } from "./icon";
 import { cva } from "class-variance-authority";
 import { Label } from "./label";
 import { Slider } from "./slider";
+import { Skeleton } from "./skeleton";
 
 const container = cva(
   ["flex", "items-center", "gap-4", "w-full", "rounded-md", "bg-input"],
@@ -55,6 +56,7 @@ export interface SliderCardProps
   suffix?: string;
   onChange?: (value: number) => void;
   removePaddings?: boolean;
+  loading?: boolean;
   errors?: any;
 }
 
@@ -70,6 +72,7 @@ const SliderCard = React.forwardRef<HTMLInputElement, SliderCardProps>(
       onChange,
       removePaddings = false,
       errors,
+      loading = false,
       ...props
     },
     ref
@@ -123,16 +126,21 @@ const SliderCard = React.forwardRef<HTMLInputElement, SliderCardProps>(
               className={inputNumeric()}
               name={props.name}
               id={props.id}
-              disabled={props.disabled}
+              disabled={props.disabled || loading}
               min={props.min}
               max={props.max}
               thousandSeparator={currency === "$" ? "," : "."}
               decimalSeparator={currency === "$" ? "." : ","}
               prefix={currency ? currency : undefined}
+              aria-disabled={loading}
             />
             {!!suffix && (
               <span className="whitespace-nowrap text-right absolute right-3 top-2 text-sm select-none">
-                {suffix}
+                {!loading ? (
+                  suffix
+                ) : (
+                  <Skeleton className="w-12 h-5 bg-neutral-300" />
+                )}
               </span>
             )}
           </div>
@@ -146,6 +154,7 @@ const SliderCard = React.forwardRef<HTMLInputElement, SliderCardProps>(
             }}
             min={0}
             max={100}
+            disabled={loading || props.disabled}
           />
         </div>
 

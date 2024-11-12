@@ -5,16 +5,15 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 const AuthLayout = ({ children }: { children: ReactNode }) => (
-  <div className="container relative grid h-dvh flex-col items-center justify-center lg:max-w-none lg:grid-cols-2 lg:px-0">
-    <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
-      <div className="absolute inset-0 bg-zinc-900" />
+  <div className=" bg-primary container relative grid h-dvh flex-col items-center justify-center lg:max-w-none lg:grid-cols-2 lg:px-0">
+    <div className="relative hidden h-full flex-col bg-neutral-100 p-10 text-card-foreground lg:flex">
       <div className="relative z-20 flex items-center font-medium text-lg">
         <CommandIcon className="mr-2 h-6 w-6" />
-        Acme Inc
+        Formula
       </div>
-      <div className="absolute top-4 right-4">
+      {/* <div className="absolute top-4 right-4">
         <ModeToggle />
-      </div>
+      </div> */}
       <div className="relative z-20 mt-auto">
         <blockquote className="space-y-2">
           <p className="text-lg">
@@ -26,21 +25,21 @@ const AuthLayout = ({ children }: { children: ReactNode }) => (
         </blockquote>
       </div>
     </div>
-    <div className="lg:p-8">
-      <div className="mx-auto flex w-full max-w-[400px] flex-col justify-center space-y-6">
+    <div className="lg:p-8 text-card-foreground">
+      <div className="mx-auto flex w-full max-w-[520px] flex-col justify-center space-y-6">
         {children}
-        <p className="px-8 text-center text-muted-foreground text-sm">
-          By clicking continue, you agree to our{' '}
+        <p className="px-8 text-center text-card-foreground text-sm">
+          By clicking continue, you agree to our{" "}
           <Link
-            href={new URL('/legal/terms', webUrl).toString()}
-            className="underline underline-offset-4 hover:text-primary"
+            href={new URL("/legal/terms", webUrl).toString()}
+            className="underline underline-offset-4 hover:text-card-foreground"
           >
             Terms of Service
-          </Link>{' '}
-          and{' '}
+          </Link>{" "}
+          and{" "}
           <Link
-            href={new URL('/legal/privacy', webUrl).toString()}
-            className="underline underline-offset-4 hover:text-primary"
+            href={new URL("/legal/privacy", webUrl).toString()}
+            className="underline underline-offset-4 hover:text-card-foreground"
           >
             Privacy Policy
           </Link>

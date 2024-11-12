@@ -316,6 +316,7 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                     rootBox: "flex overflow-hidden",
                     userButtonBox: "flex-row-reverse",
                     userButtonOuterIdentifier: "truncate pl-0",
+                    userButtonPopoverMain: "!bg-card !text-card-foreground"
                   },
                 }}
               />

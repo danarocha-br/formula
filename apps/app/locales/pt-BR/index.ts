@@ -79,6 +79,22 @@ export const ptBR: Messages = {
         "actual-work-days-period": "dias por ano",
         "billable-hours-summary": "Horas faturáveis",
         "billable-hours-summary-period": "horas por ano",
+        taxes: "Impostos",
+        fees: "Outras tarifas",
+        margin: "Margem de lucro",
+      },
+      taxes: {
+        title: "Impostos e outras taxas",
+        subtitle:
+          "Vale lembrar que, será necessário reservar uma parte para impostos e talvez cobrir taxas de faturamento ou processamento de pagamentos.",
+      },
+      margin: {
+        title: "Margem de lucro",
+        subtitle:
+          "Ao calcular sua tarifa ideal, é interessante adicionar um pouco mais além do seu ponto de equilíbrio. Considere fatores como seu nível de habilidade, localização e o que seus concorrentes estão cobrando.",
+      },
+      summary: {
+        title: "Resumo"
       },
       total: {
         title: "Seus custos totais são:",
@@ -94,9 +110,12 @@ export const ptBR: Messages = {
       unauthorized: "Voce não tem permissão para realizar essa operação.",
       "not-found": "Item não encontrado.",
       "create-failed": "Ops! Não conseguimos criar o item. Tente novamente!",
-      "update-failed": "Ops! Não conseguimos atualizar o item(s). Tente novamente!",
-      "delete-failed": "Ops! Não conseguimos excluir o item(s). Tente novamente!",
-      "list-update-failed": "Oops! Não conseguimos atualizar sua lista. Tente novamente!",
+      "update-failed":
+        "Ops! Não conseguimos atualizar o item(s). Tente novamente!",
+      "delete-failed":
+        "Ops! Não conseguimos excluir o item(s). Tente novamente!",
+      "list-update-failed":
+        "Oops! Não conseguimos atualizar sua lista. Tente novamente!",
     },
   },
   auth: {

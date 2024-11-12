@@ -29,12 +29,16 @@ model ExpensesFixedCost {
 model ExpensesBillableCost {
   id            Int      @id @default(autoincrement())
   userId        String   @unique
-  workDays      Float
-  billableHours Float
-  holidaysDays  Float
-  vacationsDays Float
-  sickLeaveDays Float
-  monthlySalary Float
+  workDays      Float    @default(5)
+  hoursPerDay   Float    @default(6)
+  holidaysDays  Float    @default(12)
+  vacationsDays Float    @default(30)
+  sickLeaveDays Float    @default(3)
+  monthlySalary Float    @default(5000)
+  taxes         Float    @default(0)
+  fees          Float    @default(0)
+  margin        Float    @default(15)
+  billableHours Float?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now()) @updatedAt
 

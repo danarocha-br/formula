@@ -1,7 +1,5 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { InferRequestType, InferResponseType } from "hono";
+import { useQuery } from "@tanstack/react-query";
 import { client } from "@repo/design-system/lib/rpc";
-import { toast } from "sonner";
 
 interface useGetFixedExpenses {
   userId: string;

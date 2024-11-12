@@ -32,7 +32,7 @@ import { useUpdateBatchFixedExpense } from "./server/update-batch-fixed-expenses
 import { useDeleteFixedExpenses } from "./server/delete-fixed-expenses";
 import { EditExpenseForm } from "./edit-expense-form";
 import { Header } from "./header";
-import { useCurrencyStore } from '@/app/store/currency-store';
+import { useCurrencyStore } from "@/app/store/currency-store";
 
 type Props = {
   userId: string;
@@ -75,8 +75,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
   const { mutate: deleteExpense } = useDeleteFixedExpenses();
   const { mutate: updateBatchExpenses } = useUpdateBatchFixedExpense();
 
-   const {selectedCurrency,  } =
-     useCurrencyStore();
+  const { selectedCurrency } = useCurrencyStore();
 
   const [activeCard, setActiveCard] = useState<ExpenseItem | null>(null);
   const [expenses, setExpenses] = useState<ExpenseItem[] | []>([]);
@@ -169,7 +168,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
           json: {
             updates: newExpenses.map((expense, index) => ({
               id: expense.id,
-              data: { rank: index },
+              data: { rank: expense.rank },
             })),
             userId,
           },
@@ -255,7 +254,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
                             <ItemCard
                               data={{
                                 ...expense,
-                                currency: selectedCurrency.symbol,
+                                currency: selectedCurrency.symbol + " ",
                                 period: t.common.period["per-month"],
                                 color: getExpenseCategoryColor(
                                   expense.category
@@ -347,7 +346,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
       <Resizable.Panel defaultSize={40}>
         <section className="bg-neutral-100 text-card-foreground rounded-lg relative flex flex-col justify-between @container">
           <ScrollArea.Root className="w-full h-[calc(100vh-70px)] rounded-b-lg">
-            <BillableCosts />
+            <BillableCosts userId={userId} />
 
             <div className="sticky bottom-0 mt-auto flex items-center justify-between w-full rounded-b-md h-14 px-5 py-4 bg-purple-200 opacity-95">
               <p>{t.expenses.billable.total.title}</p>

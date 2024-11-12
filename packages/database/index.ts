@@ -26,3 +26,5 @@ export const database = new PrismaClient({ adapter });
 
 export { PrismaFixedCostExpensesRepository as FixedCostExpensesRepository } from "./repositories/prisma-fixed-cost-expenses";
 export { type IFixedCostExpensesRepository } from "./repositories/dtos/fixed-cost-expenses-repository";
+export { PrismaBillableCostExpensesRepository as BillableCostExpensesRepository } from "./repositories/prisma-billable-cost-expenses";
+export { type IBillableCostExpensesRepository } from "./repositories/dtos/billable-cost-expenses-repository";

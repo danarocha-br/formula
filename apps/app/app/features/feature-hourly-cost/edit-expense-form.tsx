@@ -15,7 +15,9 @@ import { Button } from "@repo/design-system/components/ui/button";
 import { closeButton, ComboboxOption, SelectOption } from "./add-expense-form";
 import { useUpdateFixedExpense } from "./server/update-fixed-expense";
 import { CheckIcon } from "@repo/design-system/components/ui/animated-icon/check";
-import { useToast } from '@repo/design-system/hooks/use-toast';
+import { useToast } from "@repo/design-system/hooks/use-toast";
+import { useCurrencyStore } from "@/app/store/currency-store";
+
 interface EditExpenseForm {
   category: ComboboxOption | undefined;
   amount: number;
@@ -45,6 +47,7 @@ export const EditExpenseForm = ({
   const t = getTranslations();
 
   const [isHovered, setIsHovered] = useState(false);
+  const { selectedCurrency } = useCurrencyStore();
 
   const categoriesList = FIXED_COST_CATEGORIES.map((category) => ({
     label: category.label,
@@ -201,7 +204,7 @@ export const EditExpenseForm = ({
             render={({ field }) => (
               <SliderCard
                 suffix={t.expenses.form.period}
-                currency={t.common["currency-symbol"] + " "}
+                currency={selectedCurrency.symbol + " "}
                 min={1}
                 max={5000}
                 value={field.value}
