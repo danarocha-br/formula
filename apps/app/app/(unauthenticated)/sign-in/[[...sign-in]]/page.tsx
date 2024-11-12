@@ -1,11 +1,9 @@
 import { createMetadata } from "@repo/design-system/lib/metadata";
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
 import SignIn from "../../../features/feature-sign-in";
 
 const title = "Welcome back";
 const description = "Enter your details to sign in.";
-// const SignIn = dynamic(() => import('@clerk/nextjs').then((mod) => mod.SignIn));
 
 export const metadata: Metadata = createMetadata({ title, description });
 

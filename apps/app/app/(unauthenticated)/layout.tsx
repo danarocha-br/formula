@@ -1,4 +1,3 @@
-import { ModeToggle } from '@repo/design-system/components/mode-toggle';
 import { webUrl } from '@repo/design-system/lib/consts';
 import { CommandIcon } from 'lucide-react';
 import Link from 'next/link';
