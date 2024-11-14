@@ -13,7 +13,6 @@ import { useCurrencyStore } from "@/app/store/currency-store";
 import { useGetBillableExpenses } from "./server/get-billable-expenses";
 import { useUpdateBillableExpense } from "./server/update-billable-expense";
 import { useToast } from "@repo/design-system/hooks/use-toast";
-import { ExpenseItem } from "@/app/types";
 import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
 import { formatCurrency } from "@/utils/format-currency";
 

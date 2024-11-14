@@ -229,7 +229,7 @@ export const ItemCard = ({
                 <p className="text-card-foreground font-medium @[200px]:text-lg @[380px]:text-2xl @[600px]:text-3xl">
                   <span>{currency}</span>
                   <span className="mx-1">{amount}</span>
-                  <span className="text-muted text-md truncate">
+                  <span className="text-muted text-md truncate lowercase">
                     / {period}
                   </span>
                 </p>

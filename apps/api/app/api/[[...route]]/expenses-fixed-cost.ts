@@ -9,6 +9,7 @@ const createExpenseSchema = z.object({
   name: z.string().min(1),
   userId: z.string(),
   rank: z.number(),
+  period: z.string().optional(),
 });
 
 const updateExpenseSchema = z.object({
@@ -17,6 +18,7 @@ const updateExpenseSchema = z.object({
   name: z.string().min(1).optional(),
   userId: z.string(),
   rank: z.number().optional(),
+  period: z.string().optional(),
 });
 
 const updateExpensesSchema = z.object({
@@ -29,6 +31,7 @@ const updateExpensesSchema = z.object({
         amount: z.number().optional(),
         name: z.string().min(1).optional(),
         rank: z.number().optional(),
+        period: z.string().optional(),
       }),
     })
   ),
@@ -53,7 +56,8 @@ export const expensesFixedCosts = new Hono()
     "/fixed-costs/:id",
     zValidator("json", updateExpenseSchema),
     async (c) => {
-      const { name, amount, category, rank, userId } = c.req.valid("json");
+      const { name, amount, category, rank, userId, period } =
+        c.req.valid("json");
       const { id } = c.req.param();
       try {
         if (!userId) {
@@ -67,6 +71,7 @@ export const expensesFixedCosts = new Hono()
           amount,
           category,
           rank,
+          period,
         });
 
         return c.json({
@@ -112,7 +117,7 @@ export const expensesFixedCosts = new Hono()
     }
   })
   .post("/fixed-costs", zValidator("json", createExpenseSchema), async (c) => {
-    const { name, amount, category, userId } = c.req.valid("json");
+    const { name, amount, category, userId, period } = c.req.valid("json");
     try {
       if (!userId) {
         throw new Error("Unauthorized");
@@ -125,6 +130,7 @@ export const expensesFixedCosts = new Hono()
         amount,
         category,
         userId,
+        period,
       });
 
       return c.json({

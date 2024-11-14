@@ -6,14 +6,13 @@ import { cn } from "@repo/design-system/lib/utils";
 import { useOutsideClick } from "@repo/design-system/hooks/use-outside-click";
 
 import { getTranslations } from "@/utils/translations";
-import { CostStatus } from "@/app/types";
 import { AddExpenseForm } from "./add-expense-form";
 
 const card = cva(["relative", "rounded-lg", "transition-all"], {
   variants: {
     isActive: {
-      true: ["bg-card", "hover:bg-card", "min-h-[380px]", "shadow-lg"],
-      false: ["min-h-48", "hover:border-2", "border-dashed", "border-white/30"],
+      true: ["bg-card", "hover:bg-card", "shadow-lg"],
+      false: ["min-h-72", "hover:border-2", "border-dashed", "border-white/30"],
     },
     highlight: {
       true: [],

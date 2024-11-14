@@ -134,7 +134,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
     () =>
       expenses.reduce((sum, item) => {
         const cost =
-          sum + (item.period === "monthly" ? item.amount * 1 : item.amount);
+          sum + (item.period === "monthly" ? item.amount * 1 : item.amount / 12);
 
         setTotalMonthlyExpenses(cost);
 

@@ -30,7 +30,10 @@ export const en = {
     period: {
       "per-month": "mo",
       "per-year": "year",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
     },
+
   },
   navigation: {
     "top-level": {

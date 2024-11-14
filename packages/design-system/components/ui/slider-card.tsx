@@ -135,7 +135,7 @@ const SliderCard = React.forwardRef<HTMLInputElement, SliderCardProps>(
               aria-disabled={loading}
             />
             {!!suffix && (
-              <span className="whitespace-nowrap text-right absolute right-3 top-2 text-sm select-none">
+              <span className="whitespace-nowrap lowercase text-right absolute right-3 top-2 text-sm select-none">
                 {!loading ? (
                   suffix
                 ) : (

@@ -32,6 +32,8 @@ export const ptBR: Messages = {
     period: {
       "per-month": "mês",
       "per-year": "ano",
+      "monthly": "Por mês",
+      "yearly": "Por ano",
     },
   },
   navigation: {

@@ -17,13 +17,13 @@ import { useUpdateFixedExpense } from "./server/update-fixed-expense";
 import { CheckIcon } from "@repo/design-system/components/ui/animated-icon/check";
 import { useToast } from "@repo/design-system/hooks/use-toast";
 import { useCurrencyStore } from "@/app/store/currency-store";
+import { ToggleGroup } from '@repo/design-system/components/ui/toggle-group';
 
 interface EditExpenseForm {
   category: ComboboxOption | undefined;
   amount: number;
   name: string | undefined;
   status?: CostStatus;
-  billing_period?: Date;
 }
 interface EditExpenseFormProps {
   onClose: () => void;
@@ -48,7 +48,9 @@ export const EditExpenseForm = ({
 
   const [isHovered, setIsHovered] = useState(false);
   const { selectedCurrency } = useCurrencyStore();
-
+ const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(
+   "monthly"
+ );
   const categoriesList = FIXED_COST_CATEGORIES.map((category) => ({
     label: category.label,
     value: category.icon,
@@ -118,6 +120,7 @@ export const EditExpenseForm = ({
           category: data.category.value,
           userId,
           rank: rankIndex,
+          period: billingPeriod,
         },
       },
       {
@@ -203,7 +206,11 @@ export const EditExpenseForm = ({
             name="amount"
             render={({ field }) => (
               <SliderCard
-                suffix={t.expenses.form.period}
+                suffix={
+                  billingPeriod === "monthly"
+                    ? t.common.period.monthly
+                    : t.common.period.yearly
+                }
                 currency={selectedCurrency.symbol + " "}
                 min={1}
                 max={5000}
@@ -219,7 +226,23 @@ export const EditExpenseForm = ({
             )}
           />
 
-          <div className="mt-8">
+          <ToggleGroup.Root
+            defaultValue="monthly"
+            type="single"
+            onValueChange={(value) =>
+              setBillingPeriod(value as "monthly" | "yearly")
+            }
+            className="w-full"
+          >
+            <ToggleGroup.Item value="monthly" className="w-full">
+              {t.common.period.monthly}
+            </ToggleGroup.Item>
+            <ToggleGroup.Item value="yearly" className="w-full">
+              {t.common.period.yearly}
+            </ToggleGroup.Item>
+          </ToggleGroup.Root>
+
+          <div className="mt-4">
             <Button
               type="submit"
               className="whitespace-nowrap group/edit-button"

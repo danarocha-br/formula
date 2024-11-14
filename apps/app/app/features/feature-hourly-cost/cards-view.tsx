@@ -47,9 +47,9 @@ export const CardsView = ({
         return (
           <div
             key={expense.id}
-            className="relative"
+            className="relative min-h-[300px]"
             style={{
-              height: isLarge ? "380px" : "260px",
+              height: isLarge ? "400px" : "320px",
               width: "100%",
             }}
           >
@@ -57,7 +57,7 @@ export const CardsView = ({
               data={{
                 ...expense,
                 currency: selectedCurrency.symbol + " ",
-                period: t.common.period["per-month"],
+                period: expense.period === 'monthly' ? t.common.period.monthly : t.common.period.yearly,
                 color: getCategoryColor(expense.category),
                 categoryLabel: getCategoryLabel(expense.category),
               }}

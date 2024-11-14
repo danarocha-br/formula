@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { z } from "zod";
+import { cva } from "class-variance-authority";
 
 import { getTranslations } from "@/utils/translations";
 import { CostStatus } from "@/app/types";
@@ -7,22 +8,22 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateFixedExpenses } from "./server/create-fixed-expenses";
 import { Combobox } from "@repo/design-system/components/ui/combobox";
-import { FIXED_COST_CATEGORIES } from "@/app/constants";
-import { cn } from "@repo/design-system/lib/utils";
-import { Icon, iconPath } from "@repo/design-system/components/ui/icon";
-import { cva } from "class-variance-authority";
+import { ToggleGroup } from "@repo/design-system/components/ui/toggle-group";
 import { Input } from "@repo/design-system/components/ui/input";
 import { SliderCard } from "@repo/design-system/components/ui/slider-card";
 import { Button } from "@repo/design-system/components/ui/button";
-import { useToast } from '@repo/design-system/hooks/use-toast';
-import { useCurrencyStore } from '@/app/store/currency-store';
+import { useToast } from "@repo/design-system/hooks/use-toast";
+import { Icon, iconPath } from "@repo/design-system/components/ui/icon";
+
+import { FIXED_COST_CATEGORIES } from "@/app/constants";
+import { cn } from "@repo/design-system/lib/utils";
+import { useCurrencyStore } from "@/app/store/currency-store";
 
 interface NewExpenseForm {
   category: ComboboxOption | undefined;
   amount: number;
   name: string | undefined;
   status?: CostStatus;
-  billing_period?: Date;
 }
 
 export interface ComboboxOption {
@@ -72,7 +73,7 @@ export const AddExpenseForm = ({
   },
 }: AddExpenseFormProps) => {
   const t = getTranslations();
-  const {toast} = useToast();
+  const { toast } = useToast();
 
   const categoriesList = FIXED_COST_CATEGORIES.map((category) => ({
     label: category.label,
@@ -92,7 +93,10 @@ export const AddExpenseForm = ({
       </div>
     ),
   }));
-  const {selectedCurrency} = useCurrencyStore()
+  const { selectedCurrency } = useCurrencyStore();
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(
+    "monthly"
+  );
 
   const expenseSchema = z.object({
     category: z.object(
@@ -135,22 +139,26 @@ export const AddExpenseForm = ({
     reset(defaultValues);
     setIsActive(false);
 
-    createFixedExpense({
-      json: {
-        name: data.name,
-        amount: data.amount,
-        category: data.category.value,
-        userId,
-        rank: rankIndex,
+    createFixedExpense(
+      {
+        json: {
+          name: data.name,
+          amount: data.amount,
+          category: data.category.value,
+          userId,
+          rank: rankIndex,
+          period: billingPeriod,
+        },
       },
-    }, {
-      onError: () => {
-        toast({
-          title: t.validation.error["create-failed"],
-          variant: "destructive",
-        });
+      {
+        onError: () => {
+          toast({
+            title: t.validation.error["create-failed"],
+            variant: "destructive",
+          });
+        },
       }
-    });
+    );
   }
   return (
     <form
@@ -218,7 +226,11 @@ export const AddExpenseForm = ({
             name="amount"
             render={({ field }) => (
               <SliderCard
-                suffix={t.expenses.form.period}
+                suffix={
+                  billingPeriod === "monthly"
+                    ? t.common.period.monthly
+                    : t.common.period.yearly
+                }
                 currency={selectedCurrency.symbol}
                 min={1}
                 max={5000}
@@ -234,7 +246,23 @@ export const AddExpenseForm = ({
             )}
           />
 
-          <div className="mt-8">
+          <ToggleGroup.Root
+            defaultValue="monthly"
+            type="single"
+            onValueChange={(value) =>
+              setBillingPeriod(value as "monthly" | "yearly")
+            }
+            className="w-full"
+          >
+            <ToggleGroup.Item value="monthly" className="w-full">
+              {t.common.period.monthly}
+            </ToggleGroup.Item>
+            <ToggleGroup.Item value="yearly" className="w-full">
+              {t.common.period.yearly}
+            </ToggleGroup.Item>
+          </ToggleGroup.Root>
+
+          <div className="mt-4">
             <Button type="submit" className="whitespace-nowrap">
               <i>
                 <Icon name="plus" label="add" color="on-dark" />
