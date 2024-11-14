@@ -12,7 +12,13 @@ const card = cva(["relative", "rounded-lg", "transition-all"], {
   variants: {
     isActive: {
       true: ["bg-card", "hover:bg-card", "shadow-lg"],
-      false: ["min-h-72", "hover:border-2", "border-dashed", "border-white/30"],
+      false: [
+        "min-h-[320px]",
+        "h-[320px]",
+        "hover:border-2",
+        "border-dashed",
+        "border-white/30",
+      ],
     },
     highlight: {
       true: [],

@@ -15,7 +15,7 @@ const tabButton = cva(
     "pl-4",
     "pr-6",
     "text-sm",
-    "rounded-t-lg",
+    "rounded-t-[18px]",
     "transition-colors",
 
     "hover:bg-white/30",

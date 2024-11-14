@@ -92,6 +92,7 @@ export const ItemCard = ({
     color,
     categoryLabel,
   } = data;
+
   const {
     setNodeRef,
     listeners,

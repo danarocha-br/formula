@@ -47,9 +47,9 @@ export const CardsView = ({
         return (
           <div
             key={expense.id}
-            className="relative min-h-[300px]"
+            className="relative min-h-[300px] h-[320px]"
             style={{
-              height: isLarge ? "400px" : "320px",
+              height: isLarge ? "420px" : "320px",
               width: "100%",
             }}
           >
@@ -57,7 +57,10 @@ export const CardsView = ({
               data={{
                 ...expense,
                 currency: selectedCurrency.symbol + " ",
-                period: expense.period === 'monthly' ? t.common.period.monthly : t.common.period.yearly,
+                period:
+                  expense.period === "monthly"
+                    ? t.common.period.monthly
+                    : t.common.period.yearly,
                 color: getCategoryColor(expense.category),
                 categoryLabel: getCategoryLabel(expense.category),
               }}
@@ -81,6 +84,7 @@ export const CardsView = ({
                       label: getCategoryLabel(expense.category),
                     },
                     amount: expense.amount,
+                    period: expense.period,
                   }}
                 />
               }
@@ -90,7 +94,7 @@ export const CardsView = ({
       })}
 
       <AddCard
-        className="h-full "
+        className="h-[320px]"
         userId={userId}
         rankIndex={data.length + 1}
       />

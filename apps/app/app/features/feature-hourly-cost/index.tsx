@@ -32,7 +32,9 @@ import { useDeleteFixedExpenses } from "./server/delete-fixed-expenses";
 import { useCurrencyStore } from "@/app/store/currency-store";
 import { CardsView } from "./cards-view";
 import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
-import { formatCurrency } from "@/utils/format-currency";
+import { ToggleGroup } from "@repo/design-system/components/ui/toggle-group";
+import { TableView } from './table-view';
+import { cn } from '@repo/design-system/lib/utils';
 
 type Props = {
   userId: string;
@@ -80,6 +82,9 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
   const [activeCard, setActiveCard] = useState<ExpenseItem | null>(null);
   const [expenses, setExpenses] = useState<ExpenseItem[] | []>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [viewPreference, setViewPreference] = useState<"grid" | "table">(
+    "grid"
+  );
 
   const { toast } = useToast();
   const { hourlyCost, setTotalMonthlyExpenses } = useHourlyCostStore();
@@ -116,6 +121,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
 
   useEffect(() => {
     if (initialExpenses) {
+      //@ts-ignore
       setExpenses(initialExpenses);
     }
   }, [initialExpenses]);
@@ -134,7 +140,8 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
     () =>
       expenses.reduce((sum, item) => {
         const cost =
-          sum + (item.period === "monthly" ? item.amount * 1 : item.amount / 12);
+          sum +
+          (item.period === "monthly" ? item.amount * 1 : item.amount / 12);
 
         setTotalMonthlyExpenses(cost);
 
@@ -165,10 +172,15 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
       const overIndex = expenses.findIndex((expense) => expense.id === over.id);
       const newExpenses = arrayMove(expenses, activeIndex, overIndex);
 
+      const updatedExpenses = newExpenses.map((expense, index) => ({
+        ...expense,
+        rank: index + 1,
+      }));
+
       updateBatchExpenses(
         {
           json: {
-            updates: newExpenses.map((expense) => ({
+            updates: updatedExpenses.map((expense) => ({
               id: expense.id,
               data: { rank: expense.rank },
             })),
@@ -185,7 +197,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
         }
       );
 
-      return newExpenses;
+      return updatedExpenses;
     });
   }
 
@@ -215,6 +227,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
       const sortedExpenses = [...initialExpenses].sort(
         (a, b) => (a.rank ?? 0) - (b.rank ?? 0)
       );
+      // @ts-ignore
       setExpenses(sortedExpenses);
     }
   }, [initialExpenses]);
@@ -223,45 +236,61 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
     <Resizable.Group direction="horizontal">
       <Resizable.Panel
         defaultSize={60}
-        className="hidden md:block bg-purple-300 rounded-lg"
+        className={cn("hidden md:block rounded-lg", viewPreference === 'grid' ? "bg-purple-300": "bg-neutral-100")}
       >
         <ScrollArea.Root className="rounded-b-lg">
-          <div className="w-full text-card-foreground @container h-[calc(100vh-72px)]">
+          <div className="w-full text-card-foreground @container h-[calc(100vh-70px)]">
             {isLoadingExpenses ? (
               <LoadingView />
             ) : expenses && expenses.length === 0 ? (
               <EmptyView userId={userId} />
             ) : (
-              <DndContext
-                sensors={sensors}
-                onDragStart={onDragStart}
-                onDragEnd={onDragEnd}
-              >
-                <div className="p-2 w-full min-h-dvh">
-                  <SortableContext items={cardsId}>
-                    {expenses && (
-                      <CardsView
-                        userId={userId}
-                        data={expenses}
-                        getCategoryColor={getExpenseCategoryColor}
-                        getCategoryLabel={getExpenseCategoryLabel}
-                        loading={isLoadingExpenses}
-                        onEdit={handleEditCard}
-                        onDelete={handleDeleteExpense}
-                        onEditClose={handleEditOnClose}
-                        editingId={editingId}
-                      />
-                    )}
-                  </SortableContext>
-                </div>
+              <section className="relative">
+                <DndContext
+                  sensors={sensors}
+                  onDragStart={onDragStart}
+                  onDragEnd={onDragEnd}
+                >
+                  <div className="p-2 w-full min-h-dvh">
+                    <SortableContext items={cardsId}>
+                      {expenses && viewPreference === 'grid' && (
+                        <CardsView
+                          userId={userId}
+                          data={expenses}
+                          getCategoryColor={getExpenseCategoryColor}
+                          getCategoryLabel={getExpenseCategoryLabel}
+                          loading={isLoadingExpenses}
+                          onEdit={handleEditCard}
+                          onDelete={handleDeleteExpense}
+                          onEditClose={handleEditOnClose}
+                          editingId={editingId}
+                        />
+                          )}
 
-                <DragOverlayWrapper activeCard={activeCard} />
-              </DndContext>
+                          {expenses && viewPreference === 'table' && (
+                            <TableView
+                              userId={userId}
+                              data={expenses}
+                              getCategoryColor={getExpenseCategoryColor}
+                              getCategoryLabel={getExpenseCategoryLabel}
+                              loading={isLoadingExpenses}
+                              onEdit={handleEditCard}
+                              onDelete={handleDeleteExpense}
+                              onEditClose={handleEditOnClose}
+                              editingId={editingId}
+                            />
+                          )}
+                    </SortableContext>
+                  </div>
+
+                  <DragOverlayWrapper activeCard={activeCard} />
+                </DndContext>
+              </section>
             )}
 
-            <div className="mt-auto sticky bottom-0 flex items-center justify-between w-full rounded-br-md rounded-tl-md col-span-full bg-purple-200 h-14 opacity-95">
-              <div className="h-full w-full flex justify-between items-center pr-8">
-                <div className="flex h-full">
+            <div className="mt-auto sticky bottom-0 flex items-center justify-between w-full rounded-br-md rounded-tl-md col-span-full bg-purple-200 h-14">
+              <div className="h-full w-full flex justify-between items-center pr-2">
+                <div className="flex items-center h-full">
                   <TabButton isActive>
                     <Icon
                       name="work"
@@ -290,6 +319,31 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
                     locale={selectedCurrency.locale}
                   />
                   / {t.expenses.billable.breakeven["per-month"]}
+                  <div className="ml-4">
+                    <ToggleGroup.Root
+                      type="single"
+                      variant="outline"
+                      value={viewPreference}
+                      onValueChange={(value: "grid" | "table") =>
+                        setViewPreference(value)
+                      }
+                      className="bg-transparent scale-90"
+                    >
+                      <ToggleGroup.Item
+                        value="table"
+                        className="p-2 bg-transparent"
+                      >
+                        <Icon name="table" label="table view" />
+                      </ToggleGroup.Item>
+
+                      <ToggleGroup.Item
+                        value="grid"
+                        className="p-2 bg-transparent"
+                      >
+                        <Icon name="grid" label="cards view" />
+                      </ToggleGroup.Item>
+                    </ToggleGroup.Root>
+                  </div>
                 </div>
               </div>
             </div>
@@ -304,7 +358,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
           <ScrollArea.Root className="w-full h-[calc(100vh-70px)] rounded-b-lg">
             <BillableCosts userId={userId} />
 
-            <div className="sticky bottom-0 mt-auto flex items-center justify-between w-full rounded-b-md h-14 px-5 py-4 bg-purple-200 opacity-95">
+            <div className="sticky bottom-0 mt-auto flex items-center justify-between w-full rounded-b-md h-[54px] px-5 py-4 bg-purple-200">
               <p>{t.expenses.billable.total.title}</p>
               <AnimatedNumber
                 className="text-2xl font-semibold"

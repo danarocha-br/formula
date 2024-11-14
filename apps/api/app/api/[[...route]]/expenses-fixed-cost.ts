@@ -9,7 +9,7 @@ const createExpenseSchema = z.object({
   name: z.string().min(1),
   userId: z.string(),
   rank: z.number(),
-  period: z.string().optional(),
+  period: z.enum(["monthly", "yearly"]).optional(),
 });
 
 const updateExpenseSchema = z.object({
@@ -18,7 +18,7 @@ const updateExpenseSchema = z.object({
   name: z.string().min(1).optional(),
   userId: z.string(),
   rank: z.number().optional(),
-  period: z.string().optional(),
+  period: z.enum(["monthly", "yearly"]).optional(),
 });
 
 const updateExpensesSchema = z.object({
@@ -31,7 +31,7 @@ const updateExpensesSchema = z.object({
         amount: z.number().optional(),
         name: z.string().min(1).optional(),
         rank: z.number().optional(),
-        period: z.string().optional(),
+        period: z.enum(["monthly", "yearly"]).optional(),
       }),
     })
   ),

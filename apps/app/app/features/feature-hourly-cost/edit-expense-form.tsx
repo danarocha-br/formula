@@ -17,13 +17,14 @@ import { useUpdateFixedExpense } from "./server/update-fixed-expense";
 import { CheckIcon } from "@repo/design-system/components/ui/animated-icon/check";
 import { useToast } from "@repo/design-system/hooks/use-toast";
 import { useCurrencyStore } from "@/app/store/currency-store";
-import { ToggleGroup } from '@repo/design-system/components/ui/toggle-group';
+import { ToggleGroup } from "@repo/design-system/components/ui/toggle-group";
 
 interface EditExpenseForm {
   category: ComboboxOption | undefined;
   amount: number;
   name: string | undefined;
   status?: CostStatus;
+  period: "monthly" | "yearly"
 }
 interface EditExpenseFormProps {
   onClose: () => void;
@@ -38,19 +39,15 @@ export const EditExpenseForm = ({
   expenseId,
   userId,
   rankIndex,
-  defaultValues = {
-    name: "",
-    category: undefined,
-    amount: 0,
-  },
+  defaultValues,
 }: EditExpenseFormProps) => {
   const t = getTranslations();
 
   const [isHovered, setIsHovered] = useState(false);
   const { selectedCurrency } = useCurrencyStore();
- const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(
-   "monthly"
- );
+  const [billingPeriod, setBillingPeriod] = useState(
+    defaultValues?.period || "monthly"
+  );
   const categoriesList = FIXED_COST_CATEGORIES.map((category) => ({
     label: category.label,
     value: category.icon,
@@ -227,7 +224,7 @@ export const EditExpenseForm = ({
           />
 
           <ToggleGroup.Root
-            defaultValue="monthly"
+            defaultValue={defaultValues.period}
             type="single"
             onValueChange={(value) =>
               setBillingPeriod(value as "monthly" | "yearly")

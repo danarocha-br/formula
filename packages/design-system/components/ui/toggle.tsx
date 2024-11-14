@@ -21,17 +21,25 @@ const toggleVariants = cva(
     "focus-visible:ring-ring",
     "disabled:pointer-events-none",
     "disabled:opacity-50",
-    "data-[state=on]:bg-input",
-    "data-[state=on]:text-card-foreground",
-    "first:rounded-l-[6px]",
-    "last:rounded-r-[6px]",
   ],
   {
     variants: {
       variant: {
-        default: "bg-input/20",
-        outline:
-          "border border-ring bg-transparent hover:bg-accent hover:text-accent-foreground",
+        default: [
+          "bg-input/20",
+          "data-[state=on]:bg-input",
+          "data-[state=on]:text-card-foreground",
+          "first:rounded-l-[6px]",
+          "last:rounded-r-[6px]",
+        ],
+        outline: [
+          "bg-transparent",
+          "rounded-sm",
+          "hover:bg-primary/70",
+          "hover:text-primary-foreground",
+          "data-[state=on]:bg-primary/70",
+          "data-[state=on]:text-card-foreground",
+        ],
       },
       size: {
         default: "h-9 px-3",

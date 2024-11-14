@@ -5,7 +5,7 @@ export interface ExpenseItem {
   id: number;
   amount: number;
   rank: number;
-  period: string | null;
+  period: 'monthly' | 'yearly';
   category: string;
   createdAt: string;
   updatedAt: string;

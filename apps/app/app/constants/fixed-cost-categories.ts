@@ -42,7 +42,7 @@ export const FIXED_COST_CATEGORIES = [
   },
   {
     label: t.common.categories['fixed-cost']['domain'],
-    value: "domain/hosting",
+    value: "server",
     icon: "server",
     color: "bg-neutral-300",
   },
