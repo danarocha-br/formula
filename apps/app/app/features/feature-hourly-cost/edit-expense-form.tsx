@@ -224,7 +224,7 @@ export const EditExpenseForm = ({
           />
 
           <ToggleGroup.Root
-            defaultValue={defaultValues.period}
+            defaultValue={defaultValues?.period}
             type="single"
             onValueChange={(value) =>
               setBillingPeriod(value as "monthly" | "yearly")
