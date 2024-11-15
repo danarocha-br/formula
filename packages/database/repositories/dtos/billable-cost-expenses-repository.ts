@@ -2,7 +2,7 @@ import { ExpensesBillableCost, Prisma } from "@prisma/client";
 
 export interface IBillableCostExpensesRepository {
   create(
-    data: Prisma.ExpensesBillableCostCreateInput
+    data: Prisma.ExpensesBillableCostUncheckedCreateInput
   ): Promise<ExpensesBillableCost>;
   findByUserId(userId: string): Promise<ExpensesBillableCost | null>;
   update(

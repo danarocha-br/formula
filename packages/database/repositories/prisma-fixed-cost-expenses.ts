@@ -52,7 +52,7 @@ export class PrismaFixedCostExpensesRepository
    * @returns {Promise<ExpensesFixedCost>} The created expense.
    */
   async create(
-    data: Prisma.ExpensesFixedCostCreateInput
+    data: Prisma.ExpensesFixedCostUncheckedCreateInput
   ): Promise<ExpensesFixedCost> {
     const expense = await database.expensesFixedCost.create({
       data,

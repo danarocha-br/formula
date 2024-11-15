@@ -7,21 +7,21 @@ generator client {
 }
 
 datasource db {
-  provider     = "postgresql"
-  url          = env("DATABASE_URL")
-  relationMode = "prisma"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // relationMode = "prisma"
 }
 
 model User {
-  id                   String                 @id
-  email                String                 @unique
+  id                   String                @id
+  email                String                @unique
   name                 String?
   avatar               String?
-  plan                 String                 @default("free")
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime               @default(now()) @updatedAt
+  plan                 String                @default("free")
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @default(now()) @updatedAt
   expensesFixedCost    ExpensesFixedCost[]
-  expensesBillableCost ExpensesBillableCost[]
+  expensesBillableCost ExpensesBillableCost?
 
   @@map("users")
 }
@@ -37,9 +37,8 @@ model ExpensesFixedCost {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
   @@map("expenses-fixed-cost")
 }
 
@@ -59,8 +58,7 @@ model ExpensesBillableCost {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now()) @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
   @@map("expenses-billabe-cost")
 }

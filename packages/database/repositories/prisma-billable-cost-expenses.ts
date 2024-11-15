@@ -33,7 +33,7 @@ export class PrismaBillableCostExpensesRepository
    * @returns {Promise<ExpensesBillableCost>} The created billable cost expense.
    */
   async create(
-    data: Prisma.ExpensesBillableCostCreateInput
+    data: Prisma.ExpensesBillableCostUncheckedCreateInput
   ): Promise<ExpensesBillableCost> {
     const expense = await database.expensesBillableCost.create({
       data,

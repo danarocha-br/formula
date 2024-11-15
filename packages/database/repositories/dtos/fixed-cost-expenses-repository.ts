@@ -1,7 +1,9 @@
 import { ExpensesFixedCost, Prisma } from "@prisma/client";
 
 export interface IFixedCostExpensesRepository {
-  create(data: Prisma.ExpensesFixedCostCreateInput): Promise<ExpensesFixedCost>;
+  create(
+    data: Prisma.ExpensesFixedCostUncheckedCreateInput
+  ): Promise<ExpensesFixedCost>;
   findById(userId: string, id: string): Promise<ExpensesFixedCost | null>;
   findByUserId(userId: string): Promise<ExpensesFixedCost[] | null>;
   update(
