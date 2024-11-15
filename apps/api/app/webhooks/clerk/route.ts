@@ -196,7 +196,7 @@ export const POST = async (request: Request): Promise<Response> => {
     }) as WebhookEvent;
   } catch (error) {
     log.error("Error verifying webhook:", { error });
-    return new Response("Error occured", {
+    return new Response("Error occurred", {
       status: 400,
     });
   }
@@ -225,22 +225,22 @@ export const POST = async (request: Request): Promise<Response> => {
       response = handleUserDeleted(event.data);
       break;
     }
-    case "organization.created": {
-      response = handleOrganizationCreated(event.data);
-      break;
-    }
-    case "organization.updated": {
-      response = handleOrganizationUpdated(event.data);
-      break;
-    }
-    case "organizationMembership.created": {
-      response = handleOrganizationMembershipCreated(event.data);
-      break;
-    }
-    case "organizationMembership.deleted": {
-      response = handleOrganizationMembershipDeleted(event.data);
-      break;
-    }
+    // case "organization.created": {
+    //   response = handleOrganizationCreated(event.data);
+    //   break;
+    // }
+    // case "organization.updated": {
+    //   response = handleOrganizationUpdated(event.data);
+    //   break;
+    // }
+    // case "organizationMembership.created": {
+    //   response = handleOrganizationMembershipCreated(event.data);
+    //   break;
+    // }
+    // case "organizationMembership.deleted": {
+    //   response = handleOrganizationMembershipDeleted(event.data);
+    //   break;
+    // }
     default: {
       break;
     }

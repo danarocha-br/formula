@@ -12,6 +12,20 @@ datasource db {
   relationMode = "prisma"
 }
 
+model User {
+  id                   String                 @id
+  email                String                 @unique
+  name                 String?
+  avatar               String?
+  plan                 String                 @default("free")
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @default(now()) @updatedAt
+  expensesFixedCost    ExpensesFixedCost[]
+  expensesBillableCost ExpensesBillableCost[]
+
+  @@map("users")
+}
+
 model ExpensesFixedCost {
   id        Int      @id @default(autoincrement())
   userId    String
@@ -23,6 +37,9 @@ model ExpensesFixedCost {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
   @@map("expenses-fixed-cost")
 }
 
@@ -42,5 +59,8 @@ model ExpensesBillableCost {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now()) @updatedAt
 
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
   @@map("expenses-billabe-cost")
 }

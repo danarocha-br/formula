@@ -37,6 +37,8 @@ next-env.d.ts
 
 # prisma
 .env
+.env.development
+.env.production
 
 # react.email
 .react-email
