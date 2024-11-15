@@ -19,13 +19,7 @@ export default function SignInPage() {
             <Clerk.Icon className="size-4" />
             Google
           </Clerk.Connection>
-          <Clerk.Connection
-            name="facebook"
-            className="flex items-center gap-x-3 justify-center font-medium border shadow-sm py-1.5 px-2.5 rounded-sm"
-          >
-            <Clerk.Icon className="size-4" />
-            Facebook
-          </Clerk.Connection>
+
           <Clerk.Connection
             name="github"
             className="flex items-center gap-x-3 justify-center font-medium border shadow-sm py-1.5 px-2.5 rounded-sm"
