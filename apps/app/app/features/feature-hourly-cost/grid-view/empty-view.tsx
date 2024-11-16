@@ -1,6 +1,6 @@
 import { MasonryGrid } from "@repo/design-system/components/ui/masonry-grid";
 
-import { AddCard } from "./add-expense-card";
+import { AddCard } from "../add-expense-card";
 
 export const EmptyView = ({ userId }: { userId: string }) => {
   return (
@@ -11,7 +11,7 @@ export const EmptyView = ({ userId }: { userId: string }) => {
             key={columnIndex}
             highlight={columnIndex === 0}
             userId={userId}
-            rankIndex={0}
+            rankIndex={1}
           />
         ))}
       </MasonryGrid>

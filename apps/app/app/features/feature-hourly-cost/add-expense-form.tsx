@@ -77,7 +77,7 @@ export const AddExpenseForm = ({
 
   const categoriesList = FIXED_COST_CATEGORIES.map((category) => ({
     label: category.label,
-    value: category.icon,
+    value: category.value,
     slot: (
       <div
         className={cn(
@@ -142,10 +142,10 @@ export const AddExpenseForm = ({
     createFixedExpense(
       {
         json: {
+          userId,
           name: data.name,
           amount: data.amount,
           category: data.category.value,
-          userId,
           rank: rankIndex,
           period: billingPeriod,
         },

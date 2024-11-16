@@ -21,6 +21,7 @@ type ItemCardProps = {
     period?: string | null;
     category?: string | undefined;
     categoryLabel?: string;
+    categoryIcon?: string;
     color?: string;
     className?: string;
     isEmpty?: boolean;
@@ -82,7 +83,6 @@ export const ItemCard = ({
   const [isDeleteButtonHovered, setIsDeleteButtonHovered] = useState(false);
 
   const {
-    id,
     name,
     amount,
     currency = "$",
@@ -91,6 +91,7 @@ export const ItemCard = ({
     isEmpty = false,
     color,
     categoryLabel,
+    categoryIcon,
   } = data;
 
   const {
@@ -202,7 +203,7 @@ export const ItemCard = ({
                 >
                   <Icon
                     // @ts-ignore
-                    name={category}
+                    name={categoryIcon}
                     label="category icon"
                     size="lg"
                     color="current"

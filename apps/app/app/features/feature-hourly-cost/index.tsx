@@ -20,7 +20,6 @@ import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import dynamic from "next/dynamic";
 
 import { Icon } from "@repo/design-system/components/ui/icon";
-import { EmptyView } from "./empty-view";
 import { BillableCosts } from "../feature-billable-cost";
 import { ExpenseItem } from "@/app/types";
 import { getTranslations } from "@/utils/translations";
@@ -30,11 +29,11 @@ import { FIXED_COST_CATEGORIES } from "@/app/constants";
 import { useUpdateBatchFixedExpense } from "./server/update-batch-fixed-expenses";
 import { useDeleteFixedExpenses } from "./server/delete-fixed-expenses";
 import { useCurrencyStore } from "@/app/store/currency-store";
-import { CardsView } from "./cards-view";
+import { GridView } from "./grid-view";
 import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
 import { ToggleGroup } from "@repo/design-system/components/ui/toggle-group";
-import { TableView } from './table-view';
-import { cn } from '@repo/design-system/lib/utils';
+import { TableView } from "./table-view";
+import { cn } from "@repo/design-system/lib/utils";
 
 type Props = {
   userId: string;
@@ -74,8 +73,10 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
   const t = getTranslations();
   const { data: initialExpenses, isLoading: isLoadingExpenses } =
     useGetFixedExpenses({ userId });
-  const { mutate: deleteExpense } = useDeleteFixedExpenses();
-  const { mutate: updateBatchExpenses } = useUpdateBatchFixedExpense();
+  const { mutate: deleteExpense, isPending: isDeleting } =
+    useDeleteFixedExpenses();
+  const { mutate: updateBatchExpenses, isPending: isUpdating } =
+    useUpdateBatchFixedExpense();
 
   const { selectedCurrency } = useCurrencyStore();
 
@@ -107,6 +108,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
   const getExpenseCategoryLabel = useMemo(
     () => (category: string) => {
       const normalizedCategory = category?.toLowerCase().trim();
+      console.log(normalizedCategory);
 
       const matchingCategory = FIXED_COST_CATEGORIES.find(
         (item) =>
@@ -115,6 +117,22 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
       );
 
       return matchingCategory?.label ?? "";
+    },
+    []
+  );
+
+  const getExpenseCategoryIcon = useMemo(
+    () => (category: string) => {
+      const normalizedCategory = category?.toLowerCase().trim();
+      console.log(normalizedCategory);
+
+      const matchingCategory = FIXED_COST_CATEGORIES.find(
+        (item) =>
+          item.value.toLowerCase().includes(normalizedCategory) ||
+          normalizedCategory.includes(item.value.toLowerCase())
+      );
+
+      return matchingCategory?.icon ?? "";
     },
     []
   );
@@ -143,12 +161,14 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
           sum +
           (item.period === "monthly" ? item.amount * 1 : item.amount / 12);
 
-        setTotalMonthlyExpenses(cost);
-
         return cost;
       }, 0),
     [expenses]
   );
+
+  useEffect(() => {
+    setTotalMonthlyExpenses(totalExpensesCostPerMonth);
+  }, [totalExpensesCostPerMonth]);
 
   function onDragStart(event: DragStartEvent) {
     const { active } = event;
@@ -236,14 +256,15 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
     <Resizable.Group direction="horizontal">
       <Resizable.Panel
         defaultSize={60}
-        className={cn("hidden md:block rounded-lg", viewPreference === 'grid' ? "bg-purple-300": "bg-neutral-100")}
+        className={cn(
+          "hidden md:block rounded-lg",
+          viewPreference === "grid" ? "bg-purple-300" : "bg-neutral-100"
+        )}
       >
         <ScrollArea.Root className="rounded-b-lg">
           <div className="w-full text-card-foreground @container h-[calc(100vh-70px)]">
             {isLoadingExpenses ? (
               <LoadingView />
-            ) : expenses && expenses.length === 0 ? (
-              <EmptyView userId={userId} />
             ) : (
               <section className="relative">
                 <DndContext
@@ -253,8 +274,25 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
                 >
                   <div className="p-2 w-full min-h-dvh">
                     <SortableContext items={cardsId}>
-                      {expenses && viewPreference === 'grid' && (
-                        <CardsView
+                      {expenses && viewPreference === "grid" && (
+                        <GridView
+                          userId={userId}
+                          data={expenses}
+                          getCategoryColor={getExpenseCategoryColor}
+                          getCategoryLabel={getExpenseCategoryLabel}
+                          getCategoryIcon={getExpenseCategoryIcon}
+                          loading={
+                            isLoadingExpenses || isDeleting || isUpdating
+                          }
+                          onEdit={handleEditCard}
+                          onDelete={handleDeleteExpense}
+                          onEditClose={handleEditOnClose}
+                          editingId={editingId}
+                        />
+                      )}
+
+                      {expenses && viewPreference === "table" && (
+                        <TableView
                           userId={userId}
                           data={expenses}
                           getCategoryColor={getExpenseCategoryColor}
@@ -265,21 +303,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
                           onEditClose={handleEditOnClose}
                           editingId={editingId}
                         />
-                          )}
-
-                          {expenses && viewPreference === 'table' && (
-                            <TableView
-                              userId={userId}
-                              data={expenses}
-                              getCategoryColor={getExpenseCategoryColor}
-                              getCategoryLabel={getExpenseCategoryLabel}
-                              loading={isLoadingExpenses}
-                              onEdit={handleEditCard}
-                              onDelete={handleDeleteExpense}
-                              onEditClose={handleEditOnClose}
-                              editingId={editingId}
-                            />
-                          )}
+                      )}
                     </SortableContext>
                   </div>
 

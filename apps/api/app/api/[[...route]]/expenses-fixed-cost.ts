@@ -117,7 +117,8 @@ export const expensesFixedCosts = new Hono()
     }
   })
   .post("/fixed-costs", zValidator("json", createExpenseSchema), async (c) => {
-    const { name, amount, category, userId, period } = c.req.valid("json");
+    const { name, amount, category, userId, period, rank } =
+      c.req.valid("json");
     try {
       if (!userId) {
         throw new Error("Unauthorized");
@@ -125,18 +126,26 @@ export const expensesFixedCosts = new Hono()
 
       const repository = new FixedCostExpensesRepository();
 
-      await repository.create({
+      const expense = await repository.create({
         name,
         amount,
         category,
         userId,
         period,
+        rank,
       });
 
       return c.json({
         status: 201,
         success: true,
-        data: { name, amount, category },
+        data: {
+          id: expense.id,
+          name: expense.name,
+          amount: expense.amount,
+          category: expense.category,
+          rank: expense.rank,
+          period: expense.period,
+        },
       });
     } catch (error) {
       console.error("Failed to create fixed expense:", error);

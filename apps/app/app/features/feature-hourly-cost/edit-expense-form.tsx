@@ -50,7 +50,7 @@ export const EditExpenseForm = ({
   );
   const categoriesList = FIXED_COST_CATEGORIES.map((category) => ({
     label: category.label,
-    value: category.icon,
+    value: category.value,
     slot: (
       <div
         className={cn(

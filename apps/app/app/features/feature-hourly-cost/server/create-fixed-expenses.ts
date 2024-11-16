@@ -24,19 +24,22 @@ export const useCreateFixedExpenses = () => {
 
         const data = await response.json();
 
-        if (!response.ok) {
+        if (data.success === false) {
           throw new Error(t.validation.error["create-failed"]);
         }
         return data;
       } catch (error) {
-        console.log(error);
         throw error instanceof Error
           ? error
           : new Error(t.validation.error["create-failed"]);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["fixed-expenses-list"] });
+
+    onSuccess: (data, variables, context) => {
+      // Invalidate the query to refetch the list
+      queryClient.invalidateQueries({
+        queryKey: ["fixed-expenses-list", variables.json.userId],
+      });
     },
   });
 

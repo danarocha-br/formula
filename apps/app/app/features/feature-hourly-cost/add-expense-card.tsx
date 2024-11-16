@@ -8,48 +8,45 @@ import { useOutsideClick } from "@repo/design-system/hooks/use-outside-click";
 import { getTranslations } from "@/utils/translations";
 import { AddExpenseForm } from "./add-expense-form";
 
-const card = cva(["relative", "rounded-lg", "transition-all"], {
-  variants: {
-    isActive: {
-      true: ["bg-card", "hover:bg-card", "shadow-lg"],
-      false: [
-        "min-h-[320px]",
-        "h-[320px]",
-        "hover:border-2",
-        "border-dashed",
-        "border-white/30",
-      ],
+const card = cva(
+  ["relative", "rounded-lg", "transition-all", "min-h-[320px]", "h-[320px]"],
+  {
+    variants: {
+      isActive: {
+        true: ["bg-card", "hover:bg-card", "shadow-lg"],
+        false: ["hover:border-2", "border-dashed", "border-white/30"],
+      },
+      highlight: {
+        true: [],
+        false: [
+          "bg-purple-200/30",
+          "hover:border-primary-500",
+          "hover:bg-white/20",
+        ],
+      },
     },
-    highlight: {
-      true: [],
-      false: [
-        "bg-purple-200/30",
-        "hover:border-primary-500",
-        "hover:bg-white/20",
-      ],
-    },
-  },
-  compoundVariants: [
-    {
-      isActive: true,
-      highlight: true,
-      className: ["border-none", "hover:bg-card"],
-    },
-    {
-      isActive: true,
-      highlight: false,
-      className: ["border-none", "!bg-card", "hover:bg-card"],
-    },
-    {
+    compoundVariants: [
+      {
+        isActive: true,
+        highlight: true,
+        className: ["border-none", "hover:bg-card"],
+      },
+      {
+        isActive: true,
+        highlight: false,
+        className: ["border-none", "!bg-card", "hover:bg-card"],
+      },
+      {
+        isActive: false,
+        highlight: true,
+        className: ["border-2", "hover:bg-purple-200/30"],
+      },
+    ],
+    defaultVariants: {
       isActive: false,
-      highlight: true,
-      className: ["border-2", "hover:bg-purple-200/30"],
     },
-  ],
-  defaultVariants: {
-    isActive: false,
-  },
-});
+  }
+);
 
 const cardButton = cva([
   "rounded-lg",

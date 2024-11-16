@@ -20,6 +20,7 @@ export const useGetFixedExpenses = ({ userId }: useGetFixedExpenses) => {
       const { data } = await response.json();
       return data;
     },
+    enabled: !!userId,
   });
 
   return query;

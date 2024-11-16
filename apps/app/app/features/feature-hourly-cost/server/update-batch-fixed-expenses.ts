@@ -34,8 +34,8 @@ export const useUpdateBatchFixedExpense = () => {
           : new Error(t.validation.error["update-failed"]);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["fixed-expenses-list"] });
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ["fixed-expenses-list", variables.json.userId] });
     },
   });
 

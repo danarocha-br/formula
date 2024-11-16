@@ -40,8 +40,10 @@ export const useDeleteFixedExpenses = () => {
           : new Error(t.validation.error["delete-failed"]);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["fixed-expenses-list"] });
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({
+        queryKey: ["fixed-expenses-list", variables.param.userId],
+      });
     },
   });
 

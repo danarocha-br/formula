@@ -5,13 +5,15 @@ import { ExpenseItem } from "@/app/types";
 import { getTranslations } from "@/utils/translations";
 import { ItemCard } from "@repo/design-system/components/ui/item-card";
 import { useCurrencyStore } from "@/app/store/currency-store";
-import { EditExpenseForm } from "./edit-expense-form";
-import { AddCard } from "./add-expense-card";
+import { EditExpenseForm } from "../edit-expense-form";
+import { AddCard } from "../add-expense-card";
+import { EmptyView } from "./empty-view";
 
-type CardsViewProps = {
+type GridViewProps = {
   data: ExpenseItem[];
   getCategoryColor: (id: string) => string;
   getCategoryLabel: (id: string) => string;
+  getCategoryIcon: (id: string) => string;
   onDelete: (id: number) => void;
   onEdit: (id: number) => void;
   onEditClose: () => void;
@@ -20,17 +22,18 @@ type CardsViewProps = {
   userId: string;
 };
 
-export const CardsView = ({
+export const GridView = ({
   data,
   getCategoryColor,
   getCategoryLabel,
+  getCategoryIcon,
   loading = false,
   onEdit,
   onDelete,
   onEditClose,
   editingId,
   userId,
-}: CardsViewProps) => {
+}: GridViewProps) => {
   const t = getTranslations();
   const { selectedCurrency } = useCurrencyStore();
 
@@ -38,15 +41,16 @@ export const CardsView = ({
     () => Math.max(...data.map((item) => item.amount)),
     [data]
   );
-
-  return (
+  return data && data.length === 0 ? (
+    <EmptyView userId={userId} />
+  ) : (
     <MasonryGrid>
       {data.map((expense) => {
         const isLarge = expense.amount > maxValue * 0.4;
 
         return (
           <div
-            key={expense.id}
+            key={expense.id + expense.rank}
             className="relative min-h-[300px] h-[320px]"
             style={{
               height: isLarge ? "420px" : "320px",
@@ -63,6 +67,7 @@ export const CardsView = ({
                     : t.common.period.yearly,
                 color: getCategoryColor(expense.category),
                 categoryLabel: getCategoryLabel(expense.category),
+                categoryIcon: getCategoryIcon(expense.category),
               }}
               loading={loading}
               className="w-full h-full"
