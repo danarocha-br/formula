@@ -17,6 +17,10 @@ const updateBillableSchema = z.object({
   margin: z.number().optional(),
 });
 
+const createBillableSchema = z.object({
+  userId: z.string(),
+});
+
 export const expensesBillableCosts = new Hono()
   .get(
     "/billable-costs",
@@ -29,6 +33,41 @@ export const expensesBillableCosts = new Hono()
       const repository = new BillableCostExpensesRepository();
       const billableCostExpenses = await repository.findByUserId(userId);
       return c.json({ status: 200, success: true, data: billableCostExpenses });
+    }
+  )
+  .post(
+    "/billable-costs",
+    zValidator("json", createBillableSchema),
+    async (c) => {
+      const { userId } = c.req.valid("json");
+
+      if (!userId) {
+        throw new Error("Unauthorized");
+      }
+      const repository = new BillableCostExpensesRepository();
+      try {
+        const billableCostExpenses = await repository.create({
+          userId,
+          workDays: 5,
+          holidaysDays: 12,
+          vacationsDays: 30,
+          sickLeaveDays: 3,
+          billableHours: 0,
+          hoursPerDay: 6,
+          monthlySalary: 0,
+          taxes: 0,
+          fees: 0,
+          margin: 0,
+        });
+        return c.json({ status: 201, success: true, data: billableCostExpenses });
+      } catch (error) {
+        console.error("Failed to create billable expense:", error);
+        return c.json({
+          status: 400,
+          success: false,
+          error: error instanceof Error ? error.message : "Failed to create billable expense",
+        });
+      }
     }
   )
   .patch(
@@ -79,7 +118,9 @@ export const expensesBillableCosts = new Hono()
           status: 400,
           success: false,
           error:
-            error instanceof Error ? error.message : "Failed to update billable expense",
+            error instanceof Error
+              ? error.message
+              : "Failed to update billable expense",
         });
       }
     }

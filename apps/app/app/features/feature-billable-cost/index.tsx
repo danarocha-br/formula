@@ -15,6 +15,7 @@ import { useUpdateBillableExpense } from "./server/update-billable-expense";
 import { useToast } from "@repo/design-system/hooks/use-toast";
 import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
 import { formatCurrency } from "@/utils/format-currency";
+import { useCreateBillableExpense } from "./server/create-billable-expense";
 
 type BillableCostsForm = {
   work_days: number;
@@ -46,6 +47,7 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
   const { data: initialExpenses, isLoading: isLoadingExpenses } =
     useGetBillableExpenses({ userId });
   const { mutate: updateBillableExpenses } = useUpdateBillableExpense();
+  const { mutate: createBillableExpenses } = useCreateBillableExpense();
   const t = getTranslations();
   const { toast } = useToast();
 
@@ -74,6 +76,22 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
         fees: initialExpenses.fees,
         margin: initialExpenses.margin,
       });
+    } else if (initialExpenses === null) {
+      createBillableExpenses(
+        {
+          json: {
+            userId: userId,
+          },
+        },
+        {
+          onError: () => {
+            toast({
+              title: t.validation.error["create-failed"],
+              variant: "destructive",
+            });
+          },
+        }
+      );
     } else {
       // Only set default values if no DB values exist
       reset({
@@ -82,10 +100,10 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
         holiday_days: 12,
         vacation_days: 30,
         sick_leave: 3,
-        monthly_salary: 5000,
+        monthly_salary: 0,
         taxes: 0,
         fees: 0,
-        margin: 8,
+        margin: 0,
       });
     }
   }, [initialExpenses, reset]);
@@ -95,7 +113,12 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
   useDebounce(
     () => {
       // Only update if the form is dirty and we're not loading
-      if (!isLoadingExpenses && isDirty && formData.work_days) {
+      if (
+        !isLoadingExpenses &&
+        isDirty &&
+        formData.work_days &&
+        initialExpenses !== null
+      ) {
         updateBillableExpenses(
           {
             json: {

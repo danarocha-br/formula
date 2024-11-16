@@ -32,10 +32,10 @@ const handleUserCreated = async (data: UserJSON) => {
     sickLeaveDays: 3,
     billableHours: 0,
     hoursPerDay: 6,
-    monthlySalary: 5000,
+    monthlySalary: 0,
     taxes: 0,
     fees: 0,
-    margin: 15,
+    margin: 0,
   });
 
   analytics.identify({
