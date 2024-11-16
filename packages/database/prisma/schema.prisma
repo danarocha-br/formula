@@ -14,7 +14,7 @@ datasource db {
 
 model User {
   id                   String                @id
-  email                String                @unique
+  email                String?               @unique
   name                 String?
   avatar               String?
   plan                 String                @default("free")

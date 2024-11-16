@@ -7,16 +7,24 @@ import type {
 } from "@clerk/nextjs/server";
 import { log } from "@logtail/next";
 import { PrismaBillableCostExpensesRepository } from "@repo/database/repositories/prisma-billable-cost-expenses";
+import { PrismaUserRepository } from "@repo/database/repositories/prisma-user";
 import { analytics } from "@repo/design-system/lib/analytics/server";
 import { headers } from "next/headers";
 import { Webhook } from "svix";
 
 const handleUserCreated = async (data: UserJSON) => {
-  console.log("Starting user creation in database:", data.id);
+  const billableExpensesRepository = new PrismaBillableCostExpensesRepository();
+  const usersRepository = new PrismaUserRepository();
 
-  const repository = new PrismaBillableCostExpensesRepository();
+  await usersRepository.create({
+    id: data.id,
+    email: data.email_addresses.at(0)?.email_address,
+    name: data.first_name + " " + data.last_name,
+    avatar: data.image_url,
+    plan: "free",
+  });
 
-  await repository.create({
+  await billableExpensesRepository.create({
     userId: data.id,
     workDays: 5,
     holidaysDays: 12,
@@ -51,6 +59,14 @@ const handleUserCreated = async (data: UserJSON) => {
 };
 
 const handleUserUpdated = (data: UserJSON) => {
+  const usersRepository = new PrismaUserRepository();
+
+  usersRepository.update(data.id, {
+    email: data.email_addresses.at(0)?.email_address,
+    name: data.first_name + " " + data.last_name,
+    avatar: data.image_url,
+  });
+
   analytics.identify({
     distinctId: data.id,
     properties: {
@@ -72,7 +88,10 @@ const handleUserUpdated = (data: UserJSON) => {
 };
 
 const handleUserDeleted = (data: DeletedObjectJSON) => {
+  const usersRepository = new PrismaUserRepository();
+
   if (data.id) {
+    usersRepository.delete(data.id);
     analytics.identify({
       distinctId: data.id,
       properties: {
@@ -208,7 +227,6 @@ export const POST = async (request: Request): Promise<Response> => {
   log.info("Webhook", { id, eventType, body });
 
   let response: Response = new Response("", { status: 201 });
-
 
   switch (eventType) {
     case "user.created": {
