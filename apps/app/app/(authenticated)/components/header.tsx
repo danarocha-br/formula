@@ -9,7 +9,8 @@ import {
   SelectOption,
 } from "@repo/design-system/components/ui/combobox";
 import { getTranslations } from "@/utils/translations";
-import { UserButton } from '@clerk/nextjs';
+import { UserButton } from "@clerk/nextjs";
+import { DockNavigation } from "./dock";
 
 type HeaderProps = {
   items: {
@@ -32,7 +33,7 @@ export const Header = ({ items }: HeaderProps) => {
 
   return (
     <header className="bg-subdued h-12 w-full flex gap-2 rounded-md items-center justify-between px-2">
-      <Navigation as="nav">
+      <Navigation as="nav" className='w-auto'>
         {({ ready, size, position, duration }) => (
           <div className="relative">
             <div
@@ -75,6 +76,8 @@ export const Header = ({ items }: HeaderProps) => {
           </div>
         )}
       </Navigation>
+
+      <DockNavigation />
 
       <div className="flex items-center gap-2">
         <div>

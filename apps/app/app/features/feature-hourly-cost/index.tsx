@@ -34,6 +34,7 @@ import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
 import { ToggleGroup } from "@repo/design-system/components/ui/toggle-group";
 import { TableView } from "./table-view";
 import { cn } from "@repo/design-system/lib/utils";
+import { useViewPreferenceStore } from "@/app/store/view-preference-store";
 
 type Props = {
   userId: string;
@@ -83,9 +84,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
   const [activeCard, setActiveCard] = useState<ExpenseItem | null>(null);
   const [expenses, setExpenses] = useState<ExpenseItem[] | []>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [viewPreference, setViewPreference] = useState<"grid" | "table">(
-    "grid"
-  );
+  const { viewPreference } = useViewPreferenceStore();
 
   const { toast } = useToast();
   const { hourlyCost, setTotalMonthlyExpenses } = useHourlyCostStore();
@@ -251,7 +250,9 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
     }
   }, [initialExpenses]);
 
-  return (
+  return viewPreference === "node" ? (
+    <div>node</div>
+  ) : (
     <Resizable.Group direction="horizontal">
       <Resizable.Panel
         defaultSize={60}
@@ -329,7 +330,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
                   </TabButton>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mr-6">
                   <AnimatedNumber
                     className="text-2xl font-semibold"
                     value={totalExpensesCostPerMonth}
@@ -337,31 +338,6 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
                     locale={selectedCurrency.locale}
                   />
                   / {t.expenses.billable.breakeven["per-month"]}
-                  <div className="ml-4">
-                    <ToggleGroup.Root
-                      type="single"
-                      variant="outline"
-                      value={viewPreference}
-                      onValueChange={(value: "grid" | "table") =>
-                        setViewPreference(value)
-                      }
-                      className="bg-transparent scale-90"
-                    >
-                      <ToggleGroup.Item
-                        value="table"
-                        className="p-2 bg-transparent"
-                      >
-                        <Icon name="table" label="table view" />
-                      </ToggleGroup.Item>
-
-                      <ToggleGroup.Item
-                        value="grid"
-                        className="p-2 bg-transparent"
-                      >
-                        <Icon name="grid" label="cards view" />
-                      </ToggleGroup.Item>
-                    </ToggleGroup.Root>
-                  </div>
                 </div>
               </div>
             </div>
