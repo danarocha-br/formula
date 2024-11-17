@@ -29,7 +29,7 @@ const container = cva(
   }
 );
 
-const inputNumeric = cva([
+export const inputNumeric = cva([
   "font-sans",
   "text-lg",
   "font-medium",

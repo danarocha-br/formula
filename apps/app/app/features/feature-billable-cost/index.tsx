@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useDebounce } from "react-use";
 import { Icon } from "@repo/design-system/components/ui/icon";
@@ -16,6 +16,7 @@ import { useToast } from "@repo/design-system/hooks/use-toast";
 import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
 import { formatCurrency } from "@/utils/format-currency";
 import { useCreateBillableExpense } from "./server/create-billable-expense";
+import { useBreakEvenCalculator } from "@/hooks/use-break-even-calculator";
 
 type BillableCostsForm = {
   work_days: number;
@@ -110,121 +111,80 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
 
   const formData = watch();
 
+  const updatePayload = useMemo(
+    () => ({
+      json: {
+        userId: userId,
+        workDays: formData.work_days,
+        hoursPerDay: formData.hours_per_day,
+        holidaysDays: formData.holiday_days,
+        vacationsDays: formData.vacation_days,
+        sickLeaveDays: formData.sick_leave,
+        monthlySalary: formData.monthly_salary,
+        taxes: formData.taxes,
+        fees: formData.fees,
+        margin: formData.margin,
+      },
+    }),
+    [userId, formData]
+  );
+
   useDebounce(
     () => {
-      // Only update if the form is dirty and we're not loading
       if (
         !isLoadingExpenses &&
         isDirty &&
         formData.work_days &&
         initialExpenses !== null
       ) {
-        updateBillableExpenses(
-          {
-            json: {
-              userId: userId,
-              workDays: formData.work_days,
-              hoursPerDay: formData.hours_per_day,
-              holidaysDays: formData.holiday_days,
-              vacationsDays: formData.vacation_days,
-              sickLeaveDays: formData.sick_leave,
-              monthlySalary: formData.monthly_salary,
-              taxes: formData.taxes,
-              fees: formData.fees,
-              margin: formData.margin,
-            },
+        updateBillableExpenses(updatePayload, {
+          onError: () => {
+            toast({
+              title: t.validation.error["update-failed"],
+              variant: "destructive",
+            });
           },
-          {
-            onError: () => {
-              toast({
-                title: t.validation.error["update-failed"],
-                variant: "destructive",
-              });
-            },
-          }
-        );
+        });
       }
     },
     1000,
     [formData, isLoadingExpenses, userId, isDirty]
   );
 
-  const calculateMetrics = (data: BillableCostsForm): Calculations => {
-    const timeOff = data.holiday_days + data.vacation_days + data.sick_leave;
-    const workDaysPerYear = data.work_days * 52; // 52 weeks in a year
-    const actualWorkDays = workDaysPerYear - timeOff;
-    const billableHours = actualWorkDays * data.hours_per_day;
+  const calculateMetrics = useCallback(
+    (data: BillableCostsForm): Calculations => {
+      const timeOff = data.holiday_days + data.vacation_days + data.sick_leave;
+      const workDaysPerYear = data.work_days * 52;
+      const actualWorkDays = workDaysPerYear - timeOff;
+      const billableHours = actualWorkDays * data.hours_per_day;
 
-    return {
-      timeOff,
-      actualWorkDays,
-      billableHours,
-    };
-  };
+      return {
+        timeOff,
+        actualWorkDays,
+        billableHours,
+      };
+    },
+    []
+  );
 
   const hourlyCalculations = useMemo(
     () => calculateMetrics(formData),
     [formData]
   );
 
-  const calculateBreakEven = (
-    billableHours: number,
-    monthlySalary: number,
-    taxRate: number,
-    fees: number,
-    margin: number,
-    totalExpensesCostPerMonth: number
-  ): BreakEvenCalculations => {
-    const yearlySalary = monthlySalary * 12;
-    const totalYearlyExpenses = totalExpensesCostPerMonth * 12;
-    const totalExpenses = yearlySalary + totalYearlyExpenses;
-
-    const totalYearlyTaxes = calculateTaxes(totalExpenses, taxRate);
-    const totalYearlyCosts =
-      yearlySalary + totalYearlyTaxes + totalYearlyExpenses;
-
-    const baseHourlyRate = totalYearlyCosts / billableHours;
-    const marginMultiplier = 1 + margin / 100;
-    const hourlyRate = baseHourlyRate * marginMultiplier;
-    const dayRate = hourlyRate * formData.hours_per_day;
-    const weekRate = dayRate * formData.work_days;
-    const monthlyRate = (hourlyRate * billableHours) / 12;
-
-    return {
-      breakEven: roundToTwoDecimals(totalYearlyCosts),
-      hourlyRate: roundToTwoDecimals(hourlyRate),
-      dayRate: roundToTwoDecimals(dayRate),
-      weekRate: roundToTwoDecimals(weekRate),
-      monthlyRate: roundToTwoDecimals(monthlyRate),
-    };
-  };
-
-  const calculateTaxes = (totalExpenses: number, taxRate: number): number => {
-    return (totalExpenses * taxRate) / 100;
-  };
-
-  const roundToTwoDecimals = (value: number): number => {
-    return Math.round(value * 100) / 100;
-  };
-
   const breakEvenMetrics = useMemo(
     () =>
-      calculateBreakEven(
-        hourlyCalculations.billableHours,
-        formData.monthly_salary,
-        formData.taxes,
-        formData.fees,
-        formData.margin,
-        totalMonthlyExpenses
-      ),
-    [
-      hourlyCalculations.billableHours,
-      formData.monthly_salary,
-      formData.taxes,
-      formData.fees,
-      formData.margin,
-      totalMonthlyExpenses,
-    ]
+      useBreakEvenCalculator({
+        billableHours: hourlyCalculations.billableHours,
+        monthlySalary: formData.monthly_salary,
+        taxRate: formData.taxes,
+        fees: formData.fees,
+        margin: formData.margin,
+        totalExpensesCostPerMonth: totalMonthlyExpenses,
+        hoursPerDay: formData.hours_per_day,
+        workDays: formData.work_days,
+      }),
+    [hourlyCalculations.billableHours, formData, totalMonthlyExpenses]
   );
 
   useEffect(() => {

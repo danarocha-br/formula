@@ -35,6 +35,7 @@ import { ToggleGroup } from "@repo/design-system/components/ui/toggle-group";
 import { TableView } from "./table-view";
 import { cn } from "@repo/design-system/lib/utils";
 import { useViewPreferenceStore } from "@/app/store/view-preference-store";
+import { NodeView } from './node-view';
 
 type Props = {
   userId: string;
@@ -251,7 +252,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
   }, [initialExpenses]);
 
   return viewPreference === "node" ? (
-    <div>node</div>
+    <NodeView expenses={expenses} userId={userId} />
   ) : (
     <Resizable.Group direction="horizontal">
       <Resizable.Panel

@@ -193,6 +193,49 @@
   }
 }
 
+.react-flow__node,
+.react-flow__node-input {
+  @apply !bg-card !rounded-md !shadow-md border !border-primary !p-0 !min-w-[260px] !text-left;
+}
+
+.react-flow__handle {
+  @apply !w-2 !h-2 !bg-background border-2 border-white;
+}
+
+.react-flow__edge path {
+  @apply stroke-2 stroke-background/30;
+}
+
+.calculation-node {
+}
+
+.react-flow__node-input {
+  min-width: 310px !important;
+}
+
+.output-node {
+}
+
+.node-header {
+  @apply text-sm font-medium text-card-foreground rounded-t-[14px] px-4 py-2;
+}
+
+.node-content {
+  @apply space-y-1;
+}
+
+.node-input {
+  @apply w-full px-3 py-2 bg-white border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary;
+}
+
+.node-output {
+  @apply text-xl font-bold text-foreground;
+}
+
+.node-description {
+  @apply text-[15px] text-card-foreground/70 text-left bg-muted/10 px-4 pt-1.5 pb-3 leading-4 mt-4;
+}
+
 .shiki {
   background-color: var(--shiki-light-bg);
   color: var(--shiki-light);
