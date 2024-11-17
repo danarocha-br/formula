@@ -5,10 +5,17 @@ import type { Variants } from "framer-motion";
 import { motion, useAnimation } from "framer-motion";
 import { useEffect } from "react";
 
+interface CheckIconProps {
+  size?: number;
+  className?: string;
+  animated?: boolean;
+}
+
 const pathVariants: Variants = {
   normal: {
     opacity: 1,
     pathLength: 1,
+    d: "m9 12 2 2 4-4",
     transition: {
       duration: 0.3,
       opacity: { duration: 0.1 },
@@ -17,6 +24,7 @@ const pathVariants: Variants = {
   animate: {
     opacity: [0, 1],
     pathLength: [0, 1],
+    d: "m9 12 2 2 4-4",
     transition: {
       duration: 0.4,
       opacity: { duration: 0.1 },
@@ -24,15 +32,7 @@ const pathVariants: Variants = {
   },
 };
 
-const CheckIcon = ({
-  size = 18,
-  className,
-  animated,
-}: {
-  size?: number;
-  className?: string;
-  animated?: boolean;
-}) => {
+const CheckIcon: React.FC<CheckIconProps> = ({ size = 18, className, animated }) => {
   const controls = useAnimation();
 
   useEffect(() => {
@@ -56,7 +56,7 @@ const CheckIcon = ({
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <circle cx="12" cy="12" r="10" />
+        <circle cx={12} cy={12} r={10} />
         <motion.path
           variants={pathVariants}
           initial="normal"

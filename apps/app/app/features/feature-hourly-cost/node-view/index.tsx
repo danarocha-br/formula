@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useMemo } from "react";
 import ReactFlow, {
   Background,
   Controls,
@@ -29,14 +29,7 @@ import { useCurrencyStore } from "@/app/store/currency-store";
 import { useGetBillableExpenses } from "../../feature-billable-cost/server/get-billable-expenses";
 import { useUpdateBillableExpense } from "../../feature-billable-cost/server/update-billable-expense";
 import { useCreateBillableExpense } from "../../feature-billable-cost/server/create-billable-expense";
-import { ExpenseItem } from '@/app/types';
-
-const nodeTypes: NodeTypes = {
-  input: InputNode as any,
-  calculation: CalculationNode as any,
-  output: OutputNode as any,
-  group: GroupNode as any,
-};
+import { ExpenseItem } from "@/app/types";
 
 type NodeViewProps = {
   userId: string;
@@ -69,7 +62,7 @@ const formSchema = z.object({
   margin: z.number().min(0).max(100),
 });
 
-export const NodeView = ({ userId }: NodeViewProps) => {
+export const NodeView = ({ userId, expenses }: NodeViewProps) => {
   const { data: initialExpenses, isLoading: isLoadingExpenses } =
     useGetBillableExpenses({ userId });
   const { mutate: updateBillableExpenses } = useUpdateBillableExpense();
@@ -78,6 +71,16 @@ export const NodeView = ({ userId }: NodeViewProps) => {
   const t = getTranslations();
   const { setHourlyCost, totalMonthlyExpenses } = useHourlyCostStore();
   const { selectedCurrency } = useCurrencyStore();
+
+  const nodeTypes = useMemo<NodeTypes>(
+    () => ({
+      input: InputNode as any,
+      calculation: CalculationNode as any,
+      output: OutputNode as any,
+      group: GroupNode as any,
+    }),
+    []
+  );
 
   const calculateNodesAndMetrics = (data: FormValues): NodeCalculations => {
     // Calculate all metrics once
@@ -106,7 +109,31 @@ export const NodeView = ({ userId }: NodeViewProps) => {
 
     // Create nodes using the pre-calculated metrics
     const nodes = [
-      // Input nodes group
+      ...expenses.map((expense, index) => ({
+        id: `expense_${expense.id}`,
+        type: "calculation",
+        position: { x: 100 + index * 400, y: -300 },
+        data: {
+          label: expense.name,
+          formula: `${expense.amount} ${expense.period === "yearly" ? "*" : ""} ${expense.period === "yearly" ? "12" : "1"} = ${expense.amount} ${expense.period === "yearly" ? "yearly" : "monthly"}`,
+          result: expense.amount,
+          sourcePosition: Position.Bottom,
+          targetPosition: Position.Top,
+        },
+      })),
+      {
+        id: "total_monthly_expenses",
+        type: "calculation",
+        position: { x: 800, y: -100 },
+        data: {
+          label: "Total Monthly Expenses",
+          formula: "Sum of all expenses",
+          result: totalMonthlyExpenses,
+          description: "Total monthly expenses calculation",
+          sourcePosition: Position.Bottom,
+          targetPosition: Position.Top,
+        },
+      },
       {
         id: "work_days",
         type: "input",
@@ -348,6 +375,18 @@ export const NodeView = ({ userId }: NodeViewProps) => {
   });
 
   const initialEdges: Edge[] = [
+    ...expenses.map((expense) => ({
+      id: `expense_edge_${expense.id}`,
+      source: `expense_${expense.id}`,
+      target: "total_monthly_expenses",
+    })),
+
+    {
+      id: "monthly_expenses_to_hourly",
+      source: "total_monthly_expenses",
+      target: "hourly_rate",
+    },
+
     // Time off calculation group
     {
       id: "e1",

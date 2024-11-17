@@ -9,14 +9,27 @@ const handTransition: Transition = {
   ease: [0.4, 0, 0.2, 1],
 };
 
+interface ClockIconProps {
+  width?: number;
+  className?: string;
+}
+
 const handVariants: Variants = {
   normal: {
     rotate: 0,
     originX: "50%",
     originY: "50%",
+    x1: 12,
+    y1: 12,
+    x2: 12,
+    y2: 6,
   },
   animate: {
     rotate: 360,
+    x1: 12,
+    y1: 12,
+    x2: 12,
+    y2: 6,
   },
 };
 
@@ -30,25 +43,28 @@ const minuteHandVariants: Variants = {
     rotate: 0,
     originX: "50%",
     originY: "50%",
+    x1: 12,
+    y1: 12,
+    x2: 16,
+    y2: 12,
   },
   animate: {
     rotate: 45,
+    x1: 12,
+    y1: 12,
+    x2: 16,
+    y2: 12,
   },
 };
 
-const ClockIcon = ({
-  width = 28,
-  className,
-}: {
-  width?: number;
-  className?: string;
-}) => {
+const ClockIcon: React.FC<ClockIconProps> = ({ width = 28, className }) => {
   const controls = useAnimation();
 
   return (
     <div
       className={cn(
-        "select-none transition-colors duration-200 flex items-center justify-center"
+        "select-none transition-colors duration-200 flex items-center justify-center",
+        className
       )}
       onMouseEnter={() => controls.start("animate")}
       onMouseLeave={() => controls.start("normal")}
@@ -64,22 +80,14 @@ const ClockIcon = ({
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <circle cx="12" cy="12" r="10" />
+        <circle cx={12} cy={12} r={10} />
         <motion.line
-          x1="12"
-          y1="12"
-          x2="12"
-          y2="6"
           variants={handVariants}
           animate={controls}
           initial="normal"
           transition={handTransition}
         />
         <motion.line
-          x1="12"
-          y1="12"
-          x2="16"
-          y2="12"
           variants={minuteHandVariants}
           animate={controls}
           initial="normal"
