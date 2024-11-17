@@ -16,7 +16,6 @@ const tr = cva([
 ]);
 
 const cell = cva([
-  "p-2",
   "align-middle",
   "border-r",
   "last:border-r-0",

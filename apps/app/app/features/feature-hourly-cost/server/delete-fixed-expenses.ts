@@ -34,7 +34,6 @@ export const useDeleteFixedExpenses = () => {
         }
         return data;
       } catch (error) {
-        console.log(error);
         throw error instanceof Error
           ? error
           : new Error(t.validation.error["delete-failed"]);

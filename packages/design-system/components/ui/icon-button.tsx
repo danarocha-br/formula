@@ -3,7 +3,7 @@ import { iconPath } from "./icon/icon-path";
 import { Icon } from "./icon";
 import { cn } from "../../lib/utils";
 
-const button = cva(
+export const iconbutton = cva(
   [
     "bg-neutral-100/50",
     "flex",
@@ -103,7 +103,7 @@ export type IconButtonProps = {
   loading?: boolean;
   className?: string;
 } & React.ButtonHTMLAttributes<HTMLButtonElement> &
-  VariantProps<typeof button>;
+  VariantProps<typeof iconbutton>;
 
 /**
  * Renders an icon button component.
@@ -129,7 +129,7 @@ export const IconButton = ({
   <button
     disabled={disabled || loading}
     aria-label={label}
-    className={cn(button({ size, color, variant, loading }), className)}
+    className={cn(iconbutton({ size, color, variant, loading }), className)}
     {...props}
   >
     <Icon

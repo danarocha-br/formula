@@ -257,7 +257,7 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
                     </span>
                   )}
 
-                  <span className="flex gap-2 items-center">
+                  <span className=" flex gap-2 items-center">
                     {!isMulti &&
                       selectedValues.length === 1 &&
                       options &&
@@ -268,7 +268,7 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
                         .map((option) => (
                           <span
                             key={option.value}
-                            className="text-sm flex gap-2 items-center text-text-color-body"
+                            className="text-sm combobox-label flex gap-2 items-center text-text-color-body"
                           >
                             {!!option.slot && option.slot} {option.label}
                           </span>

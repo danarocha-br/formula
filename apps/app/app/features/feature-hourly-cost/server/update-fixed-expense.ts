@@ -27,11 +27,14 @@ export const useUpdateFixedExpense = () => {
 
         const data = await response.json();
 
+        console.log(data);
+
         if (data.success === false) {
           throw new Error(t.validation.error["update-failed"]);
         }
         return data;
       } catch (error) {
+        console.log(error);
         throw error instanceof Error
           ? error
           : new Error(t.validation.error["update-failed"]);

@@ -108,7 +108,6 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
   const getExpenseCategoryLabel = useMemo(
     () => (category: string) => {
       const normalizedCategory = category?.toLowerCase().trim();
-      console.log(normalizedCategory);
 
       const matchingCategory = FIXED_COST_CATEGORIES.find(
         (item) =>
@@ -124,7 +123,6 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
   const getExpenseCategoryIcon = useMemo(
     () => (category: string) => {
       const normalizedCategory = category?.toLowerCase().trim();
-      console.log(normalizedCategory);
 
       const matchingCategory = FIXED_COST_CATEGORIES.find(
         (item) =>
@@ -238,6 +236,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
   function handleEditCard(id: number) {
     setEditingId((currentId) => (currentId === id ? null : id));
   }
+
   const handleEditOnClose = React.useCallback(() => {
     setEditingId(null);
   }, []);
@@ -297,11 +296,6 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
                           data={expenses}
                           getCategoryColor={getExpenseCategoryColor}
                           getCategoryLabel={getExpenseCategoryLabel}
-                          loading={isLoadingExpenses}
-                          onEdit={handleEditCard}
-                          onDelete={handleDeleteExpense}
-                          onEditClose={handleEditOnClose}
-                          editingId={editingId}
                         />
                       )}
                     </SortableContext>
