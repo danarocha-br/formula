@@ -1,6 +1,6 @@
 import { getTranslations } from '@/utils/translations';
 
-const t = getTranslations("pt-BR");
+const t = getTranslations();
 
 export const FIXED_COST_CATEGORIES = [
   {
@@ -38,6 +38,7 @@ export const FIXED_COST_CATEGORIES = [
     value: "subscriptions",
     icon: "subscriptions",
     color: "bg-froly-300",
+
   },
   {
     label: t.common.categories["fixed-cost"]["cloud"],
