@@ -14,17 +14,17 @@ import { Input } from "@repo/design-system/components/ui/input";
 import { NumberInput } from "@repo/design-system/components/ui/number-input";
 import { iconbutton } from "@repo/design-system/components/ui/icon-button";
 import { DeleteIcon } from "@repo/design-system/components/ui/animated-icon/delete";
-import { DataTable } from "./data-table";
-import { ExpenseItem } from "@/app/types";
+import { Combobox } from "@repo/design-system/components/ui/combobox";
+import { Icon, iconPath } from "@repo/design-system/components/ui/icon";
 
+import { ExpenseItem } from "@/app/types";
+import { FIXED_COST_CATEGORIES } from "@/app/constants";
+
+import { DataTable } from "./data-table";
+import { SelectOption } from "../add-expense-form";
 import { useUpdateFixedExpense } from "../server/update-fixed-expense";
 import { useDeleteFixedExpenses } from "../server/delete-fixed-expenses";
-import { FIXED_COST_CATEGORIES } from "@/app/constants";
-import { Icon, iconPath } from "@repo/design-system/components/ui/icon";
-import { Combobox } from "@repo/design-system/components/ui/combobox";
-import { SelectOption } from "../add-expense-form";
 import { useCreateFixedExpenses } from "../server/create-fixed-expenses";
-import { useDebounce } from "react-use";
 
 type TableViewProps = {
   data: ExpenseItem[];
@@ -262,7 +262,7 @@ export const TableView = ({
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="Select row"
-          className='ml-1.5'
+          className="ml-1.5"
         />
       ),
       enableSorting: false,
@@ -273,7 +273,7 @@ export const TableView = ({
     },
     {
       accessorKey: "category",
-      header: "Category",
+      header: t.expenses.form.category,
       cell: ({ row }) => {
         if (row.original.id.toString().startsWith("new-")) {
           return (
@@ -410,7 +410,7 @@ export const TableView = ({
     },
     {
       accessorKey: "name",
-      header: "Name",
+      header: t.expenses.form.name,
       cell: ({ row }) => {
         if (row.original.id.toString().startsWith("new-")) {
           return (
@@ -497,7 +497,7 @@ export const TableView = ({
     },
     {
       accessorKey: "amountPerMonth",
-      header: "Monthly amount",
+      header: t.expenses.form.value + " (" + t.common.period["per-month"] + ")",
       cell: ({ row }) => {
         if (row.original.id.toString().startsWith("new-")) {
           return (
@@ -702,7 +702,7 @@ export const TableView = ({
     },
     {
       accessorKey: "amountPerYear",
-      header: "Yearly amount",
+      header: t.expenses.form.value + " (" + t.common.period["per-year"] + ")",
       cell: ({ row }) => {
         const [isEditing, setIsEditing] = useState(false);
 
@@ -910,7 +910,7 @@ export const TableView = ({
         }
 
         return (
-          <div className='flex justify-end px-2'>
+          <div className="flex justify-end px-2">
             <button
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
@@ -942,7 +942,7 @@ export const TableView = ({
         )}
       >
         <Icon name="plus" label="Add" color="primary" />
-        <span className="text-sm text-card-foreground/60">Add new expense</span>
+        <span className="text-sm text-card-foreground/60">{t.expenses.actions['add-expense']}</span>
       </button>
     </div>
   );

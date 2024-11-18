@@ -155,7 +155,8 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
           suffix: t.expenses.billable.form["monthly-salary-period"],
           currency: selectedCurrency.symbol + " ",
           value: data.monthly_salary,
-          onChange: (value: number) => handleNodeChange("monthly_salary", value),
+          onChange: (value: number) =>
+            handleNodeChange("monthly_salary", value),
           min: 0,
           max: 1000000,
           icon: "wallet",
@@ -259,7 +260,10 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
       {
         id: "total_monthly_expenses",
         type: "calculation",
-        position: nodePositions["total_monthly_expenses"] || { x: 1170, y: -210 },
+        position: nodePositions["total_monthly_expenses"] || {
+          x: 1170,
+          y: -210,
+        },
         draggable: true,
         data: {
           label: t.expenses.billable.flow["total-monthly-cost"].title,
@@ -267,7 +271,8 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
           result: formatCurrency(totalMonthlyExpenses, {
             currency: selectedCurrency.code,
           }),
-          description: t.expenses.billable.flow["total-monthly-cost"].description,
+          description:
+            t.expenses.billable.flow["total-monthly-cost"].description,
           sourcePosition: Position.Bottom,
           targetPosition: Position.Top,
         },
@@ -280,8 +285,11 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         data: {
           label: t.expenses.billable.flow["total-yearly-cost"].title,
           formula: t.expenses.billable.flow["total-yearly-cost"].formula,
-          result: metrics.billableHours,
-          description: t.expenses.billable.flow["total-yearly-cost"].description,
+          result: formatCurrency(metrics.billableHours, {
+            currency: selectedCurrency.code,
+          }),
+          description:
+            t.expenses.billable.flow["total-yearly-cost"].description,
           sourcePosition: Position.Right,
           targetPosition: Position.Top,
         },
@@ -322,8 +330,12 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         data: {
           label: t.expenses.billable.flow["total-billable-hours"].title,
           formula: t.expenses.billable.flow["total-billable-hours"].formula,
-          result: metrics.billableHours,
-          description: t.expenses.billable.flow["total-billable-hours"].description,
+          result:
+            metrics.billableHours +
+            " " +
+            t.expenses.billable.form["billable-hours-summary-period"],
+          description:
+            t.expenses.billable.flow["total-billable-hours"].description,
           sourcePosition: Position.Right,
           targetPosition: Position.Left,
         },
