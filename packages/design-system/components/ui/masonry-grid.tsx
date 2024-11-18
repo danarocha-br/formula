@@ -19,7 +19,7 @@ export const MasonryGrid: React.FC<MasonryGridProps> = ({
 
   return (
     <div className="@container">
-      <div className="grid gap-2 @[380px]:grid-cols-1 @[500px]:grid-cols-2 @[700px]:grid-cols-3 @[980px]:grid-cols-4">
+      <div className="grid auto-rows-[1fr] gap-2 @[380px]:grid-cols-1 @[500px]:grid-cols-2 @[700px]:grid-cols-3 @[980px]:grid-cols-4">
         {columns.map((column, index) => (
           <div key={index} className="flex flex-col gap-2">
             {column}

@@ -1,127 +1,263 @@
-import React, { useMemo, useState } from "react";
-import { MasonryGrid } from "@repo/design-system/components/ui/masonry-grid";
+"use client";
+
+import React, { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 
 import { ExpenseItem } from "@/app/types";
 import { getTranslations } from "@/utils/translations";
-import { ItemCard } from "@repo/design-system/components/ui/item-card";
 import { useCurrencyStore } from "@/app/store/currency-store";
-import { EditExpenseForm } from "../edit-expense-form";
-import { AddCard } from "../add-expense-card";
-import { EmptyView } from "./empty-view";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { useToast } from "@repo/design-system/hooks/use-toast";
+import { useDeleteFixedExpenses } from "../server/delete-fixed-expenses";
+import { useUpdateBatchFixedExpense } from "../server/update-batch-fixed-expenses";
+import { FIXED_COST_CATEGORIES } from "@/app/constants";
+import { arrayMove, SortableContext } from "@dnd-kit/sortable";
+import { useViewPreferenceStore } from "@/app/store/view-preference-store";
+import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
+import { LoadingView } from "../loading-view";
+import { Grid } from "./grid";
+import { TableView } from "../table-view";
+import { createPortal } from "react-dom";
+import { ItemCard } from "@repo/design-system/components/ui/item-card";
+import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
+
+const DragOverlayWrapper = dynamic(
+  () =>
+    Promise.resolve(({ activeCard }: { activeCard: ExpenseItem | null }) => {
+      const [mounted, setMounted] = useState(false);
+
+      useEffect(() => {
+        setMounted(true);
+      }, []);
+
+      if (!mounted) return null;
+
+      return createPortal(
+        <DragOverlay>
+          {activeCard && (
+            <div
+              style={{
+                transform: "scale(1.05)",
+                cursor: "grabbing",
+              }}
+            >
+              <ItemCard data={activeCard} />
+            </div>
+          )}
+        </DragOverlay>,
+        document.body
+      );
+    }),
+  { ssr: false }
+);
 
 type GridViewProps = {
-  data: ExpenseItem[];
-  getCategoryColor: (id: string) => string;
-  getCategoryLabel: (id: string) => string;
-  getCategoryIcon: (id: string) => string;
-  onDelete: (id: number) => void;
-  onEdit: (id: number) => void;
-  onEditClose: () => void;
-  onAddBetween?: (index: number) => void;
-  loading?: boolean;
-  editingId: number | null;
+  expenses: ExpenseItem[];
+  setExpenses: React.Dispatch<React.SetStateAction<ExpenseItem[]>>;
   userId: string;
+  loading?: boolean;
 };
 
 export const GridView = ({
-  data,
-  getCategoryColor,
-  getCategoryLabel,
-  getCategoryIcon,
-  loading = false,
-  onEdit,
-  onDelete,
-  onEditClose,
-  editingId,
+  expenses,
+  setExpenses,
   userId,
+  loading = false,
 }: GridViewProps) => {
   const t = getTranslations();
   const { selectedCurrency } = useCurrencyStore();
-  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const [activeCard, setActiveCard] = useState<ExpenseItem | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const { toast } = useToast();
+  const { viewPreference } = useViewPreferenceStore();
+  const { setTotalMonthlyExpenses } = useHourlyCostStore();
 
-  const maxValue = useMemo(
-    () => Math.max(...data.map((item) => item.amount)),
-    [data]
+  const { mutate: deleteExpense, isPending: isDeleting } =
+    useDeleteFixedExpenses();
+  const { mutate: updateBatchExpenses, isPending: isUpdating } =
+    useUpdateBatchFixedExpense();
+
+  const getExpenseCategoryColor = useMemo(
+    () => (category: string) => {
+      const normalizedCategory = category?.toLowerCase().trim();
+
+      const matchingCategory = FIXED_COST_CATEGORIES.find(
+        (item) =>
+          item.value.toLowerCase().includes(normalizedCategory) ||
+          normalizedCategory.includes(item.value.toLowerCase())
+      );
+
+      return matchingCategory?.color ?? "bg-neutral-100";
+    },
+    []
   );
-  return data && data.length === 0 ? (
-    <EmptyView userId={userId} />
-  ) : (
-    <MasonryGrid>
-      {data.map((expense, index) => {
-        const isLarge = expense.amount > maxValue * 0.4;
 
-        return (
-          <React.Fragment key={expense.id + expense.rank}>
-            <div
-              key={expense.id + expense.rank}
-              className="relative min-h-[300px] h-[320px]"
-              style={{
-                height: isLarge ? "420px" : "320px",
-                width: "100%",
-              }}
+  const getExpenseCategoryLabel = useMemo(
+    () => (category: string) => {
+      const normalizedCategory = category?.toLowerCase().trim();
+
+      const matchingCategory = FIXED_COST_CATEGORIES.find(
+        (item) =>
+          item.value.toLowerCase().includes(normalizedCategory) ||
+          normalizedCategory.includes(item.value.toLowerCase())
+      );
+
+      return matchingCategory?.label ?? "";
+    },
+    []
+  );
+
+  const getExpenseCategoryIcon = useMemo(
+    () => (category: string) => {
+      const normalizedCategory = category?.toLowerCase().trim();
+
+      const matchingCategory = FIXED_COST_CATEGORIES.find(
+        (item) =>
+          item.value.toLowerCase().includes(normalizedCategory) ||
+          normalizedCategory.includes(item.value.toLowerCase())
+      );
+
+      return matchingCategory?.icon ?? "";
+    },
+    []
+  );
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 3,
+      },
+    })
+  );
+
+  const cardsId = useMemo(() => expenses.map((item) => item.id), [expenses]);
+
+  function onDragStart(event: DragStartEvent) {
+    const { active } = event;
+
+    if (active.data.current?.type === "card") {
+      setActiveCard(active.data.current.data);
+      return;
+    }
+  }
+
+  function onDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    if (!over) return;
+    if (active.id === over.id) return;
+
+    setExpenses((expenses) => {
+      const activeIndex = expenses.findIndex(
+        (expense) => expense.id === active.id
+      );
+      const overIndex = expenses.findIndex((expense) => expense.id === over.id);
+      const newExpenses = arrayMove(expenses, activeIndex, overIndex);
+
+      const updatedExpenses = newExpenses.map((expense, index) => ({
+        ...expense,
+        rank: index + 1,
+      }));
+
+      updateBatchExpenses(
+        {
+          json: {
+            updates: updatedExpenses.map((expense) => ({
+              id: expense.id,
+              data: { rank: expense.rank },
+            })),
+            userId,
+          },
+        },
+        {
+          onError: () => {
+            toast({
+              title: t.validation.error["update-failed"],
+              variant: "destructive",
+            });
+          },
+        }
+      );
+
+      return updatedExpenses;
+    });
+  }
+
+  function handleDeleteExpense(id: number) {
+    deleteExpense(
+      { param: { id: String(id), userId } },
+      {
+        onError: () => {
+          toast({
+            title: t.validation.error["delete-failed"],
+            variant: "destructive",
+          });
+        },
+      }
+    );
+  }
+
+  function handleEditCard(id: number) {
+    setEditingId((currentId) => (currentId === id ? null : id));
+  }
+
+  const handleEditOnClose = React.useCallback(() => {
+    setEditingId(null);
+  }, []);
+
+  return (
+    <ScrollArea.Root className="rounded-b-lg h-[calc(100vh-7.7rem)]">
+      <div className="w-full text-card-foreground @container">
+        {loading ? (
+          <LoadingView />
+        ) : (
+          <section className="relative">
+            <DndContext
+              sensors={sensors}
+              onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
             >
-              <ItemCard
-                data={{
-                  ...expense,
-                  currency: selectedCurrency.symbol + " ",
-                  period:
-                    expense.period === "monthly"
-                      ? t.common.period.monthly
-                      : t.common.period.yearly,
-                  color: getCategoryColor(expense.category),
-                  categoryLabel: getCategoryLabel(expense.category),
-                  categoryIcon: getCategoryIcon(expense.category),
-                }}
-                loading={loading}
-                className="w-full h-full"
-                actionDeleteLabel={t.common["delete"]}
-                actionEditLabel={t.common["edit"]}
-                onDelete={() => onDelete(expense.id)}
-                onEdit={() => onEdit(expense.id)}
-                isEditMode={editingId === expense.id}
-                editModeContent={
-                  <EditExpenseForm
-                    onClose={onEditClose}
-                    userId={userId}
-                    expenseId={expense.id}
-                    rankIndex={expense.rank ?? 0}
-                    defaultValues={{
-                      name: expense.name,
-                      category: {
-                        value: expense.category,
-                        label: getCategoryLabel(expense.category),
-                      },
-                      amount: expense.amount,
-                      period: expense.period,
-                    }}
-                  />
-                }
-              />
-            </div>
+              <div className="p-2 w-full">
+                <SortableContext items={cardsId}>
+                  {expenses && viewPreference === "grid" && (
+                    <Grid
+                      userId={userId}
+                      data={expenses}
+                      getCategoryColor={getExpenseCategoryColor}
+                      getCategoryLabel={getExpenseCategoryLabel}
+                      getCategoryIcon={getExpenseCategoryIcon}
+                      loading={loading || isDeleting || isUpdating}
+                      onEdit={handleEditCard}
+                      onDelete={handleDeleteExpense}
+                      onEditClose={handleEditOnClose}
+                      editingId={editingId}
+                    />
+                  )}
 
-            {/* <div
-              className="absolute w-full h-8 -bottom-4 left-0 z-10 group"
-              onMouseEnter={() => setHoverIndex(index)}
-              onMouseLeave={() => setHoverIndex(null)}
-            >
-              {hoverIndex === index && (
-                <button
-                  // onClick={() => onAddBetween?.(index)}
-                  className="bg-primary hover:bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                >
-                  <Icon name="plus" label='add new expense' />
-                </button>
-              )}
-            </div> */}
-          </React.Fragment>
-        );
-      })}
+                  {expenses && viewPreference === "table" && (
+                    <TableView
+                      userId={userId}
+                      data={expenses}
+                      getCategoryColor={getExpenseCategoryColor}
+                      getCategoryLabel={getExpenseCategoryLabel}
+                    />
+                  )}
+                </SortableContext>
+              </div>
 
-      <AddCard
-        className="h-[320px]"
-        userId={userId}
-        rankIndex={data.length + 1}
-      />
-    </MasonryGrid>
+              <DragOverlayWrapper activeCard={activeCard} />
+            </DndContext>
+          </section>
+        )}
+      </div>
+    </ScrollArea.Root>
   );
 };
