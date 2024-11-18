@@ -30,10 +30,9 @@ export const en = {
     period: {
       "per-month": "mo",
       "per-year": "year",
-      "monthly": "Monthly",
-      "yearly": "Yearly",
+      monthly: "Monthly",
+      yearly: "Yearly",
     },
-
   },
   navigation: {
     "top-level": {
@@ -87,7 +86,7 @@ export const en = {
       taxes: {
         title: "Taxes & fees",
         subtitle:
-          "Just a friendly reminder that as a freelancer, you won't keep all of your earnings. You'll need to set aside some for taxes and possibly cover fees for invoicing or payment processing. It's a good idea to plan for these expenses to keep everything running smoothly!",
+          "Just a friendly reminder that you won't keep all of your earnings. You'll need to set aside some for taxes and possibly cover fees for invoicing or payment processing. It's a good idea to plan for these expenses to keep everything running smoothly!",
       },
       margin: {
         title: "Your margin",
@@ -111,6 +110,55 @@ export const en = {
       },
       total: {
         title: "Your hourly cost is:",
+      },
+      flow: {
+        "monthly-salary": "How much do you want to make per month?",
+        "billable-hours":
+          "Consider that around 75% of your working day is billable.",
+        "work-days": "How many work days per week will you work?",
+        holidays:
+          "How many national holidays per year will you take approximately?",
+        vacations: "How many days per year will you take vacations?",
+        "sick-leave":
+          "Consider some sick leave days per year in case of illness.",
+        taxes: "Consider what taxes you need to pay.",
+        fees: "Consider fees for invoicing or payment processing or others.",
+        margin:
+          "Consider how much you want to add on top of your break even point.",
+        "time-off": {
+          title: "Time off",
+          description:
+            "This is the amount of time off per year that you will take.",
+          formula: "Holidays + Vacations + Sick Leave",
+        },
+        "actual-work-days": {
+          title: "Actual work days",
+          description:
+            "This is the amount of work days per year that you will work.",
+          formula: "(Work days * 52 weeks) - Time off",
+        },
+        "total-yearly-cost": {
+          title: "Your total yearly cost is:",
+          description: "This is the result of your total yearly cost.",
+          formula:
+            "(Monthly cost * 12) + (Monthly salary * 12) + Yearly taxes and fees",
+        },
+        "total-monthly-cost": {
+          title: "Your fixed monthly cost is:",
+          description: "This is the result of your total fixed monthly cost.",
+          formula: "All costs summed up =",
+        },
+        "total-billable-hours": {
+          title: "Your annual billable hours is:",
+          description:
+            "This is the amount of billable hours per year that you will work.",
+          formula: "Actual work days * Billable hours per day",
+        },
+        "hourly-rate": {
+          title: "Your hourly rate is:",
+          description: "Based on your inputs, this is your ideal hourly rate.",
+          formula: "(Total yearly cost / Total billable hours) * margin %",
+        },
       },
     },
   },

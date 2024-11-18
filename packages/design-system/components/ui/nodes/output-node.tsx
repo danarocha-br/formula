@@ -3,9 +3,11 @@ import { Icon } from '../icon';
 interface OutputNodeProps {
   data: {
     label: string;
-    value: number;
+    value: number | string;
     description?: string;
     currency?: string;
+    formula?: string;
+    position: Position;
   };
 }
 export const OutputNode = ({ data }: OutputNodeProps) => {
@@ -13,10 +15,11 @@ export const OutputNode = ({ data }: OutputNodeProps) => {
     <div className="">
       <div className="node-header">{data.label}</div>
       <div className="node-content">
-        <div className="node-output">
-          <code className="text-xl bg-neutral-700 block px-4 text-foreground py-2">
-            {!!data.currency && data.currency} {data.value.toFixed(2)}
-          </code>
+        <div className="node-output mb-4">
+            <code className="bg-background block px-4 text-foreground/80 py-2 text-sm">
+              {data.formula}
+              <div className="node-output !text-foreground pt-2 !text-3xl">{data.value}</div>
+            </code>
         </div>
         <div className="node-description flex gap-2">
           <i>
@@ -25,7 +28,7 @@ export const OutputNode = ({ data }: OutputNodeProps) => {
           {data.description}
         </div>
       </div>
-      <Handle type="target" position={Position.Left} />
+      <Handle type="target" position={data.position ? data.position : Position.Left} />
     </div>
   );
 };

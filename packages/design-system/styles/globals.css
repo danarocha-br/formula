@@ -199,16 +199,19 @@
 }
 
 .react-flow__handle {
-  @apply !w-2 !h-2 !bg-background border-2 border-white;
+  @apply !w-2 !h-2 !bg-purple-500 border-2 border-white;
 }
 
 .react-flow__edge path {
-  @apply stroke-2 stroke-background/30;
+  @apply stroke-2 stroke-purple-400;
 }
 
 .calculation-node {
 }
 
+.react-flow__node-output {
+  min-width: 420px !important;
+}
 .react-flow__node-input {
   min-width: 310px !important;
 }
@@ -233,7 +236,7 @@
 }
 
 .node-description {
-  @apply text-[15px] text-card-foreground/70 text-left bg-muted/10 px-4 pt-1.5 pb-3 leading-4 mt-4;
+  @apply text-[14px] text-card-foreground/70 text-left bg-muted/10 px-3 pt-3 pb-4 leading-4 mt-4 w-full;
 }
 
 .shiki {

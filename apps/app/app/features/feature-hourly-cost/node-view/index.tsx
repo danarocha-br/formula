@@ -30,6 +30,8 @@ import { useGetBillableExpenses } from "../../feature-billable-cost/server/get-b
 import { useUpdateBillableExpense } from "../../feature-billable-cost/server/update-billable-expense";
 import { useCreateBillableExpense } from "../../feature-billable-cost/server/create-billable-expense";
 import { ExpenseItem } from "@/app/types";
+import { formatCurrency } from "@/utils/format-currency";
+import { LoadingNodeView } from './loading';
 
 type NodeViewProps = {
   userId: string;
@@ -77,7 +79,6 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
       input: InputNode as any,
       calculation: CalculationNode as any,
       output: OutputNode as any,
-      group: GroupNode as any,
     }),
     []
   );
@@ -107,70 +108,41 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
       hourlyRate: breakEvenMetrics.hourlyRate,
     };
 
-    // Create nodes using the pre-calculated metrics
     const nodes = [
-      ...expenses.map((expense, index) => ({
-        id: `expense_${expense.id}`,
-        type: "calculation",
-        position: { x: 100 + index * 400, y: -300 },
-        data: {
-          label: expense.name,
-          formula: `${expense.amount} ${expense.period === "yearly" ? "*" : ""} ${expense.period === "yearly" ? "12" : "1"} = ${expense.amount} ${expense.period === "yearly" ? "yearly" : "monthly"}`,
-          result: expense.amount,
-          sourcePosition: Position.Bottom,
-          targetPosition: Position.Top,
-        },
-      })),
       {
-        id: "total_monthly_expenses",
-        type: "calculation",
-        position: { x: 800, y: -100 },
+        id: "taxes",
+        type: "input",
+        position: { x: 480, y: -210 },
         data: {
-          label: "Total Monthly Expenses",
-          formula: "Sum of all expenses",
-          result: totalMonthlyExpenses,
-          description: "Total monthly expenses calculation",
-          sourcePosition: Position.Bottom,
-          targetPosition: Position.Top,
+          label: t.expenses.billable.form.taxes,
+          suffix: "%",
+          value: data.taxes,
+          min: 0,
+          max: 100,
+          onChange: (value: number) => handleNodeChange("taxes", value),
+          error: form.formState.errors.taxes?.message,
+          description: t.expenses.billable.flow.taxes,
         },
       },
       {
-        id: "work_days",
+        id: "fees",
         type: "input",
-        position: { x: 100, y: 0 },
+        position: { x: 480, y: -15 },
         data: {
-          label: t.expenses.billable.form["work-days"],
-          suffix: t.expenses.billable.form["work-days-period"],
-          value: data.work_days,
-          onChange: (value: number) => handleNodeChange("work_days", value),
-          max: 7,
-          min: 1,
-          error: form.formState.errors.work_days?.message,
-          icon: "calendar",
-          description: "Estime quantos dias por semana você trabalha.",
-        },
-      },
-      {
-        id: "hours_per_day",
-        type: "input",
-        position: { x: 100, y: 165 },
-        data: {
-          label: t.expenses.billable.form["billable-hours"],
-          suffix: t.expenses.billable.form["billable-hours-period"],
-          value: data.hours_per_day,
-          onChange: (value: number) => handleNodeChange("hours_per_day", value),
-          max: 24,
-          min: 1,
-          icon: "time",
-          error: form.formState.errors.hours_per_day?.message,
-          description:
-            "Considere que cerca de apenas 75% dos seus dias trabalhados sejam faturáveis.",
+          label: t.expenses.billable.form.fees,
+          suffix: "%",
+          value: data.fees,
+          min: 0,
+          max: 100,
+          onChange: (value: number) => handleNodeChange("fees", value),
+          error: form.formState.errors.fees?.message,
+          description: t.expenses.billable.flow.fees,
         },
       },
       {
         id: "monthly_salary",
         type: "input",
-        position: { x: 100, y: 350 },
+        position: { x: 75, y: 30 },
         data: {
           label: t.expenses.billable.form["monthly-salary"],
           suffix: t.expenses.billable.form["monthly-salary-period"],
@@ -182,13 +154,47 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
           max: 1000000,
           icon: "wallet",
           error: form.formState.errors.monthly_salary?.message,
-          description: "Quanto você quer receber por mês?",
+          description: t.expenses.billable.flow["monthly-salary"],
+        },
+      },
+      {
+        id: "hours_per_day",
+        type: "input",
+        position: { x: 75, y: 210 },
+        data: {
+          label: t.expenses.billable.form["billable-hours"],
+          suffix: t.expenses.billable.form["billable-hours-period"],
+          value: data.hours_per_day,
+          onChange: (value: number) => handleNodeChange("hours_per_day", value),
+          max: 24,
+          min: 1,
+          icon: "time",
+          error: form.formState.errors.hours_per_day?.message,
+          description: t.expenses.billable.flow["billable-hours"],
+        },
+      },
+      {
+        id: "work_days",
+        type: "input",
+        position: { x: 75, y: 390 },
+        data: {
+          label: t.expenses.billable.form["work-days"],
+          suffix: t.expenses.billable.form["work-days-period"],
+          value: data.work_days,
+          onChange: (value: number) => handleNodeChange("work_days", value),
+          max: 7,
+          min: 1,
+          error: form.formState.errors.work_days?.message,
+          icon: "calendar",
+          sourcePosition: Position.Right,
+          targetPosition: Position.Bottom,
+          description: t.expenses.billable.flow["work-days"],
         },
       },
       {
         id: "holiday_days",
         type: "input",
-        position: { x: 100, y: 500 },
+        position: { x: 75, y: 570 },
         data: {
           label: t.expenses.billable.form.holidays,
           suffix: t.expenses.billable.form["holidays-period"],
@@ -198,13 +204,15 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
           icon: "flag",
           onChange: (value: number) => handleNodeChange("holiday_days", value),
           error: form.formState.errors.holiday_days?.message,
-          description: "Calcule aproximadamente os dias de feriados por ano.",
+          sourcePosition: Position.Right,
+          targetPosition: Position.Left,
+          description: t.expenses.billable.flow.holidays,
         },
       },
       {
         id: "vacation_days",
         type: "input",
-        position: { x: 100, y: 670 },
+        position: { x: 75, y: 750 },
         data: {
           label: t.expenses.billable.form.vacations,
           suffix: t.expenses.billable.form["vacations-period"],
@@ -214,14 +222,15 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
           icon: "holiday",
           onChange: (value: number) => handleNodeChange("vacation_days", value),
           error: form.formState.errors.vacation_days?.message,
-          description:
-            "Calcule aproximadamente quantos dias de férias vocês tem ao ano.",
+          sourcePosition: Position.Right,
+          targetPosition: Position.Left,
+          description: t.expenses.billable.flow.vacations,
         },
       },
       {
         id: "sick_leave",
         type: "input",
-        position: { x: 100, y: 830 },
+        position: { x: 75, y: 915 },
         data: {
           label: t.expenses.billable.form["sick-leave"],
           suffix: t.expenses.billable.form["sick-leave-period"],
@@ -231,127 +240,111 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
           min: 0,
           max: 365,
           error: form.formState.errors.sick_leave?.message,
-          description: "escrever",
+          description: t.expenses.billable.flow["sick-leave"],
+          sourcePosition: Position.Right,
+          targetPosition: Position.Left,
         },
       },
-
-      // Calculation nodes group
       {
-        id: "time_off",
+        id: "total_monthly_expenses",
         type: "calculation",
-        position: { x: 500, y: 450 },
+        position: { x: 1170, y: -210 },
         data: {
-          label: t.expenses.billable.form["time-off"],
-          formula:
-            t.expenses.billable.form.holidays +
-            " + " +
-            t.expenses.billable.form.vacations +
-            " + " +
-            t.expenses.billable.form["sick-leave"],
-          result: metrics.timeOff,
-          description: "Resultado de dias ao ano que você não trabalha.",
-          sourcePosition: Position.Top,
-          targetPosition: Position.Bottom,
+          label: t.expenses.billable.flow["total-monthly-cost"].title,
+          formula: t.expenses.billable.flow["total-monthly-cost"].formula,
+          result: formatCurrency(totalMonthlyExpenses, {
+            currency: selectedCurrency.code,
+          }),
+          description:
+            t.expenses.billable.flow["total-monthly-cost"].description,
+          sourcePosition: Position.Bottom,
+          targetPosition: Position.Top,
+        },
+      },
+      {
+        id: "total_yearly_cost",
+        type: "calculation",
+        position: { x: 1005, y: 135 },
+        data: {
+          label: t.expenses.billable.flow["total-yearly-cost"].title,
+          formula: t.expenses.billable.flow["total-yearly-cost"].formula,
+          result: metrics.billableHours,
+          description:
+            t.expenses.billable.flow["total-yearly-cost"].description,
+          sourcePosition: Position.Right,
+          targetPosition: Position.Top,
         },
       },
       {
         id: "actual_work_days",
         type: "calculation",
-        position: { x: 650, y: 180 },
+        position: { x: 480, y: 780 },
         data: {
-          label: t.expenses.billable.form["actual-work-days"],
-          formula:
-            t.expenses.billable.form["work-days"] +
-            " * " +
-            "52" +
-            " - " +
-            t.expenses.billable.form["time-off"],
-          result: metrics.actualWorkDays,
-          description: "Resultado de dias ao ano que você trabalha.",
+          label: t.expenses.billable.flow["actual-work-days"].title,
+          formula: t.expenses.billable.flow["actual-work-days"].formula,
+          result:
+            metrics.actualWorkDays +
+            " " +
+            t.expenses.billable.form["actual-work-days-period"],
+          description: t.expenses.billable.flow["actual-work-days"].description,
+          sourcePosition: Position.Right,
+          targetPosition: Position.Top,
+        },
+      },
+      {
+        id: "time_off",
+        type: "calculation",
+        position: { x: 480, y: 570 },
+        data: {
+          label: t.expenses.billable.flow["time-off"].title,
+          formula: t.expenses.billable.flow["time-off"].formula,
+          result:
+            metrics.timeOff + " " + t.expenses.billable.form["time-off-period"],
+          description: t.expenses.billable.flow["time-off"].description,
+          sourcePosition: Position.Bottom,
+          targetPosition: Position.Left,
         },
       },
       {
         id: "billable_hours",
         type: "calculation",
-        position: { x: 1200, y: 100 },
-
+        position: { x: 1215, y: 390 },
         data: {
-          label: t.expenses.billable.form["billable-hours"],
-          formula:
-            t.expenses.billable.form["actual-work-days"] +
-            " * " +
-            t.expenses.billable.form["billable-hours"],
+          label: t.expenses.billable.flow["total-billable-hours"].title,
+          formula: t.expenses.billable.flow["total-billable-hours"].formula,
           result: metrics.billableHours,
-          description: "Quantidade de horas trabalhadas ao ano.",
-          sourcePosition: Position.Bottom,
+          description:
+            t.expenses.billable.flow["total-billable-hours"].description,
+          sourcePosition: Position.Right,
           targetPosition: Position.Left,
-        },
-      },
-
-      // Right column - Financial inputs
-      {
-        id: "taxes",
-        type: "input",
-        position: { x: 1200, y: 350 },
-        data: {
-          label: t.expenses.billable.form.taxes,
-          suffix: "%",
-          value: data.taxes,
-          onChange: (value: number) =>
-            form.setValue("taxes", value, {
-              shouldValidate: true,
-              shouldDirty: true,
-            }),
-          error: form.formState.errors.taxes?.message,
-          description: "Calcule aproximadamente o percentual de impostos.",
-        },
-      },
-      {
-        id: "fees",
-        type: "input",
-        position: { x: 1200, y: 530 },
-        data: {
-          label: t.expenses.billable.form.fees,
-          suffix: "%",
-          value: data.fees,
-          onChange: (value: number) =>
-            form.setValue("fees", value, {
-              shouldValidate: true,
-              shouldDirty: true,
-            }),
-          error: form.formState.errors.fees?.message,
-          description: "Calcule caso haja taxas extras.",
         },
       },
       {
         id: "margin",
         type: "input",
-        position: { x: 1200, y: 680 },
+        position: { x: 1395, y: 630 },
         data: {
           label: t.expenses.billable.form.margin,
           suffix: "%",
           value: data.margin,
-          onChange: (value: number) =>
-            form.setValue("margin", value, {
-              shouldValidate: true,
-              shouldDirty: true,
-            }),
+          min: 0,
+          max: 100,
+          onChange: (value: number) => handleNodeChange("margin", value),
           error: form.formState.errors.margin?.message,
-          description:
-            "Ao calcular sua tarifa ideal, é interessante adicionar um pouco mais além do seu ponto de equilíbrio.",
+          description: t.expenses.billable.flow.margin,
         },
       },
-
-      // Output node
       {
         id: "hourly_rate",
         type: "output",
-        position: { x: 1600, y: 250 },
+        position: { x: 1920, y: 390 },
         data: {
-          label: t.expenses.billable.breakeven["hourly-rate"],
-          currency: selectedCurrency.symbol,
-          value: metrics.hourlyRate,
-          description: "Valor ideal para sua hora.",
+          label: t.expenses.billable.flow["hourly-rate"].title,
+          value: formatCurrency(metrics.hourlyRate, {
+            currency: selectedCurrency.code,
+          }),
+          formula: t.expenses.billable.flow["hourly-rate"].formula,
+          description: t.expenses.billable.flow["hourly-rate"].description,
         },
       },
     ];
@@ -375,16 +368,16 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
   });
 
   const initialEdges: Edge[] = [
-    ...expenses.map((expense) => ({
-      id: `expense_edge_${expense.id}`,
-      source: `expense_${expense.id}`,
-      target: "total_monthly_expenses",
-    })),
+    // ...expenses.map((expense) => ({
+    //   id: `expense_edge_${expense.id}`,
+    //   source: `expense_${expense.id}`,
+    //   target: "total_monthly_expenses",
+    // })),
 
     {
       id: "monthly_expenses_to_hourly",
       source: "total_monthly_expenses",
-      target: "hourly_rate",
+      target: "total_yearly_cost",
     },
 
     // Time off calculation group
@@ -405,10 +398,11 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
     { id: "e7", source: "hours_per_day", target: "billable_hours" },
 
     // Break-even calculation flow
-    { id: "e8", source: "monthly_salary", target: "hourly_rate" },
-    { id: "e9", source: "taxes", target: "hourly_rate" },
-    { id: "e10", source: "fees", target: "hourly_rate" },
+    { id: "e8", source: "monthly_salary", target: "total_yearly_cost" },
+    { id: "e9", source: "taxes", target: "total_yearly_cost" },
+    { id: "e10", source: "fees", target: "total_yearly_cost" },
     { id: "e11", source: "margin", target: "hourly_rate" },
+    { id: "e13", source: "total_yearly_cost", target: "hourly_rate" },
     {
       id: "e12",
       source: "billable_hours",
@@ -507,7 +501,7 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         margin: initialExpenses.margin,
       };
 
-      shouldUpdate.current = false; // Prevent initial update
+      shouldUpdate.current = false;
       form.reset(formattedData);
       const { metrics, nodes } = calculateNodesAndMetrics(formattedData);
       setNodes(nodes);
@@ -538,7 +532,7 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
   );
 
   if (isLoadingExpenses) {
-    return <div>Loading...</div>;
+    return <div><LoadingNodeView /></div>;
   }
 
   return (
@@ -553,9 +547,9 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         fitView
         selectNodesOnDrag={false}
         multiSelectionKeyCode={null}
-        // defaultEdgeOptions={{ type: "smoothstep" }}
-        // snapToGrid={true}
-        // snapGrid={[15, 15]}
+        defaultEdgeOptions={{ type: "default" }}
+        snapToGrid={true}
+        snapGrid={[15, 15]}
         // nodesDraggable={false}
         nodesConnectable={false}
       >

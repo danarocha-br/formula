@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
+import { parseCookies } from "nookies";
 
 type Currency = {
   code: string;
@@ -20,7 +21,6 @@ const defaultCurrencies: Currency[] = [
   { code: "EUR", symbol: "€", label: "Euro", locale: "de-DE" },
   { code: "JPY", symbol: "¥", label: "Japanese Yen", locale: "ja-JP" },
   { code: "GBP", symbol: "£", label: "British Pound", locale: "en-GB" },
-
 
   // Other Major Currencies
   { code: "CHF", symbol: "CHF", label: "Swiss Franc", locale: "de-CH" },
@@ -47,12 +47,25 @@ const defaultCurrencies: Currency[] = [
   { code: "AED", symbol: "د.إ", label: "UAE Dirham", locale: "ar-AE" },
 ];
 
+const getInitialCurrency = (): Currency => {
+  const cookies = parseCookies();
+  const userLocale = cookies.NEXT_LOCALE || navigator.language || "en";
+
+  const matchedCurrency =
+    userLocale === "pt-BR"
+      ? { code: "BRL", symbol: "R$", label: "Brazilian Real", locale: "pt-BR" }
+      : defaultCurrencies[0];
+
+  // Fallback to USD if no match found
+  return matchedCurrency || defaultCurrencies[0];
+};
+
 export const useCurrencyStore = create<CurrencyState>()(
   devtools(
     persist(
       (set) => ({
         currencies: defaultCurrencies,
-        selectedCurrency: defaultCurrencies[0],
+        selectedCurrency: getInitialCurrency(),
         setSelectedCurrency: (currency: Currency) =>
           set(() => ({ selectedCurrency: currency })),
       }),

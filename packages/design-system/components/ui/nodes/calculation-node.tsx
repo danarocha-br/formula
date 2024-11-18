@@ -1,10 +1,10 @@
 import { Handle, Position } from "reactflow";
-import { Icon } from '../icon';
+import { Icon } from "../icon";
 interface CalculationNodeProps {
   data: {
     label: string;
     formula: string;
-    result: number;
+    result: number | string;
     description?: string;
     sourcePosition?: Position;
     targetPosition?: Position;
@@ -25,15 +25,18 @@ export const CalculationNode = ({ data }: CalculationNodeProps) => {
         </div>
 
         {data.description && (
-          <div className="node-description flex gap-2">
-            <i>
+          <div className="node-description flex">
+            <i className='mr-2'>
               <Icon name="alert" label="note" size="sm" />
             </i>
             {data.description}
           </div>
         )}
       </div>
-      <Handle type="target" position={data.targetPosition ?? Position.Left} />
+      <Handle
+        type="target"
+        position={data.targetPosition ? data.targetPosition : Position.Left}
+      />
       <Handle
         type="source"
         position={data.sourcePosition ? data.sourcePosition : Position.Right}

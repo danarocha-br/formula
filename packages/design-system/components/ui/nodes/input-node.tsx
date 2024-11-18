@@ -19,6 +19,8 @@ interface InputNodeProps extends React.HTMLAttributes<HTMLInputElement> {
     loading?: boolean;
     suffix?: string;
     icon?: keyof typeof iconPath;
+    sourcePosition?: Position;
+    targetPosition?: Position;
   };
 }
 export const InputNode = forwardRef<HTMLInputElement, InputNodeProps>(
@@ -90,7 +92,10 @@ export const InputNode = forwardRef<HTMLInputElement, InputNodeProps>(
             {data.description}
           </div>
         )}
-        <Handle type="source" position={Position.Right} />
+        <Handle
+          type="source"
+          position={data.sourcePosition ? data.sourcePosition : Position.Right}
+        />
       </div>
     );
   }

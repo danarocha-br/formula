@@ -32,8 +32,8 @@ export const ptBR: Messages = {
     period: {
       "per-month": "mês",
       "per-year": "ano",
-      "monthly": "Por mês",
-      "yearly": "Por ano",
+      monthly: "Por mês",
+      yearly: "Por ano",
     },
   },
   navigation: {
@@ -109,6 +109,55 @@ export const ptBR: Messages = {
         "per-day": "por dia",
         "week-rate": "Valor da semana",
         "per-week": "por semana",
+      },
+      flow: {
+        "monthly-salary": "Considere o quanto você quer ganhar por mês.",
+        "billable-hours":
+          "Considere que apenas 75% das suas horas trabalhadas no dia sejam faturáveis,",
+        "work-days": "Quantos dias por semana você trabalhará?",
+        holidays:
+          "Considere quantos feriados nacionais terá por ano?",
+        vacations: "Quantos dias de férias terá por ano?",
+        "sick-leave":
+          "Quantos dias de licença médica poderá ter por ano?",
+        taxes: "Consider quais impostos serão incididos no seu trabalho.",
+        fees: "Consider quais outras taxas poderão ser cobradas.",
+        margin:
+          "Considere quantos porcento de margem de lucro terá.",
+        "time-off": {
+          title: "Dias que não trabalhará ao ano",
+          description:
+            "Este é o total de dias que vocé não trabalhará por ano.",
+          formula: "Feriados + Férias + Licença médica",
+        },
+        "actual-work-days": {
+          title: "Dias trabalhados ao ano",
+          description:
+            "Este é o total de dias que vocé trabalhará ao ano.",
+          formula: "(Dias trabalhados * 52 semanas) - Dias não trabalhados ao ano",
+        },
+        "total-yearly-cost": {
+          title: "Seu custo anual é:",
+          description: "Este é o seu custo total anual.",
+          formula:
+            "(Custo fixo mensal * 12) + (Salário mensal * 12) + Impostos e/ou taxas anuais",
+        },
+        "total-monthly-cost": {
+          title: "Seu custo fixo mensal total é:",
+          description: "Este é o seu custo fixo mensal.",
+          formula: "Soma de todos os seus custos fixos  =",
+        },
+        "total-billable-hours": {
+          title: "Seu total de horas faturáveis é:",
+          description:
+            "Este é o total de horas faturáveis ao ano.",
+          formula: "Dias trabalhados ano ano * Horas trabalhadas por dia",
+        },
+        "hourly-rate": {
+          title: "Seu valor da hora é:",
+          description: "Baseado no seu ponto de equilíbrio e a margem de lucro.",
+          formula: "(Custo total anual / Horas faturáveis) * margem de lucro %",
+        },
       },
       total: {
         title: "O valor da sua hora é:",
