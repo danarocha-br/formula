@@ -1,13 +1,19 @@
 import React from "react";
 
-export const MasonryGrid: React.FC<{ children: React.ReactNode }> = ({
+interface MasonryGridProps {
+  children: React.ReactNode;
+  maxColumns?: number;
+}
+
+export const MasonryGrid: React.FC<MasonryGridProps> = ({
   children,
+  maxColumns = 4,
 }) => {
   const childrenArray = React.Children.toArray(children);
-  const columns: React.ReactNode[][] = [[], [], []];
+  const columns: React.ReactNode[][] = Array.from({ length: maxColumns }, () => []);
 
   childrenArray.forEach((child, index) => {
-    const columnIndex = index % 3;
+    const columnIndex = index % maxColumns;
     columns[columnIndex]?.push(child);
   });
 
