@@ -214,7 +214,7 @@ export const GridView = ({
   }, []);
 
   return (
-    <ScrollArea.Root className="rounded-b-lg h-[calc(100vh-7.7rem)]">
+    <ScrollArea.Root className="h-[calc(100vh-7.7rem)]">
       <div className="w-full text-card-foreground @container">
         {loading ? (
           <LoadingView />

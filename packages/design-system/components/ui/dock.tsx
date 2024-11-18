@@ -18,7 +18,6 @@ const DEFAULT_MAGNIFICATION = 36;
 const DEFAULT_DISTANCE = 120;
 
 const dockVariants = cva([
-  "bg-background",
   "supports-backdrop-blur:bg-white/10",
   "flex",
   "w-max",
@@ -86,6 +85,7 @@ export interface DockIconProps extends HTMLMotionProps<"button"> {
   mouseX?: any;
   className?: string;
   children?: React.ReactNode;
+  isActive?: boolean;
   props?: PropsWithChildren;
 }
 
@@ -96,6 +96,7 @@ const DockIcon = ({
   mouseX,
   className,
   children,
+  isActive,
   ...props
 }: DockIconProps) => {
   const ref = useRef<HTMLButtonElement>(null);
@@ -124,6 +125,7 @@ const DockIcon = ({
       style={{ width }}
       className={cn(
         "hover:bg-foreground/15 flex aspect-square cursor-pointer items-center justify-center rounded-full",
+        isActive && "bg-foreground/5",
         className
       )}
       {...props}

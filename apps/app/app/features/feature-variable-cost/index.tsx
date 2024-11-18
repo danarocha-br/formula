@@ -7,7 +7,7 @@ type VariableCostViewProps = {
 
 export const VariableCostView = ({ userId }: VariableCostViewProps) => {
   return (
-    <ScrollArea.Root className="rounded-b-lg h-[calc(100vh-7.7rem)]">
+    <ScrollArea.Root className="h-[calc(100vh-7.7rem)]">
       <div className="w-full text-card-foreground @container">test</div>
     </ScrollArea.Root>
   );

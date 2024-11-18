@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 
-export type ViewPreference = "grid" | "table" | "node";
+export type ViewPreference = "grid" | "table" | "node" | "chart";
 
 interface ViewPreferenceState {
   viewPreference: ViewPreference;
