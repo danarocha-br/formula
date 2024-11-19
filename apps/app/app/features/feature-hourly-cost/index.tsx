@@ -16,7 +16,8 @@ import { GridView } from "./grid-view";
 import { cn } from "@repo/design-system/lib/utils";
 import { TabButton } from "@repo/design-system/components/ui/tab-button";
 import { Icon } from "@repo/design-system/components/ui/icon";
-import { VariableCostView } from '../feature-variable-cost';
+import { VariableCostView } from "../feature-variable-cost";
+import { AnalyticsView } from './analytics-view';
 
 type Props = {
   userId: string;
@@ -73,6 +74,8 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
 
   return viewPreference === "node" ? (
     <NodeView expenses={expenses} userId={userId} />
+  ) : viewPreference === "chart" ? (
+    <AnalyticsView userId={userId} />
   ) : (
     <Resizable.Group direction="horizontal">
       <Resizable.Panel
@@ -88,16 +91,17 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
             expenses={expenses}
             setExpenses={setExpenses}
           />
-          )}
+        )}
 
-          {expenseTypeView === "variable" && (
-            <VariableCostView userId={userId} />
-          )}
+        {expenseTypeView === "variable" && <VariableCostView userId={userId} />}
 
         <div className="mt-auto sticky bottom-0 flex items-center justify-between w-full rounded-br-md rounded-tl-md col-span-full bg-purple-200 h-14">
           <div className="h-full w-full flex justify-between items-center pr-2">
             <div className="flex items-center h-full">
-              <TabButton isActive={expenseTypeView === "fixed"} onClick={() => setExpenseTypeView("fixed")}>
+              <TabButton
+                isActive={expenseTypeView === "fixed"}
+                onClick={() => setExpenseTypeView("fixed")}
+              >
                 <Icon
                   name="work"
                   size="sm"
@@ -106,7 +110,10 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
                 />
                 {t.navigation["bottom-level"]["fixed-cost"]}
               </TabButton>
-              <TabButton isActive={expenseTypeView === "variable"} onClick={() => setExpenseTypeView("variable")}>
+              <TabButton
+                isActive={expenseTypeView === "variable"}
+                onClick={() => setExpenseTypeView("variable")}
+              >
                 <Icon
                   name="work"
                   size="sm"

@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 
 import { ExpenseItem } from "@/app/types";
 import { getTranslations } from "@/utils/translations";
-import { useCurrencyStore } from "@/app/store/currency-store";
 import {
   DndContext,
   DragEndEvent,
@@ -73,12 +72,10 @@ export const GridView = ({
   loading = false,
 }: GridViewProps) => {
   const t = getTranslations();
-  const { selectedCurrency } = useCurrencyStore();
   const [activeCard, setActiveCard] = useState<ExpenseItem | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const { toast } = useToast();
   const { viewPreference } = useViewPreferenceStore();
-  const { setTotalMonthlyExpenses } = useHourlyCostStore();
 
   const { mutate: deleteExpense, isPending: isDeleting } =
     useDeleteFixedExpenses();
