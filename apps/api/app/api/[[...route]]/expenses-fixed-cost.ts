@@ -1,7 +1,9 @@
 import { zValidator } from "@hono/zod-validator";
-import { FixedCostExpensesRepository } from "@repo/database";
 import { Hono } from "hono";
 import { z } from "zod";
+import { FixedCostExpensesRepository } from "@repo/database";
+import { RedisCacheRepository } from "@repo/database/repositories/redis-cache-repository";
+import { FixedCostCacheKeys } from "@repo/database/cache-keys/fixed-cost-cache-keys";
 
 const createExpenseSchema = z.object({
   category: z.string(),
@@ -47,8 +49,26 @@ export const expensesFixedCosts = new Hono()
         throw new Error("Unauthorized");
       }
       const fixedCostExpensesRepository = new FixedCostExpensesRepository();
+      const cacheRepository = new RedisCacheRepository();
+
+      const cache = await cacheRepository.get(
+        FixedCostCacheKeys.fixedCostsList(userId)
+      );
+
+      if (cache && cache?.length > 0) {
+        const cacheData = JSON.parse(cache);
+        return c.json({ status: 200, success: true, data: cacheData });
+      }
+
       const fixedCostExpenses =
         await fixedCostExpensesRepository.findByUserId(userId);
+
+      if (fixedCostExpenses && fixedCostExpenses?.length > 0) {
+        await cacheRepository.set(
+          FixedCostCacheKeys.fixedCostsList(userId),
+          JSON.stringify(fixedCostExpenses)
+        );
+      }
       return c.json({ status: 200, success: true, data: fixedCostExpenses });
     }
   )
@@ -65,6 +85,7 @@ export const expensesFixedCosts = new Hono()
         }
 
         const repository = new FixedCostExpensesRepository();
+        const cacheRepository = new RedisCacheRepository();
 
         await repository.update(userId, id, {
           name,
@@ -73,6 +94,8 @@ export const expensesFixedCosts = new Hono()
           rank,
           period,
         });
+
+        await cacheRepository.delete(FixedCostCacheKeys.fixedCostsList(userId));
 
         return c.json({
           status: 200,
@@ -98,8 +121,11 @@ export const expensesFixedCosts = new Hono()
       }
 
       const repository = new FixedCostExpensesRepository();
+      const cacheRepository = new RedisCacheRepository();
 
       const updatedExpenses = await repository.updateBatch(userId, updates);
+
+      await cacheRepository.delete(FixedCostCacheKeys.fixedCostsList(userId));
 
       return c.json({
         status: 200,
@@ -125,6 +151,7 @@ export const expensesFixedCosts = new Hono()
       }
 
       const repository = new FixedCostExpensesRepository();
+      const cacheRepository = new RedisCacheRepository();
 
       const expense = await repository.create({
         name,
@@ -134,6 +161,8 @@ export const expensesFixedCosts = new Hono()
         period,
         rank,
       });
+
+      await cacheRepository.delete(FixedCostCacheKeys.fixedCostsList(userId));
 
       return c.json({
         status: 201,
@@ -165,8 +194,11 @@ export const expensesFixedCosts = new Hono()
       }
 
       const repository = new FixedCostExpensesRepository();
+      const cacheRepository = new RedisCacheRepository();
 
       await repository.delete(userId, id);
+
+      await cacheRepository.delete(FixedCostCacheKeys.fixedCostsList(userId));
 
       return c.json({ status: 204, success: true });
     } catch (error) {

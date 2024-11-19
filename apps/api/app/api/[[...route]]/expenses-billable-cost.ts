@@ -1,7 +1,9 @@
 import { zValidator } from "@hono/zod-validator";
-import { BillableCostExpensesRepository } from "@repo/database";
 import { Hono } from "hono";
 import { z } from "zod";
+import { BillableCostExpensesRepository } from "@repo/database";
+import { RedisCacheRepository } from "@repo/database/repositories/redis-cache-repository";
+import { BillableCostCacheKeys } from "@repo/database/cache-keys/billable-cost-cache-keys";
 
 const updateBillableSchema = z.object({
   userId: z.string(),
@@ -31,7 +33,26 @@ export const expensesBillableCosts = new Hono()
         throw new Error("Unauthorized");
       }
       const repository = new BillableCostExpensesRepository();
+      const cacheRepository = new RedisCacheRepository();
+
+      const cache = await cacheRepository.get(
+        BillableCostCacheKeys.billableCost(userId)
+      );
+
+      if (cache && cache?.length > 0) {
+        const cacheData = JSON.parse(cache);
+        return c.json({ status: 200, success: true, data: cacheData });
+      }
+
       const billableCostExpenses = await repository.findByUserId(userId);
+
+      if (billableCostExpenses) {
+        await cacheRepository.set(
+          BillableCostCacheKeys.billableCost(userId),
+          JSON.stringify(billableCostExpenses)
+        );
+      }
+
       return c.json({ status: 200, success: true, data: billableCostExpenses });
     }
   )
@@ -45,6 +66,8 @@ export const expensesBillableCosts = new Hono()
         throw new Error("Unauthorized");
       }
       const repository = new BillableCostExpensesRepository();
+      const cacheRepository = new RedisCacheRepository();
+
       try {
         const billableCostExpenses = await repository.create({
           userId,
@@ -59,13 +82,26 @@ export const expensesBillableCosts = new Hono()
           fees: 0,
           margin: 0,
         });
-        return c.json({ status: 201, success: true, data: billableCostExpenses });
+
+        await cacheRepository.set(
+          BillableCostCacheKeys.billableCost(userId),
+          JSON.stringify(billableCostExpenses)
+        );
+
+        return c.json({
+          status: 201,
+          success: true,
+          data: billableCostExpenses,
+        });
       } catch (error) {
         console.error("Failed to create billable expense:", error);
         return c.json({
           status: 400,
           success: false,
-          error: error instanceof Error ? error.message : "Failed to create billable expense",
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to create billable expense",
         });
       }
     }
@@ -93,6 +129,7 @@ export const expensesBillableCosts = new Hono()
         }
 
         const repository = new BillableCostExpensesRepository();
+        const cacheRepository = new RedisCacheRepository();
 
         const data = await repository.update(userId, {
           workDays,
@@ -106,6 +143,10 @@ export const expensesBillableCosts = new Hono()
           fees,
           margin,
         });
+
+        await cacheRepository.delete(
+          BillableCostCacheKeys.billableCost(userId)
+        );
 
         return c.json({
           status: 200,

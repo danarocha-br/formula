@@ -6,6 +6,9 @@ import type {
   WebhookEvent,
 } from "@clerk/nextjs/server";
 import { log } from "@logtail/next";
+import { RedisCacheRepository } from "@repo/database/repositories/redis-cache-repository";
+import { UserCacheKeys } from "@repo/database/cache-keys/user-cache-keys";
+import { BillableCostCacheKeys } from "@repo/database/cache-keys/billable-cost-cache-keys";
 import { PrismaBillableCostExpensesRepository } from "@repo/database/repositories/prisma-billable-cost-expenses";
 import { PrismaUserRepository } from "@repo/database/repositories/prisma-user";
 import { analytics } from "@repo/design-system/lib/analytics/server";
@@ -15,6 +18,7 @@ import { Webhook } from "svix";
 const handleUserCreated = async (data: UserJSON) => {
   const billableExpensesRepository = new PrismaBillableCostExpensesRepository();
   const usersRepository = new PrismaUserRepository();
+  const cacheRepository = new RedisCacheRepository();
 
   await usersRepository.create({
     id: data.id,
@@ -23,6 +27,17 @@ const handleUserCreated = async (data: UserJSON) => {
     avatar: data.image_url,
     plan: "free",
   });
+
+  await cacheRepository.set(
+    UserCacheKeys.user(data.id),
+    JSON.stringify({
+      id: data.id,
+      email: data.email_addresses.at(0)?.email_address,
+      name: data.first_name + " " + data.last_name,
+      avatar: data.image_url,
+      plan: "free",
+    })
+  );
 
   await billableExpensesRepository.create({
     userId: data.id,
@@ -37,6 +52,23 @@ const handleUserCreated = async (data: UserJSON) => {
     fees: 0,
     margin: 0,
   });
+
+  await cacheRepository.set(
+    BillableCostCacheKeys.billableCost(data.id),
+    JSON.stringify({
+      userId: data.id,
+      workDays: 5,
+      holidaysDays: 12,
+      vacationsDays: 30,
+      sickLeaveDays: 3,
+      billableHours: 0,
+      hoursPerDay: 6,
+      monthlySalary: 0,
+      taxes: 0,
+      fees: 0,
+      margin: 0,
+    })
+  );
 
   analytics.identify({
     distinctId: data.id,
@@ -58,7 +90,7 @@ const handleUserCreated = async (data: UserJSON) => {
   return new Response("User created", { status: 201 });
 };
 
-const handleUserUpdated = (data: UserJSON) => {
+const handleUserUpdated = async (data: UserJSON) => {
   const usersRepository = new PrismaUserRepository();
 
   usersRepository.update(data.id, {
@@ -66,6 +98,21 @@ const handleUserUpdated = (data: UserJSON) => {
     name: data.first_name + " " + data.last_name,
     avatar: data.image_url,
   });
+
+  const cacheRepository = new RedisCacheRepository();
+
+  await cacheRepository.delete(UserCacheKeys.user(data.id));
+
+  await cacheRepository.set(
+    UserCacheKeys.user(data.id),
+    JSON.stringify({
+      id: data.id,
+      email: data.email_addresses.at(0)?.email_address,
+      name: data.first_name + " " + data.last_name,
+      avatar: data.image_url,
+      plan: "free",
+    })
+  );
 
   analytics.identify({
     distinctId: data.id,
@@ -87,11 +134,15 @@ const handleUserUpdated = (data: UserJSON) => {
   return new Response("User updated", { status: 201 });
 };
 
-const handleUserDeleted = (data: DeletedObjectJSON) => {
+const handleUserDeleted = async (data: DeletedObjectJSON) => {
   const usersRepository = new PrismaUserRepository();
+  const cacheRepository = new RedisCacheRepository();
 
   if (data.id) {
     usersRepository.delete(data.id);
+
+    await cacheRepository.delete(UserCacheKeys.user(data.id));
+
     analytics.identify({
       distinctId: data.id,
       properties: {
