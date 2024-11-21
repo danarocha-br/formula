@@ -17,7 +17,7 @@ import { cn } from "@repo/design-system/lib/utils";
 import { TabButton } from "@repo/design-system/components/ui/tab-button";
 import { Icon } from "@repo/design-system/components/ui/icon";
 import { VariableCostView } from "../feature-variable-cost";
-import { AnalyticsView } from './analytics-view';
+import { AnalyticsView } from "./analytics-view";
 
 type Props = {
   userId: string;
@@ -90,6 +90,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
             userId={userId}
             expenses={expenses}
             setExpenses={setExpenses}
+            loading={isLoadingExpenses}
           />
         )}
 

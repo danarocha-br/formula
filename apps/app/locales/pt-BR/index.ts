@@ -43,7 +43,7 @@ export const ptBR: Messages = {
     },
     "bottom-level": {
       "fixed-cost": "Custo fixo",
-      "variable-cost": "Custo variável",
+      "variable-cost": "Custos equipamentos",
       "equipment-cost": "Custo equipamentos",
     },
   },

@@ -41,7 +41,7 @@ export const en = {
     },
     "bottom-level": {
       "fixed-cost": "Fixed cost",
-      "variable-cost": "Variable cost",
+      "variable-cost": "Equipment cost",
       "equipment-cost": "Equipment cost",
     },
   },
