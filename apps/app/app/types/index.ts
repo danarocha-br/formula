@@ -11,6 +11,20 @@ export interface ExpenseItem {
   updatedAt: string;
 }
 
+export interface EquipmentExpenseItem {
+  id: number;
+  name: string;
+  userId: string;
+  rank: number;
+  amount: number;
+  purchaseDate: Date;
+  usage: number;
+  lifeSpan: number;
+  category: EquipmentCategory;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type FixedCostCategory =
   | "rent"
   | "utilities"
@@ -25,6 +39,16 @@ export type FixedCostCategory =
   | "banking fees"
   | "marketing"
   | "courses/training"
+  | "other";
+
+export type EquipmentCategory =
+  | "computer"
+  | "keyboard"
+  | "mouse"
+  | "headphones"
+  | "external driver"
+  | "monitor"
+  | "printer"
   | "other";
 
 export type CostStatus = "ongoing" | "canceled" | "overdue";

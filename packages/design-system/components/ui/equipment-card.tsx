@@ -19,8 +19,6 @@ type EquipmentCardProps = {
     name: string;
     purchaseDate: string;
     lifeSpan: string;
-    category?: string | undefined;
-    categoryLabel?: string;
     categoryIcon?: string;
     color?: string;
     className?: string;
@@ -92,10 +90,8 @@ export const EquipmentCard = ({
   const {
     name,
     purchaseDate,
-    category,
     isEmpty = false,
     color,
-    categoryLabel,
     categoryIcon,
     lifeSpan,
     usage,
@@ -205,9 +201,8 @@ export const EquipmentCard = ({
           )}
 
           {!loading ? (
-            !isEmpty &&
-            !!category && (
-              <div className="flex gap-3 items-center">
+            !isEmpty && (
+              <div className="flex gap-4 items-center">
                 <span
                   className={cn(
                     "text-card-foreground flex items-center justify-center rounded-[12px] h-10 w-10 bg-opacity-50",
@@ -224,22 +219,13 @@ export const EquipmentCard = ({
                   />
                 </span>
 
-                <span className="capitalize text-sm text-muted font-medium">
-                  {categoryLabel}
-                </span>
+                <span className="font-normal text-lg truncate">{name}</span>
               </div>
             )
           ) : (
-            <Skeleton className="h-10 w-10 rounded-[12px]" />
-          )}
-
-          {!isEmpty && (
-            <div className="flex justify-between items-center w-full mt-20 px-1">
-              {!loading ? (
-                <span className="text-muted font-normal text-lg truncate">{name}</span>
-              ) : (
-                <Skeleton className="h-6 w-1/2" />
-              )}
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-10 w-10 rounded-[12px]" />
+              <Skeleton className="h-4 w-2/3 rounded-[12px]" />
             </div>
           )}
 
@@ -268,13 +254,28 @@ export const EquipmentCard = ({
                 </span>
               </div>
               <Progress value={usagePercent} />
-              <span className="flex justify-between w-full">
+              <span className="flex justify-between w-full pt-4">
                 <span className="inline-flex gap-2">
                   <Icon name="calendar" label="date" />
                   {purchaseDate}
                 </span>
                 <span>{lifeSpan}</span>
               </span>
+            </div>
+          )}
+
+          {loading && !isEmpty && (
+            <div className='space-y-4 mb-3'>
+              <div className="flex items-center gap-4">
+                <Skeleton className="h-4 w-full rounded-[12px]" />
+                <Skeleton className="h-4 w-full rounded-[12px]" />
+                <Skeleton className="h-4 w-full rounded-[12px]" />
+              </div>
+              <div className="flex items-center gap-4">
+                <Skeleton className="h-6 w-full rounded-[12px]" />
+                <Skeleton className="h-6 w-full rounded-[12px]" />
+                <Skeleton className="h-6 w-full rounded-[12px]" />
+              </div>
             </div>
           )}
         </>
