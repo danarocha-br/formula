@@ -28,3 +28,5 @@ export { PrismaFixedCostExpensesRepository as FixedCostExpensesRepository } from
 export { type IFixedCostExpensesRepository } from "./repositories/dtos/fixed-cost-expenses-repository";
 export { PrismaBillableCostExpensesRepository as BillableCostExpensesRepository } from "./repositories/prisma-billable-cost-expenses";
 export { type IBillableCostExpensesRepository } from "./repositories/dtos/billable-cost-expenses-repository";
+export { PrismaEquipmentCostRepository as EquipmentCostRepository } from "./repositories/prisma-equipment-cost";
+export { type IEquipmentCostRepository } from "./repositories/dtos/equipment-cost-repository";
