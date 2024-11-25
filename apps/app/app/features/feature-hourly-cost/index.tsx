@@ -3,21 +3,21 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
 import { Resizable } from "@repo/design-system/components/ui/resizable-panel";
 import { AnimatedNumber } from "@repo/design-system/components/ui/animated-number";
+import { cn } from "@repo/design-system/lib/utils";
+import { TabButton } from "@repo/design-system/components/ui/tab-button";
+import { Icon } from "@repo/design-system/components/ui/icon";
 
-import { BillableCosts } from "../feature-billable-cost";
-import { ExpenseItem } from "@/app/types";
 import { getTranslations } from "@/utils/translations";
 import { useCurrencyStore } from "@/app/store/currency-store";
 import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
 import { useViewPreferenceStore } from "@/app/store/view-preference-store";
+import { ExpenseItem } from "@/app/types";
+import { BillableCosts } from "../feature-billable-cost";
+import { VariableCostView } from "../feature-variable-cost";
+import { AnalyticsView } from "./analytics-view";
 import { NodeView } from "./node-view";
 import { useGetFixedExpenses } from "./server/get-fixed-expenses";
 import { GridView } from "./grid-view";
-import { cn } from "@repo/design-system/lib/utils";
-import { TabButton } from "@repo/design-system/components/ui/tab-button";
-import { Icon } from "@repo/design-system/components/ui/icon";
-import { VariableCostView } from "../feature-variable-cost";
-import { AnalyticsView } from "./analytics-view";
 
 type Props = {
   userId: string;

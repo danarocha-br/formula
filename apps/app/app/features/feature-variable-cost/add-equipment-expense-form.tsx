@@ -1,29 +1,33 @@
-import React, { useMemo, useState } from "react";
+import React, { useState, useMemo } from "react";
 import { z } from "zod";
 import { cva } from "class-variance-authority";
 
 import { getTranslations } from "@/utils/translations";
-import { CostStatus } from "@/app/types";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreateFixedExpenses } from "./server/create-fixed-expenses";
 import { Combobox } from "@repo/design-system/components/ui/combobox";
-import { ToggleGroup } from "@repo/design-system/components/ui/toggle-group";
 import { Input } from "@repo/design-system/components/ui/input";
 import { SliderCard } from "@repo/design-system/components/ui/slider-card";
 import { Button } from "@repo/design-system/components/ui/button";
 import { useToast } from "@repo/design-system/hooks/use-toast";
 import { Icon, iconPath } from "@repo/design-system/components/ui/icon";
+import { DatePicker } from "@repo/design-system/components/ui/date-picker";
 
-import { FIXED_COST_CATEGORIES } from "@/app/constants";
+import { EQUIPMENT_COST_CATEGORIES } from "@/app/constants";
 import { cn } from "@repo/design-system/lib/utils";
 import { useCurrencyStore } from "@/app/store/currency-store";
+import { useCreateEquipmentExpense } from "./server/create-equipment-expense";
+import { Label } from "@repo/design-system/components/ui/label";
+import { parseCookies } from "nookies";
+import { NumberInput } from "@repo/design-system/components/ui/number-input";
 
 interface NewExpenseForm {
+  name: string | undefined;
   category: ComboboxOption | undefined;
   amount: number;
-  name: string | undefined;
-  status?: CostStatus;
+  purchaseDate: Date;
+  usage: number;
+  lifeSpan: number;
 }
 
 export interface ComboboxOption {
@@ -62,7 +66,7 @@ export const closeButton = cva([
   "focus-visible:ring-offset-2",
 ]);
 
-export const AddExpenseForm = ({
+export const AddEquipmentExpenseForm = ({
   setIsActive,
   userId,
   rankIndex,
@@ -70,14 +74,19 @@ export const AddExpenseForm = ({
     name: "",
     category: undefined,
     amount: 0,
+    purchaseDate: new Date(),
+    usage: 0,
+    lifeSpan: 0,
   },
 }: AddExpenseFormProps) => {
   const t = getTranslations();
   const { toast } = useToast();
+  const cookies = parseCookies();
+  const userLocale = cookies.NEXT_LOCALE || navigator.language || "en";
 
   const categoriesList = useMemo(
     () =>
-      FIXED_COST_CATEGORIES.map((category) => ({
+      EQUIPMENT_COST_CATEGORIES.map((category) => ({
         label: category.label,
         value: category.value,
         slot: (
@@ -94,13 +103,10 @@ export const AddExpenseForm = ({
             />
           </div>
         ),
-      })),
-    [FIXED_COST_CATEGORIES]
+      })).sort((a, b) => a.label.localeCompare(b.label)),
+    [EQUIPMENT_COST_CATEGORIES]
   );
   const { selectedCurrency } = useCurrencyStore();
-  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(
-    "monthly"
-  );
 
   const expenseSchema = z.object({
     category: z.object(
@@ -115,6 +121,12 @@ export const AddExpenseForm = ({
       }
     ),
     amount: z.number({
+      required_error: t.validation.form.required,
+    }),
+    usage: z.number({
+      required_error: t.validation.form.required,
+    }),
+    purchaseDate: z.date({
       required_error: t.validation.form.required,
     }),
     name: z
@@ -137,7 +149,7 @@ export const AddExpenseForm = ({
     mode: "onBlur",
   });
 
-  const { mutate: createFixedExpense } = useCreateFixedExpenses();
+  const { mutate: createFixedExpense } = useCreateEquipmentExpense();
   async function onSubmit(data: NewExpenseForm) {
     if (!data.category || !data.name) return;
     reset(defaultValues);
@@ -151,7 +163,9 @@ export const AddExpenseForm = ({
           amount: data.amount,
           category: data.category.value,
           rank: rankIndex,
-          period: billingPeriod,
+          purchaseDate: new Date(),
+          usage: 20,
+          lifeSpan: 20,
         },
       },
       {
@@ -210,18 +224,21 @@ export const AddExpenseForm = ({
             control={control}
             name="name"
             render={({ field }) => (
-              <Input
-                variant="secondary"
-                placeholder={t.expenses.form.name}
-                className="w-full"
-                id="name"
-                {...field}
-                errors={
-                  errors?.name?.message
-                    ? { message: errors.name.message }
-                    : undefined
-                }
-              />
+              <div className="space-y-2">
+                <Label>Nome do equipamento</Label>
+                <Input
+                  variant="secondary"
+                  placeholder={t.expenses.form.name}
+                  className="w-full"
+                  id="name"
+                  {...field}
+                  errors={
+                    errors?.name?.message
+                      ? { message: errors.name.message }
+                      : undefined
+                  }
+                />
+              </div>
             )}
           />
 
@@ -229,42 +246,69 @@ export const AddExpenseForm = ({
             control={control}
             name="amount"
             render={({ field }) => (
-              <SliderCard
-                suffix={
-                  billingPeriod === "monthly"
-                    ? t.common.period.monthly
-                    : t.common.period.yearly
-                }
-                currency={selectedCurrency.symbol}
-                min={1}
-                max={5000}
-                value={field.value}
-                onChange={field.onChange}
-                removePaddings
-                errors={
-                  errors?.amount?.message
-                    ? { message: errors.amount.message }
-                    : undefined
-                }
-              />
+              <div className="space-y-2">
+                <Label>Custo do equipamento</Label>
+                <SliderCard
+                  currency={selectedCurrency.symbol + " "}
+                  min={1}
+                  max={5000}
+                  value={field.value}
+                  onChange={field.onChange}
+                  removePaddings
+                  errors={
+                    errors?.amount?.message
+                      ? { message: errors.amount.message }
+                      : undefined
+                  }
+                />
+              </div>
             )}
           />
 
-          <ToggleGroup.Root
-            defaultValue="monthly"
-            type="single"
-            onValueChange={(value) =>
-              setBillingPeriod(value as "monthly" | "yearly")
-            }
-            className="w-full"
-          >
-            <ToggleGroup.Item value="monthly" className="w-full">
-              {t.common.period.monthly}
-            </ToggleGroup.Item>
-            <ToggleGroup.Item value="yearly" className="w-full">
-              {t.common.period.yearly}
-            </ToggleGroup.Item>
-          </ToggleGroup.Root>
+          <div className="flex w-full gap-2 justify-between">
+            <Controller
+              control={control}
+              name="purchaseDate"
+              render={({ field }) => (
+                <div className="space-y-2 w-full">
+                  <Label>Data de compra</Label>
+                  <DatePicker
+                    {...field}
+                    format={
+                      userLocale === "pt-BR"
+                        ? [["days", "months", "years"], []]
+                        : [["months", "days", "years"], []]
+                    }
+                    errors={
+                      errors?.purchaseDate?.message
+                        ? { message: errors.purchaseDate.message }
+                        : undefined
+                    }
+                  />
+                </div>
+              )}
+            />
+            <Controller
+              control={control}
+              name="lifeSpan"
+              render={({ field }) => (
+                <div className="space-y-2 w-full h-full">
+                  <Label>Tempo de uso</Label>
+                  <NumberInput
+                    variant="secondary"
+                    className="bg-ring/60 h-full"
+                    suffix={t.common.period.months}
+                    {...field}
+                    errors={
+                      errors?.purchaseDate?.message
+                        ? { message: errors.purchaseDate.message }
+                        : undefined
+                    }
+                  />
+                </div>
+              )}
+            />
+          </div>
 
           <div className="mt-4">
             <Button type="submit" className="whitespace-nowrap">

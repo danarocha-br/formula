@@ -26,12 +26,27 @@ export const en = {
         courses: "Courses/training",
         other: "Other",
       },
+      equipment: {
+        computer: "Computer",
+        phone: "Phone",
+        tablet: "Tablet",
+        monitor: "Monitor",
+        keyboard: "Keyboard",
+        mouse: "Mouse",
+        printer: "Printer",
+        camera: "Camera",
+        headphones: "Headphones",
+        speakers: "Speakers",
+        hd: "External driver",
+        other: "Other",
+      }
     },
     period: {
       "per-month": "mo",
       "per-year": "year",
       monthly: "Monthly",
       yearly: "Yearly",
+      months: "months",
     },
   },
   navigation: {

@@ -28,12 +28,27 @@ export const ptBR: Messages = {
         courses: "Cursos/Treinamentos",
         other: "Outros",
       },
+      equipment: {
+        computer: "Computador",
+        printer: "Impressora",
+        monitor: "Monitor",
+        keyboard: "Teclado",
+        mouse: "Mouse",
+        camera: "Câmera",
+        phone: "Telefone",
+        tablet: "Tablet",
+        speakers: "Caixas de som",
+        headphones: "Fone de ouvido",
+        hd: "HD",
+        other: "Outros",
+      }
     },
     period: {
       "per-month": "mês",
       "per-year": "ano",
       monthly: "Por mês",
       yearly: "Por ano",
+      months: "meses",
     },
   },
   navigation: {

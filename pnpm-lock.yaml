@@ -616,6 +616,9 @@ importers:
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.14)
+      timescape:
+        specifier: ^0.7.0
+        version: 0.7.0(react-dom@18.3.1)(react@18.3.1)
       vaul:
         specifier: ^1.1.1
         version: 1.1.1(@types/react@18.3.12)(react-dom@18.3.1)(react@18.3.1)
@@ -10949,7 +10952,7 @@ packages:
       whatwg-encoding: 3.1.1
       whatwg-mimetype: 4.0.0
       whatwg-url: 14.0.0
-      ws: 8.18.0(bufferutil@4.0.8)
+      ws: 8.18.0
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - bufferutil
@@ -14845,6 +14848,36 @@ packages:
     resolution: {integrity: sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==}
     dev: true
 
+  /timescape@0.7.0(react-dom@18.3.1)(react@18.3.1):
+    resolution: {integrity: sha512-jAJeWSLVSXOy2y+qOt+btrpRxB/Y0srF5URP0IEYGV8Y7SENoVnWvG0D8ZCoveLLnQvdPIwyWT569ApzX9Wynw==}
+    peerDependencies:
+      '@preact/signals': 1.x
+      preact: 10.x
+      react: '>=17'
+      react-dom: '>=17'
+      solid-js: '>=1'
+      svelte: 3.x
+      vue: 3.x
+    peerDependenciesMeta:
+      '@preact/signals':
+        optional: true
+      preact:
+        optional: true
+      react:
+        optional: true
+      react-dom:
+        optional: true
+      solid-js:
+        optional: true
+      svelte:
+        optional: true
+      vue:
+        optional: true
+    dependencies:
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    dev: false
+
   /tiny-inflate@1.0.3:
     resolution: {integrity: sha512-pkY1fj1cKHb2seWDy0B16HeWyczlJA9/WW3u3c4z/NiWDsO3DOU5D7nhTLE9CF0yXv/QZFY7sEJmj24dK+Rrqw==}
     dev: false
@@ -15822,6 +15855,19 @@ packages:
         optional: true
     dev: false
 
+  /ws@8.18.0:
+    resolution: {integrity: sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+    dev: true
+
   /ws@8.18.0(bufferutil@4.0.8):
     resolution: {integrity: sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==}
     engines: {node: '>=10.0.0'}
@@ -15835,6 +15881,7 @@ packages:
         optional: true
     dependencies:
       bufferutil: 4.0.8
+    dev: false
 
   /xml-name-validator@5.0.0:
     resolution: {integrity: sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg==}

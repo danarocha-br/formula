@@ -8,6 +8,7 @@ import { cn } from "../../lib/utils";
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   variant?: "primary" | "secondary";
+  suffix?: string;
   errors?: any;
 }
 
@@ -65,14 +66,14 @@ const input = cva(
 );
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, variant = "primary", errors, type, ...props }, ref) => {
+  ({ className, variant = "primary", errors, type, suffix, ...props }, ref) => {
     const areErrorsEmpty = React.useMemo(
       () => Boolean(errors) && Object.keys(errors).length === 0,
       [errors]
     );
 
     return (
-      <div>
+      <div className='relative'>
         <input
           type={type}
           className={cn(
@@ -85,6 +86,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           {...props}
         />
+        {suffix ? (
+          <span className="text-card-foreground absolute right-3 top-2">{suffix}</span>
+        ) : null}
         {Boolean(errors) && !areErrorsEmpty ? (
           <div className="mt-1 inline-flex text-xs text-destructive">
             <Icon

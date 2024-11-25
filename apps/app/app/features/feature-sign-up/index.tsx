@@ -5,7 +5,6 @@ import { Github, PiIcon } from "lucide-react";
 import { Button } from '@repo/design-system/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@repo/design-system/components/ui/card';
 import { Loader } from '@repo/design-system/components/ui/loader';
-import Link from "next/link";
 import { Label } from '@repo/design-system/components/ui/label';
 import { Input } from '@repo/design-system/components/ui/input';
 import { cn } from '@repo/design-system/lib/utils';
@@ -205,7 +204,7 @@ export default function SignUpPage() {
                           asChild
                           resend
                           className="text-muted-foreground"
-                          fallback={({ resendableAfter }) => (
+                          fallback={({ resendableAfter }: { resendableAfter: number }) => (
                             <Button variant="link" size="sm" disabled>
                               Didn&apos;t receive a code? Resend (
                               <span className="tabular-nums">
