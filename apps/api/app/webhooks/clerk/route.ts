@@ -287,11 +287,11 @@ export const POST = async (request: Request): Promise<Response> => {
       break;
     }
     case "user.updated": {
-      response = handleUserUpdated(event.data);
+      response = await handleUserUpdated(event.data);
       break;
     }
     case "user.deleted": {
-      response = handleUserDeleted(event.data);
+      response = await handleUserDeleted(event.data);
       break;
     }
     // case "organization.created": {
