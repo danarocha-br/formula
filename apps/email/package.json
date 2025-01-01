@@ -8,7 +8,7 @@
     "export": "email export"
   },
   "dependencies": {
-    "@react-email/components": "0.0.26",
+    "@react-email/components": "0.0.31",
     "@react-email/render": "^1.0.2",
     "@repo/email-templates": "workspace:*",
     "react": "18.3.1",
