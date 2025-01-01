@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@content-collections/cli": "^0.1.5",
-    "@content-collections/core": "^0.7.2",
+    "@content-collections/core": "^0.8.0",
     "@content-collections/next": "^0.2.3",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "22.8.7",
