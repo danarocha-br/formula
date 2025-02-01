@@ -83,7 +83,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@clerk/types": "^4.29.0",
+    "@clerk/types": "^4.45.0",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^22.8.7",
     "@types/react": "^18.3.12",
