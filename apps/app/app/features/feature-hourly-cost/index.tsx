@@ -1,23 +1,23 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
-import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
-import { Resizable } from "@repo/design-system/components/ui/resizable-panel";
 import { AnimatedNumber } from "@repo/design-system/components/ui/animated-number";
-import { cn } from "@repo/design-system/lib/utils";
-import { TabButton } from "@repo/design-system/components/ui/tab-button";
 import { Icon } from "@repo/design-system/components/ui/icon";
+import { Resizable } from "@repo/design-system/components/ui/resizable-panel";
+import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
+import { TabButton } from "@repo/design-system/components/ui/tab-button";
+import { cn } from "@repo/design-system/lib/utils";
+import { useEffect, useMemo, useState } from "react";
 
-import { getTranslations } from "@/utils/translations";
 import { useCurrencyStore } from "@/app/store/currency-store";
 import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
 import { useViewPreferenceStore } from "@/app/store/view-preference-store";
-import { ExpenseItem } from "@/app/types";
+import type { ExpenseItem } from "@/app/types";
+import { getTranslations } from "@/utils/translations";
 import { BillableCosts } from "../feature-billable-cost";
 import { VariableCostView } from "../feature-variable-cost";
 import { AnalyticsView } from "./analytics-view";
+import { GridView } from "./grid-view";
 import { NodeView } from "./node-view";
 import { useGetFixedExpenses } from "./server/get-fixed-expenses";
-import { GridView } from "./grid-view";
 
 type Props = {
   userId: string;
@@ -81,7 +81,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
       <Resizable.Panel
         defaultSize={60}
         className={cn(
-          "hidden md:block rounded-lg",
+          'hidden rounded-lg md:block',
           viewPreference === "grid" ? "bg-purple-300" : "bg-neutral-100"
         )}
       >
@@ -96,9 +96,9 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
 
         {expenseTypeView === "variable" && <VariableCostView userId={userId} />}
 
-        <div className="mt-auto sticky bottom-0 flex items-center justify-between w-full rounded-br-md rounded-tl-md col-span-full bg-purple-200 h-14">
-          <div className="h-full w-full flex justify-between items-center pr-2">
-            <div className="flex items-center h-full">
+        <div className='sticky bottom-0 col-span-full mt-auto flex h-14 w-full items-center justify-between rounded-tl-md rounded-br-md bg-purple-200'>
+          <div className='flex h-full w-full items-center justify-between pr-2'>
+            <div className='flex h-full items-center'>
               <TabButton
                 isActive={expenseTypeView === "fixed"}
                 onClick={() => setExpenseTypeView("fixed")}
@@ -125,9 +125,9 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
               </TabButton>
             </div>
 
-            <div className="text-card-foreground flex items-center gap-2 mr-6">
+            <div className='mr-6 flex items-center gap-2 text-card-foreground'>
               <AnimatedNumber
-                className="text-2xl font-semibold"
+                className='font-semibold text-2xl'
                 value={totalExpensesCostPerMonth}
                 currency={selectedCurrency.code}
                 locale={selectedCurrency.locale}
@@ -141,14 +141,14 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
       <Resizable.Handle withHandle />
 
       <Resizable.Panel defaultSize={40}>
-        <section className="bg-neutral-100 text-card-foreground rounded-lg relative flex flex-col justify-between @container">
-          <ScrollArea.Root className="w-full h-[calc(100vh-70px)] rounded-b-lg">
+        <section className='@container relative flex flex-col justify-between rounded-lg bg-neutral-100 text-card-foreground'>
+          <ScrollArea.Root className='h-[calc(100vh-70px)] w-full rounded-b-lg'>
             <BillableCosts userId={userId} />
 
-            <div className="sticky bottom-0 mt-auto flex items-center justify-between w-full rounded-b-md h-[54px] px-5 py-4 bg-purple-200">
+            <div className='sticky bottom-0 mt-auto flex h-[54px] w-full items-center justify-between rounded-b-md bg-purple-200 px-5 py-4'>
               <p>{t.expenses.billable.total.title}</p>
               <AnimatedNumber
-                className="text-2xl font-semibold "
+                className='font-semibold text-2xl '
                 value={hourlyCost}
                 currency={selectedCurrency.code}
                 locale={selectedCurrency.locale}

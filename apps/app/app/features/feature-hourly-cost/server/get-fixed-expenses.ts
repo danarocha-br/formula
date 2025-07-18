@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import { client } from "@repo/design-system/lib/rpc";
+import { useQuery } from "@tanstack/react-query";
 
 interface useGetFixedExpenses {
   userId: string;

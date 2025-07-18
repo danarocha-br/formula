@@ -1,7 +1,7 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { InferRequestType, InferResponseType } from "hono";
-import { client } from "@repo/design-system/lib/rpc";
 import { getTranslations } from "@/utils/translations";
+import { client } from "@repo/design-system/lib/rpc";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { InferRequestType, InferResponseType } from "hono";
 
 type ResponseType = InferResponseType<
   (typeof client.api.expenses)["fixed-costs"]["$post"],

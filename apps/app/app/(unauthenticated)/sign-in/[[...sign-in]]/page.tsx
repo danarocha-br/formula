@@ -1,6 +1,6 @@
+import SignIn from "@/app/features/feature-sign-in";
 import { createMetadata } from "@repo/design-system/lib/metadata";
 import type { Metadata } from "next";
-import SignIn from "../../../features/feature-sign-in";
 
 const title = "Welcome back";
 const description = "Enter your details to sign in.";

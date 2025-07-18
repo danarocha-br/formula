@@ -27,7 +27,7 @@ type RootLayoutProperties = {
   readonly children: ReactNode;
 };
 
-export default async function RootLayout({ children }: RootLayoutProperties) {
+export default function RootLayout({ children }: RootLayoutProperties) {
   return (
     <html
       lang={"en"}
