@@ -25,8 +25,15 @@ const adapter = new PrismaNeon(pool);
 export const database = new PrismaClient({ adapter });
 
 export { PrismaFixedCostExpensesRepository as FixedCostExpensesRepository } from "./repositories/prisma-fixed-cost-expenses";
-export { type IFixedCostExpensesRepository } from "./repositories/dtos/fixed-cost-expenses-repository";
+export type { IFixedCostExpensesRepository } from "./repositories/dtos/fixed-cost-expenses-repository";
 export { PrismaBillableCostExpensesRepository as BillableCostExpensesRepository } from "./repositories/prisma-billable-cost-expenses";
-export { type IBillableCostExpensesRepository } from "./repositories/dtos/billable-cost-expenses-repository";
+export type { IBillableCostExpensesRepository } from "./repositories/dtos/billable-cost-expenses-repository";
 export { PrismaEquipmentCostRepository as EquipmentCostRepository } from "./repositories/prisma-equipment-cost";
-export { type IEquipmentCostRepository } from "./repositories/dtos/equipment-cost-repository";
+export type { IEquipmentCostRepository } from "./repositories/dtos/equipment-cost-repository";
+
+// Export cache keys (both server-side and React Query keys)
+export * from "./cache-keys/react-query-keys";
+export * from "./cache-keys/fixed-cost-cache-keys";
+export * from "./cache-keys/billable-cost-cache-keys";
+export * from "./cache-keys/equipment-cost-cache-keys";
+export * from "./cache-keys/user-cache-keys";
