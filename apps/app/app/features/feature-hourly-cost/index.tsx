@@ -9,8 +9,10 @@ import { useEffect, useMemo, useState } from "react";
 
 import { useCurrencyStore } from "@/app/store/currency-store";
 import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
+import { usePanelToggleStore } from "@/app/store/panel-toggle-store";
 import { useViewPreferenceStore } from "@/app/store/view-preference-store";
 import type { ExpenseItem } from "@/app/types";
+import { useTranslations } from "@/hooks/use-translation";
 import { BillableCosts } from "../feature-billable-cost";
 import { VariableCostView } from "../feature-variable-cost";
 import { AnalyticsView } from "./analytics-view";
@@ -35,6 +37,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
   );
 
   const { viewPreference } = useViewPreferenceStore();
+  const { isBillablePanelVisible } = usePanelToggleStore();
 
   const { hourlyCost, setTotalMonthlyExpenses } = useHourlyCostStore();
 
@@ -52,14 +55,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
 
   useEffect(() => {
     setTotalMonthlyExpenses(totalExpensesCostPerMonth);
-  }, [totalExpensesCostPerMonth]);
-
-  useEffect(() => {
-    if (initialExpenses) {
-      //@ts-ignore
-      setExpenses(initialExpenses);
-    }
-  }, [initialExpenses]);
+  }, [totalExpensesCostPerMonth, setTotalMonthlyExpenses]);
 
   useEffect(() => {
     if (initialExpenses) {
@@ -71,91 +67,132 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
     }
   }, [initialExpenses]);
 
-  return viewPreference === "node" ? (
-    <NodeView expenses={expenses} userId={userId} />
-  ) : viewPreference === "chart" ? (
-    <AnalyticsView userId={userId} />
-  ) : (
-    <Resizable.Group direction="horizontal">
-      <Resizable.Panel
-        defaultSize={60}
-        className={cn(
-          'hidden rounded-lg md:block',
-          viewPreference === "grid" ? "bg-purple-300" : "bg-neutral-100"
-        )}
-      >
-        {expenseTypeView === "fixed" && (
-          <GridView
-            userId={userId}
-            expenses={expenses}
-            setExpenses={setExpenses}
-            loading={isLoadingExpenses}
-          />
-        )}
+  // Handle different view preferences
+  if (viewPreference === "node") {
+    return <NodeView expenses={expenses} userId={userId} />;
+  }
 
-        {expenseTypeView === "variable" && <VariableCostView userId={userId} />}
+  if (viewPreference === "chart") {
+    return <AnalyticsView userId={userId} />;
+  }
 
-        <div className='sticky bottom-0 col-span-full mt-auto flex h-14 w-full items-center justify-between rounded-tl-md rounded-br-md bg-purple-200'>
-          <div className='flex h-full w-full items-center justify-between pr-2'>
-            <div className='flex h-full items-center'>
-              <TabButton
-                isActive={expenseTypeView === "fixed"}
-                onClick={() => setExpenseTypeView("fixed")}
-              >
-                <Icon
-                  name="work"
-                  size="sm"
-                  label={t("navigation.bottom-level.fixed-cost")}
-                  color="current"
-                />
-                {t("navigation.bottom-level.fixed-cost")}
-              </TabButton>
-              <TabButton
-                isActive={expenseTypeView === "variable"}
-                onClick={() => setExpenseTypeView("variable")}
-              >
-                <Icon
-                  name="work"
-                  size="sm"
-                  label={t("navigation.bottom-level.variable-cost")}
-                  color="current"
-                />
-                {t("navigation.bottom-level.variable-cost")}
-              </TabButton>
-            </div>
+  // Grid view with conditional panel rendering
+  const mainContent = (
+    <div
+      className={cn(
+        'rounded-lg h-full',
+        viewPreference === "grid" ? "bg-purple-300" : "bg-neutral-100",
+        // When panel is hidden, show on mobile and expand to full width
+        isBillablePanelVisible ? 'hidden md:block shadow-sm' : 'block w-full shadow-lg'
+      )}
+    >
+      {expenseTypeView === "fixed" && (
+        <GridView
+          userId={userId}
+          expenses={expenses}
+          setExpenses={setExpenses}
+          loading={isLoadingExpenses}
+        />
+      )}
 
-            <div className='mr-6 flex items-center gap-2 text-card-foreground'>
-              <AnimatedNumber
-                className='font-semibold text-2xl'
-                value={totalExpensesCostPerMonth}
-                currency={selectedCurrency.code}
-                locale={selectedCurrency.locale}
+      {expenseTypeView === "variable" && <VariableCostView userId={userId} />}
+
+      <div className='sticky bottom-0 col-span-full mt-auto flex h-14 w-full items-center justify-between rounded-tl-md rounded-br-md bg-purple-200'>
+        <div className='flex h-full w-full items-center justify-between pr-2'>
+          <div className='flex h-full items-center'>
+            <TabButton
+              isActive={expenseTypeView === "fixed"}
+              onClick={() => setExpenseTypeView("fixed")}
+            >
+              <Icon
+                name="work"
+                size="sm"
+                label={t("navigation.bottom-level.fixed-cost")}
+                color="current"
               />
-              / {t("expenses.billable.breakeven.per-month")}
-            </div>
+              {t("navigation.bottom-level.fixed-cost")}
+            </TabButton>
+            <TabButton
+              isActive={expenseTypeView === "variable"}
+              onClick={() => setExpenseTypeView("variable")}
+            >
+              <Icon
+                name="work"
+                size="sm"
+                label={t("navigation.bottom-level.variable-cost")}
+                color="current"
+              />
+              {t("navigation.bottom-level.variable-cost")}
+            </TabButton>
+          </div>
+
+          <div className='mr-6 flex items-center gap-2 text-card-foreground'>
+            <AnimatedNumber
+              className='font-semibold text-2xl'
+              value={totalExpensesCostPerMonth}
+              currency={selectedCurrency.code}
+              locale={selectedCurrency.locale}
+            />
+            / {t("expenses.billable.breakeven.per-month")}
           </div>
         </div>
-      </Resizable.Panel>
+      </div>
+    </div>
+  );
 
-      <Resizable.Handle withHandle />
+  const billablePanel = (
+    <section className='@container relative flex flex-col justify-between rounded-lg bg-neutral-100 text-card-foreground h-full'>
+      <ScrollArea.Root className='h-[calc(100vh-70px)] w-full rounded-b-lg'>
+        <BillableCosts userId={userId} />
 
-      <Resizable.Panel defaultSize={40}>
-        <section className='@container relative flex flex-col justify-between rounded-lg bg-neutral-100 text-card-foreground'>
-          <ScrollArea.Root className='h-[calc(100vh-70px)] w-full rounded-b-lg'>
-            <BillableCosts userId={userId} />
+        <div className='sticky bottom-0 mt-auto flex h-[54px] w-full items-center justify-between rounded-b-md bg-purple-200 px-5 py-4'>
+          <p>{t("expenses.billable.total.title")}</p>
+          <AnimatedNumber
+            className='font-semibold text-2xl '
+            value={hourlyCost}
+            currency={selectedCurrency.code}
+            locale={selectedCurrency.locale}
+          />
+        </div>
+      </ScrollArea.Root>
+    </section>
+  );
 
-            <div className='sticky bottom-0 mt-auto flex h-[54px] w-full items-center justify-between rounded-b-md bg-purple-200 px-5 py-4'>
-              <p>{t("expenses.billable.total.title")}</p>
-              <AnimatedNumber
-                className='font-semibold text-2xl '
-                value={hourlyCost}
-                currency={selectedCurrency.code}
-                locale={selectedCurrency.locale}
-              />
-            </div>
-          </ScrollArea.Root>
-        </section>
-      </Resizable.Panel>
-    </Resizable.Group>
+  // Conditional rendering with smooth transitions
+  return (
+    <div className="relative h-full w-full overflow-hidden" data-testid="panel-container">
+      {isBillablePanelVisible ? (
+        <div
+          key="panel-visible"
+          className="animate-in fade-in-0 duration-300 h-full w-full"
+        >
+          <Resizable.Group direction="horizontal" className="h-full">
+            <Resizable.Panel defaultSize={60} className="min-w-0">
+              <div className="animate-in slide-in-from-left-2 duration-300 ease-out h-full">
+                {mainContent}
+              </div>
+            </Resizable.Panel>
+
+            <Resizable.Handle
+              withHandle
+              className="animate-in fade-in-0 duration-200 delay-150 opacity-100 hover:bg-purple-100/10 transition-colors duration-200"
+            />
+
+            <Resizable.Panel defaultSize={40} className="min-w-0">
+              <div className="animate-in slide-in-from-right-2 duration-300 ease-out delay-75 h-full">
+                {billablePanel}
+              </div>
+            </Resizable.Panel>
+          </Resizable.Group>
+        </div>
+      ) : (
+        <div
+          key="panel-hidden"
+          className="animate-in fade-in-0 slide-in-from-left-2 duration-300 ease-out h-full w-full"
+        >
+          {mainContent}
+        </div>
+      )}
+    </div>
   );
 };

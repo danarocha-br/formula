@@ -1,4 +1,5 @@
-import React from "react";
+import type React from "react";
+
 import { Dock } from "@repo/design-system/components/ui/dock";
 import { Icon } from "@repo/design-system/components/ui/icon";
 

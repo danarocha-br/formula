@@ -14,7 +14,7 @@
     --color-neutral-500: 48 3% 48%;
     --color-neutral-600: 49 3% 30%;
     --color-neutral-700: 49 3% 20%;
-    --color-neutral-800: 53 3% 11%;
+    --color-neutral-800: 53 3% 15%;
     --color-neutral-900: 53 3% 5%;
 
     --color-cyan-50: 188 57% 98%;
@@ -278,4 +278,148 @@
 
 ::selection {
   background: hsl(var(--color-purple-100));
+}
+
+/* Panel toggle transitions */
+.panel-transition-enter {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.panel-transition-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
+}
+
+.panel-transition-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.panel-transition-exit-active {
+  opacity: 0;
+  transform: translateX(100%);
+  transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
+}
+
+.main-content-expand {
+  transition: width 300ms ease-in-out, max-width 300ms ease-in-out;
+}
+
+.resizable-handle-fade {
+  transition: opacity 300ms ease-in-out, visibility 300ms ease-in-out;
+}
+
+.resizable-handle-fade.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Enhanced panel toggle animations */
+.panel-slide-enter {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.panel-slide-enter-to {
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity 300ms ease-in-out;
+}
+
+.panel-slide-leave {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.panel-slide-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity 300ms ease-in-out;
+}
+
+/* Smooth width transitions for main content */
+.content-expand {
+  transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1), flex 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Button state transitions */
+.panel-toggle-button {
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.panel-toggle-button:hover {
+  transform: scale(1.05);
+}
+
+.panel-toggle-button:active {
+  transform: scale(0.95);
+}
+
+/* Improved panel animations with proper directional flow */
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutToLeft {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes slideOutToRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes expandFromLeft {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes expandFromRight {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }

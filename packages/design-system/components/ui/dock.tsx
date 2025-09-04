@@ -14,8 +14,8 @@ export interface DockProps extends VariantProps<typeof dockVariants> {
   children: React.ReactNode;
 }
 
-const DEFAULT_MAGNIFICATION = 36;
-const DEFAULT_DISTANCE = 120;
+const DEFAULT_MAGNIFICATION = 32;
+const DEFAULT_DISTANCE = 110;
 
 const dockVariants = cva([
   "flex",
@@ -124,7 +124,7 @@ const DockIcon = ({
       ref={ref}
       style={{ width }}
       className={cn(
-        "hover:bg-foreground/15 flex aspect-square cursor-pointer items-center justify-center rounded-full",
+        "hover:bg-foreground/15 flex aspect-square cursor-pointer items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/20 focus-visible:bg-transparent",
         isActive && "bg-foreground/5",
         className
       )}
