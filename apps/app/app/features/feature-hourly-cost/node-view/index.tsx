@@ -1,39 +1,38 @@
-import { useEffect, useCallback, useRef, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import ReactFlow, {
   Background,
   Controls,
-  Connection,
-  Edge,
-  Node,
+  type Connection,
+  type Edge,
+  type Node,
   addEdge,
   useNodesState,
   useEdgesState,
-  NodeTypes,
+  type NodeTypes,
   Position,
-  NodeChange,
-  XYPosition,
+  type NodeChange,
+  type XYPosition,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import { useDebounce } from "react-use";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { useDebounce } from "react-use";
 import * as z from "zod";
 
-import { InputNode } from "@repo/design-system/components/ui/nodes/input-node";
-import { GroupNode } from "@repo/design-system/components/ui/nodes/group-node";
+import { useCurrencyStore } from "@/app/store/currency-store";
+import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
+import { useNodeViewStore } from '@/app/store/node-view-store';
+import type { ExpenseItem } from "@/app/types";
+import { useBreakEvenCalculator } from "@/hooks/use-break-even-calculator";
+import { useTranslations } from "@/hooks/use-translation";
+import { formatCurrency } from "@/utils/format-currency";
 import { CalculationNode } from "@repo/design-system/components/ui/nodes/calculation-node";
+import { InputNode } from "@repo/design-system/components/ui/nodes/input-node";
 import { OutputNode } from "@repo/design-system/components/ui/nodes/output-node";
 import { useToast } from "@repo/design-system/hooks/use-toast";
-import { getTranslations } from "@/utils/translations";
-import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
-import { useBreakEvenCalculator } from "@/hooks/use-break-even-calculator";
-import { useCurrencyStore } from "@/app/store/currency-store";
+import { useCreateBillableExpense } from "../../feature-billable-cost/server/create-billable-expense";
 import { useGetBillableExpenses } from "../../feature-billable-cost/server/get-billable-expenses";
 import { useUpdateBillableExpense } from "../../feature-billable-cost/server/update-billable-expense";
-import { useCreateBillableExpense } from "../../feature-billable-cost/server/create-billable-expense";
-import { ExpenseItem } from "@/app/types";
-import { formatCurrency } from "@/utils/format-currency";
-import { useNodeViewStore } from '@/app/store/node-view-store';
 import { LoadingNodeView } from './loading';
 
 type NodeViewProps = {
@@ -73,7 +72,7 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
   const { mutate: updateBillableExpenses } = useUpdateBillableExpense();
   const { mutate: createBillableExpenses } = useCreateBillableExpense();
   const { toast } = useToast();
-  const t = getTranslations();
+  const { t } = useTranslations();
   const { setHourlyCost, totalMonthlyExpenses } = useHourlyCostStore();
   const { selectedCurrency } = useCurrencyStore();
   const { nodePositions, setNodePositions, updateNodePosition } = useNodeViewStore();
@@ -119,14 +118,14 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         position: nodePositions["taxes"] || { x: 480, y: -210 },
         draggable: true,
         data: {
-          label: t.expenses.billable.form.taxes,
+          label: t("expenses.billable.form.taxes"),
           suffix: "%",
           value: data.taxes,
           min: 0,
           max: 100,
           onChange: (value: number) => handleNodeChange("taxes", value),
           error: form.formState.errors.taxes?.message,
-          description: t.expenses.billable.flow.taxes,
+          description: t("expenses.billable.flow.taxes"),
         },
       },
       {
@@ -135,14 +134,14 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         position: nodePositions["fees"] || { x: 480, y: -15 },
         draggable: true,
         data: {
-          label: t.expenses.billable.form.fees,
+          label: t("expenses.billable.form.fees"),
           suffix: "%",
           value: data.fees,
           min: 0,
           max: 100,
           onChange: (value: number) => handleNodeChange("fees", value),
           error: form.formState.errors.fees?.message,
-          description: t.expenses.billable.flow.fees,
+          description: t("expenses.billable.flow.fees"),
         },
       },
       {
@@ -151,8 +150,8 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         position: nodePositions["monthly_salary"] || { x: 75, y: 30 },
         draggable: true,
         data: {
-          label: t.expenses.billable.form["monthly-salary"],
-          suffix: t.expenses.billable.form["monthly-salary-period"],
+          label: t("expenses.billable.form.monthly-salary"),
+          suffix: t("expenses.billable.form.monthly-salary-period"),
           currency: selectedCurrency.symbol + " ",
           value: data.monthly_salary,
           onChange: (value: number) =>
@@ -161,7 +160,7 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
           max: 1000000,
           icon: "wallet",
           error: form.formState.errors.monthly_salary?.message,
-          description: t.expenses.billable.flow["monthly-salary"],
+          description: t("expenses.billable.flow.monthly-salary"),
         },
       },
       {
@@ -497,7 +496,7 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
             },
             onError: () => {
               toast({
-                title: t.validation.error["update-failed"],
+                title: t("validation.error.update-failed"),
                 variant: "destructive",
               });
             },
@@ -550,7 +549,7 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         {
           onError: () => {
             toast({
-              title: t.validation.error["create-failed"],
+              title: t("validation.error.create-failed"),
               variant: "destructive",
             });
           },
@@ -586,7 +585,7 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
   }
 
   return (
-    <div className="w-full h-screen">
+    <div className='h-screen w-full'>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -603,9 +602,9 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         nodesDraggable={true}
         nodesConnectable={false}
       >
-        <Background color="black" className="bg-primary rounded-xl" />
+        <Background color="black" className='rounded-xl bg-primary' />
         <Controls />
-      </ReactFlow>
+      </ReactFlow>'rounded-xl '
     </div>
   );
 };

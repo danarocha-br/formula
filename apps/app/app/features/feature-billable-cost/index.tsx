@@ -1,22 +1,21 @@
-import { useCallback, useEffect, useMemo } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { useDebounce } from "react-use";
-import { Icon } from "@repo/design-system/components/ui/icon";
-import { Badge } from "@repo/design-system/components/ui/badge";
-import { Heading } from "@repo/design-system/components/ui/heading";
-import { SliderCard } from "@repo/design-system/components/ui/slider-card";
-import { List } from "@repo/design-system/components/ui/list";
-
-import { getTranslations } from "@/utils/translations";
 import { ListItem } from "@/app/(authenticated)/components/list-item";
 import { useCurrencyStore } from "@/app/store/currency-store";
+import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
+import { useBreakEvenCalculator } from "@/hooks/use-break-even-calculator";
+import { useTranslations } from "@/hooks/use-translation";
+import { formatCurrency } from "@/utils/format-currency";
+import { Badge } from "@repo/design-system/components/ui/badge";
+import { Heading } from "@repo/design-system/components/ui/heading";
+import { Icon } from "@repo/design-system/components/ui/icon";
+import { List } from "@repo/design-system/components/ui/list";
+import { SliderCard } from "@repo/design-system/components/ui/slider-card";
+import { useToast } from "@repo/design-system/hooks/use-toast";
+import { useCallback, useEffect, useMemo } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { useDebounce } from "react-use";
+import { useCreateBillableExpense } from "./server/create-billable-expense";
 import { useGetBillableExpenses } from "./server/get-billable-expenses";
 import { useUpdateBillableExpense } from "./server/update-billable-expense";
-import { useToast } from "@repo/design-system/hooks/use-toast";
-import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
-import { formatCurrency } from "@/utils/format-currency";
-import { useCreateBillableExpense } from "./server/create-billable-expense";
-import { useBreakEvenCalculator } from "@/hooks/use-break-even-calculator";
 
 type BillableCostsForm = {
   work_days: number;
@@ -49,7 +48,7 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
     useGetBillableExpenses({ userId });
   const { mutate: updateBillableExpenses } = useUpdateBillableExpense();
   const { mutate: createBillableExpenses } = useCreateBillableExpense();
-  const t = getTranslations();
+  const { t } = useTranslations();
   const { toast } = useToast();
 
   const { selectedCurrency } = useCurrencyStore();
@@ -87,7 +86,7 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
         {
           onError: () => {
             toast({
-              title: t.validation.error["create-failed"],
+              title: t("validation.error.create-failed"),
               variant: "destructive",
             });
           },
@@ -140,7 +139,7 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
         updateBillableExpenses(updatePayload, {
           onError: () => {
             toast({
-              title: t.validation.error["update-failed"],
+              title: t("validation.error.update-failed"),
               variant: "destructive",
             });
           },
@@ -192,15 +191,15 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
   }, [breakEvenMetrics.hourlyRate, setHourlyCost]);
 
   return (
-    <div className="flex flex-col py-5 px-6 h-full">
+    <div className="flex h-full flex-col px-6 py-5">
       <form className="space-y-4">
-        <Heading>{t.expenses.billable.title}</Heading>
+        <Heading>{t("expenses.billable.title")}</Heading>
 
-        <div className="flex gap-2 text-muted text-sm pb-2">
+        <div className="flex gap-2 pb-2 text-muted text-sm">
           <i className="mt-1 mr-4">
             <Icon name="alert" color="caption" label="alert" />
           </i>
-          <p>{t.expenses.billable.subtitle}</p>
+          <p>{t("expenses.billable.subtitle")}</p>
         </div>
 
         <div className="grid @[420px]:grid-cols-2 gap-2">
@@ -209,11 +208,11 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
             name="work_days"
             render={({ field }) => (
               <SliderCard
-                label={t.expenses.billable.form["work-days"]}
+                label={t("expenses.billable.form.work-days")}
                 category="calendar"
                 min={1}
                 max={7}
-                suffix={t.expenses.billable.form["work-days-period"]}
+                suffix={t("expenses.billable.form.work-days-period")}
                 loading={isLoadingExpenses}
                 {...field}
               />
@@ -224,11 +223,11 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
             name="hours_per_day"
             render={({ field }) => (
               <SliderCard
-                label={t.expenses.billable.form["billable-hours"]}
+                label={t("expenses.billable.form.billable-hours")}
                 category="time"
                 min={1}
                 max={24}
-                suffix={t.expenses.billable.form["billable-hours-period"]}
+                suffix={t("expenses.billable.form.billable-hours-period")}
                 {...field}
                 loading={isLoadingExpenses}
               />
@@ -239,11 +238,11 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
             name="holiday_days"
             render={({ field }) => (
               <SliderCard
-                label={t.expenses.billable.form["holidays"]}
+                label={t("expenses.billable.form.holidays")}
                 category="flag"
                 min={1}
                 max={360}
-                suffix={t.expenses.billable.form["holidays-period"]}
+                suffix={t("expenses.billable.form.holidays-period")}
                 loading={isLoadingExpenses}
                 {...field}
               />
@@ -254,11 +253,11 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
             name="vacation_days"
             render={({ field }) => (
               <SliderCard
-                label={t.expenses.billable.form["vacations"]}
+                label={t("expenses.billable.form.vacations")}
                 category="holiday"
                 min={1}
                 max={360}
-                suffix={t.expenses.billable.form["vacations-period"]}
+                suffix={t("expenses.billable.form.vacations-period")}
                 loading={isLoadingExpenses}
                 {...field}
               />
@@ -269,11 +268,11 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
             name="sick_leave"
             render={({ field }) => (
               <SliderCard
-                label={t.expenses.billable.form["sick-leave"]}
+                label={t("expenses.billable.form.sick-leave")}
                 category="pill"
                 min={1}
                 max={360 / 2}
-                suffix={t.expenses.billable.form["sick-leave-period"]}
+                suffix={t("expenses.billable.form.sick-leave-period")}
                 loading={isLoadingExpenses}
                 {...field}
               />
@@ -284,12 +283,12 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
             name="monthly_salary"
             render={({ field }) => (
               <SliderCard
-                label={t.expenses.billable.form["monthly-salary"]}
+                label={t("expenses.billable.form.monthly-salary")}
                 category="wallet"
                 currency={selectedCurrency.symbol}
                 min={1}
                 max={100000}
-                suffix={t.expenses.billable.form["monthly-salary-period"]}
+                suffix={t("expenses.billable.form.monthly-salary-period")}
                 loading={isLoadingExpenses}
                 {...field}
               />
@@ -297,13 +296,13 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
           />
         </div>
 
-        <Heading className="pt-3">{t.expenses.billable.taxes.title}</Heading>
+        <Heading className="pt-3">{t("expenses.billable.taxes.title")}</Heading>
 
-        <div className="flex gap-2 text-muted text-sm pb-2">
+        <div className="flex gap-2 pb-2 text-muted text-sm">
           <i className="mt-1 mr-4">
             <Icon name="alert" color="caption" label="alert" />
           </i>
-          <p>{t.expenses.billable.taxes.subtitle}</p>
+          <p>{t("expenses.billable.taxes.subtitle")}</p>
         </div>
 
         <div className="grid @[420px]:grid-cols-2 gap-2">
@@ -312,11 +311,11 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
             name="taxes"
             render={({ field }) => (
               <SliderCard
-                label={t.expenses.billable.form.taxes}
+                label={t("expenses.billable.form.taxes")}
                 category="percent"
                 min={0}
                 max={100}
-                suffix={`% ${t.expenses.billable.form["monthly-salary-period"]}`}
+                suffix={`% ${t("expenses.billable.form.monthly-salary-period")}`}
                 loading={isLoadingExpenses}
                 {...field}
               />
@@ -327,11 +326,11 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
             name="fees"
             render={({ field }) => (
               <SliderCard
-                label={t.expenses.billable.form.fees}
+                label={t("expenses.billable.form.fees")}
                 category="percent"
                 min={0}
                 max={100}
-                suffix={`% ${t.expenses.billable.form["monthly-salary-period"]}`}
+                suffix={`% ${t("expenses.billable.form.monthly-salary-period")}`}
                 loading={isLoadingExpenses}
                 {...field}
               />
@@ -339,13 +338,15 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
           />
         </div>
 
-        <Heading className="pt-3">{t.expenses.billable.margin.title}</Heading>
+        <Heading className="pt-3">
+          {t("expenses.billable.margin.title")}
+        </Heading>
 
-        <div className="flex gap-2 text-muted text-sm pb-2">
+        <div className="flex gap-2 pb-2 text-muted text-sm">
           <i className="mt-1 mr-4">
             <Icon name="alert" color="caption" label="alert" />
           </i>
-          <p>{t.expenses.billable.margin.subtitle}</p>
+          <p>{t("expenses.billable.margin.subtitle")}</p>
         </div>
 
         <Controller
@@ -353,11 +354,11 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
           name="margin"
           render={({ field }) => (
             <SliderCard
-              label={t.expenses.billable.form.margin}
+              label={t("expenses.billable.form.margin")}
               category="trend-up"
               min={0}
               max={100}
-              suffix={`% ${t.expenses.billable.form["monthly-salary-period"]}`}
+              suffix={`% ${t("expenses.billable.form.monthly-salary-period")}`}
               loading={isLoadingExpenses}
               {...field}
             />
@@ -366,50 +367,50 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
       </form>
 
       <Heading className="mt-6 mb-4">
-        {t.expenses.billable.summary.title}
+        {t("expenses.billable.summary.title")}
       </Heading>
 
       <List.Root className={"mb-5"}>
         <ListItem
           icon="time-off"
-          title={t.expenses.billable.form["time-off"]}
+          title={t("expenses.billable.form.time-off")}
           data={
             <>
               <b>{hourlyCalculations.timeOff.toString()}</b>{" "}
-              {t.expenses.billable.form["time-off-period"]}
+              {t("expenses.billable.form.time-off-period")}
             </>
           }
           itemsOnHover={
             <div className="flex gap-1">
               <span className="mr-2">=</span>
-              <Badge>{t.expenses.billable.form["holidays"]}</Badge>+
-              <Badge>{t.expenses.billable.form["vacations"]}</Badge>+
-              <Badge>{t.expenses.billable.form["sick-leave"]}</Badge>
+              <Badge>{t("expenses.billable.form.holidays")}</Badge>+
+              <Badge>{t("expenses.billable.form.vacations")}</Badge>+
+              <Badge>{t("expenses.billable.form.sick-leave")}</Badge>
             </div>
           }
         />
         <ListItem
           icon="calendar"
-          title={t.expenses.billable.form["actual-work-days"]}
+          title={t("expenses.billable.form.actual-work-days")}
           data={
             <>
               <b>{hourlyCalculations.actualWorkDays.toString()}</b>{" "}
-              {t.expenses.billable.form["actual-work-days-period"]}
+              {t("expenses.billable.form.actual-work-days-period")}
             </>
           }
           itemsOnHover={
             <div className="flex gap-1">
               <span className="mr-2">=</span>
               <Badge>
-                {t.expenses.billable.form["work-days"] +
+                {t("expenses.billable.form.work-days") +
                   " " +
-                  t.expenses.billable.form["holidays-period"]}
+                  t("expenses.billable.form.holidays-period")}
               </Badge>
               -
               <Badge>
-                {t.expenses.billable.form["time-off"] +
+                {t("expenses.billable.form.time-off") +
                   " " +
-                  t.expenses.billable.form["holidays-period"]}
+                  t("expenses.billable.form.holidays-period")}
               </Badge>
             </div>
           }
@@ -417,18 +418,18 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
         <ListItem
           className="border-b-0"
           icon="work"
-          title={t.expenses.billable.form["billable-hours"]}
+          title={t("expenses.billable.form.billable-hours")}
           data={
             <>
               <b>{hourlyCalculations.billableHours.toString()}</b>{" "}
-              {t.expenses.billable.form["billable-hours-summary-period"]}
+              {t("expenses.billable.form.billable-hours-summary-period")}
             </>
           }
           itemsOnHover={
             <div className="flex gap-1">
               <span className="mr-2">=</span>
-              <Badge>{t.expenses.billable.form["work-days"]}</Badge>*
-              <Badge>{t.expenses.billable.form["billable-hours"]}</Badge>
+              <Badge>{t("expenses.billable.form.work-days")}</Badge>*
+              <Badge>{t("expenses.billable.form.billable-hours")}</Badge>
             </div>
           }
         />
@@ -437,7 +438,7 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
       <List.Root className="mb-5">
         <ListItem
           icon="money-up"
-          title={t.expenses.billable.breakeven["hourly-rate"]}
+          title={t("expenses.billable.breakeven.hourly-rate")}
           data={
             <>
               <b>
@@ -445,23 +446,23 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
                   currency: selectedCurrency.code,
                 })}
               </b>{" "}
-              {t.expenses.billable.breakeven["per-hour"]}
+              {t("expenses.billable.breakeven.per-hour")}
             </>
           }
           itemsOnHover={
             <div className="flex gap-1">
               <span className="mr-2">=</span>
               <Badge>
-                {t.expenses.billable.breakeven["break-even"] + " "}
+                {t("expenses.billable.breakeven.break-even") + " "}
               </Badge>{" "}
               /{" "}
-              <Badge>{t.expenses.billable.form["billable-hours"] + " "}</Badge>
+              <Badge>{t("expenses.billable.form.billable-hours") + " "}</Badge>
             </div>
           }
         />
         <ListItem
           icon="money-up"
-          title={t.expenses.billable.breakeven["day-rate"]}
+          title={t("expenses.billable.breakeven.day-rate")}
           data={
             <>
               <b>
@@ -469,22 +470,22 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
                   currency: selectedCurrency.code,
                 })}
               </b>{" "}
-              {t.expenses.billable.breakeven["per-day"]}
+              {t("expenses.billable.breakeven.per-day")}
             </>
           }
           itemsOnHover={
             <div className="flex gap-1">
               <span className="mr-2">=</span>
               <Badge>
-                {t.expenses.billable.breakeven["hourly-rate"] + " "}
+                {t("expenses.billable.breakeven.hourly-rate") + " "}
               </Badge>{" "}
-              * <Badge> {t.expenses.billable.form["billable-hours"]}</Badge>
+              * <Badge> {t("expenses.billable.form.billable-hours")}</Badge>
             </div>
           }
         />
         <ListItem
           icon="money-up"
-          title={t.expenses.billable.breakeven["week-rate"]}
+          title={t("expenses.billable.breakeven.week-rate")}
           data={
             <>
               <b>
@@ -492,23 +493,23 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
                   currency: selectedCurrency.code,
                 })}
               </b>{" "}
-              {t.expenses.billable.breakeven["per-week"]}
+              {t("expenses.billable.breakeven.per-week")}
             </>
           }
           itemsOnHover={
             <div className="flex gap-1">
               <span className="mr-2">=</span>
               <Badge>
-                {t.expenses.billable.breakeven["day-rate"] + " "}
+                {t("expenses.billable.breakeven.day-rate") + " "}
               </Badge> *{" "}
-              <Badge> {t.expenses.billable.form["billable-hours"]}</Badge>
+              <Badge> {t("expenses.billable.form.billable-hours")}</Badge>
             </div>
           }
         />
         <ListItem
           className="border-b-0"
           icon="money-up"
-          title={t.expenses.billable.breakeven["monthly-rate"]}
+          title={t("expenses.billable.breakeven.monthly-rate")}
           data={
             <>
               <b>
@@ -516,16 +517,16 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
                   currency: selectedCurrency.code,
                 })}
               </b>{" "}
-              {t.expenses.billable.breakeven["per-month"]}
+              {t("expenses.billable.breakeven.per-month")}
             </>
           }
           itemsOnHover={
-            <div className="flex gap-1 items-center">
+            <div className="flex items-center gap-1">
               <span className="mr-2">=</span>
               <Badge>
-                {t.expenses.billable.breakeven["hourly-rate"] + " "}
+                {t("expenses.billable.breakeven.hourly-rate") + " "}
               </Badge>{" "}
-              * <Badge> {t.expenses.billable.form["billable-hours"]}</Badge>
+              * <Badge> {t("expenses.billable.form.billable-hours")}</Badge>
               <span className="text-sm">/ 12</span>
             </div>
           }

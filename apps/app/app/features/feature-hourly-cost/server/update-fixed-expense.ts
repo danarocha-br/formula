@@ -1,4 +1,5 @@
 import { getTranslations } from "@/utils/translations";
+// Note: Server-side hooks use getTranslations() directly since they don't have React context
 import { reactQueryKeys } from "@repo/database/cache-keys/react-query-keys";
 import { client } from "@repo/design-system/lib/rpc";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { z } from "zod";
 import { cva } from "class-variance-authority";
 
-import { getTranslations } from "@/utils/translations";
+import { useTranslations } from "@/hooks/use-translation";
 import { CostStatus } from "@/app/types";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -72,7 +72,7 @@ export const AddExpenseForm = ({
     amount: 0,
   },
 }: AddExpenseFormProps) => {
-  const t = getTranslations();
+  const { t } = useTranslations();
   const { toast } = useToast();
 
   const categoriesList = useMemo(
@@ -110,19 +110,19 @@ export const AddExpenseForm = ({
         slot: z.any().optional(),
       },
       {
-        required_error: t.validation.form.required,
-        invalid_type_error: t.validation.form.select,
+        required_error: t("validation.form.required"),
+        invalid_type_error: t("validation.form.select"),
       }
     ),
     amount: z.number({
-      required_error: t.validation.form.required,
+      required_error: t("validation.form.required"),
     }),
     name: z
       .string({
-        required_error: t.validation.form.required,
+        required_error: t("validation.form.required"),
       })
       .min(1, {
-        message: t.validation.form.required,
+        message: t("validation.form.required"),
       }),
   });
 
@@ -157,7 +157,7 @@ export const AddExpenseForm = ({
       {
         onError: () => {
           toast({
-            title: t.validation.error["create-failed"],
+            title: t("validation.error.create-failed"),
             variant: "destructive",
           });
         },
@@ -176,8 +176,8 @@ export const AddExpenseForm = ({
             control={control}
             render={({ field }) => (
               <Combobox
-                placeholder={t.expenses.form.category}
-                searchPlaceholder={t.common["search"]}
+                placeholder={t("expenses.form.category")}
+                searchPlaceholder={t("common.search")}
                 options={categoriesList}
                 value={field.value || undefined}
                 onChange={(option: SelectOption | SelectOption[]) => {
@@ -185,7 +185,7 @@ export const AddExpenseForm = ({
                     field.onChange(option);
                   }
                 }}
-                emptyMessage={t.common["not-found"]}
+                emptyMessage={t("common.not-found")}
                 errors={
                   errors?.category?.message
                     ? { message: errors.category.message }
@@ -212,7 +212,7 @@ export const AddExpenseForm = ({
             render={({ field }) => (
               <Input
                 variant="secondary"
-                placeholder={t.expenses.form.name}
+                placeholder={t("expenses.form.name")}
                 className="w-full"
                 id="name"
                 {...field}
@@ -232,8 +232,8 @@ export const AddExpenseForm = ({
               <SliderCard
                 suffix={
                   billingPeriod === "monthly"
-                    ? t.common.period.monthly
-                    : t.common.period.yearly
+                    ? t("common.period.monthly")
+                    : t("common.period.yearly")
                 }
                 currency={selectedCurrency.symbol}
                 min={1}
@@ -259,10 +259,10 @@ export const AddExpenseForm = ({
             className="w-full"
           >
             <ToggleGroup.Item value="monthly" className="w-full">
-              {t.common.period.monthly}
+              {t("common.period.monthly")}
             </ToggleGroup.Item>
             <ToggleGroup.Item value="yearly" className="w-full">
-              {t.common.period.yearly}
+              {t("common.period.yearly")}
             </ToggleGroup.Item>
           </ToggleGroup.Root>
 
@@ -271,7 +271,7 @@ export const AddExpenseForm = ({
               <i>
                 <Icon name="plus" label="add" color="on-dark" />
               </i>
-              {t.expenses.actions["add-expense"]}
+              {t("expenses.actions.add-expense")}
             </Button>
           </div>
         </div>

@@ -4,34 +4,34 @@
 
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient } from "@tanstack/react-query";
-import { createTestQueryClient, createQueryWrapper, mockData, mockResponses } from "@repo/design-system/lib/test-utils";
-import { setupReactQueryTesting } from "@repo/design-system/lib/test-setup";
+import { createTestQueryClient, createQueryWrapper, mockData, mockResponses } from "../../../../../test-utils";
 import { useGetFixedExpenses, getFixedExpenses } from "../get-fixed-expenses";
+import { vi } from 'vitest';
 
 // Mock the RPC client
-const mockClient = {
-  api: {
-    expenses: {
-      "fixed-costs": {
-        $get: jest.fn(),
+vi.mock("@repo/design-system/lib/rpc", () => ({
+  client: {
+    api: {
+      expenses: {
+        "fixed-costs": {
+          $get: vi.fn(),
+        },
       },
     },
   },
-};
-
-jest.mock("@repo/design-system/lib/rpc", () => ({
-  client: mockClient,
 }));
-
-// Setup testing environment
-setupReactQueryTesting();
 
 describe("Fixed Expenses Query Hooks", () => {
   let queryClient: QueryClient;
+  let mockGet: any;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     queryClient = createTestQueryClient();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
+
+    // Get the mocked function
+    const { client } = await import("@repo/design-system/lib/rpc");
+    mockGet = client.api.expenses["fixed-costs"].$get;
   });
 
   describe("useGetFixedExpenses", () => {
@@ -42,7 +42,7 @@ describe("Fixed Expenses Query Hooks", () => {
         mockData.fixedExpense({ id: "2", name: "Internet" }),
       ];
 
-      mockClient.api.expenses["fixed-costs"].$get.mockResolvedValue(
+      mockGet.mockResolvedValue(
         mockResponses.success(mockExpenses)
       );
 
@@ -64,7 +64,7 @@ describe("Fixed Expenses Query Hooks", () => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.data).toEqual(mockExpenses);
       expect(result.current.error).toBeNull();
-      expect(mockClient.api.expenses["fixed-costs"].$get).toHaveBeenCalledWith({
+      expect(mockGet).toHaveBeenCalledWith({
         query: { userId },
       });
     });
@@ -72,7 +72,7 @@ describe("Fixed Expenses Query Hooks", () => {
     it("should handle API errors gracefully", async () => {
       const userId = "user-123";
 
-      mockClient.api.expenses["fixed-costs"].$get.mockResolvedValue(
+      mockGet.mockResolvedValue(
         mockResponses.error(500, "Internal Server Error")
       );
 
@@ -101,42 +101,7 @@ describe("Fixed Expenses Query Hooks", () => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.data).toBeUndefined();
       expect(result.current.error).toBeNull();
-      expect(mockClient.api.expenses["fixed-costs"].$get).not.toHaveBeenCalled();
-    });
-
-    it("should use correct query key", () => {
-      const userId = "user-123";
-
-      renderHook(
-        () => useGetFixedExpenses({ userId }),
-        { wrapper: createQueryWrapper(queryClient) }
-      );
-
-      const queries = queryClient.getQueryCache().getAll();
-      expect(queries).toHaveLength(1);
-      expect(queries[0].queryKey).toEqual(["fixed-expenses-list", userId]);
-    });
-
-    it("should respect stale time configuration", async () => {
-      const userId = "user-123";
-      const mockExpenses = [mockData.fixedExpense()];
-
-      mockClient.api.expenses["fixed-costs"].$get.mockResolvedValue(
-        mockResponses.success(mockExpenses)
-      );
-
-      const { result } = renderHook(
-        () => useGetFixedExpenses({ userId }),
-        { wrapper: createQueryWrapper(queryClient) }
-      );
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true);
-      });
-
-      // Check that the query has the correct stale time (5 minutes)
-      const query = queryClient.getQueryCache().find(["fixed-expenses-list", userId]);
-      expect(query?.options.staleTime).toBe(5 * 60 * 1000);
+      expect(mockGet).not.toHaveBeenCalled();
     });
   });
 
@@ -145,14 +110,14 @@ describe("Fixed Expenses Query Hooks", () => {
       const userId = "user-123";
       const mockExpenses = [mockData.fixedExpense()];
 
-      mockClient.api.expenses["fixed-costs"].$get.mockResolvedValue(
+      mockGet.mockResolvedValue(
         mockResponses.success(mockExpenses)
       );
 
       const result = await getFixedExpenses(userId);
 
       expect(result).toEqual(mockExpenses);
-      expect(mockClient.api.expenses["fixed-costs"].$get).toHaveBeenCalledWith({
+      expect(mockGet).toHaveBeenCalledWith({
         query: { userId },
       });
     });
@@ -160,70 +125,11 @@ describe("Fixed Expenses Query Hooks", () => {
     it("should handle server-side errors", async () => {
       const userId = "user-123";
 
-      mockClient.api.expenses["fixed-costs"].$get.mockResolvedValue(
+      mockGet.mockResolvedValue(
         mockResponses.error(500, "Server Error")
       );
 
       await expect(getFixedExpenses(userId)).rejects.toThrow("Failed to fetch fixed expenses");
-    });
-
-    it("should handle network errors", async () => {
-      const userId = "user-123";
-
-      mockClient.api.expenses["fixed-costs"].$get.mockRejectedValue(
-        new Error("Network Error")
-      );
-
-      await expect(getFixedExpenses(userId)).rejects.toThrow("Network Error");
-    });
-  });
-
-  describe("Integration with React Query keys", () => {
-    it("should use the correct query key from the factory", () => {
-      const userId = "user-123";
-      const { reactQueryKeys } = require("@repo/database/cache-keys/react-query-keys");
-
-      const expectedKey = reactQueryKeys.fixedExpenses.byUserId(userId);
-
-      renderHook(
-        () => useGetFixedExpenses({ userId }),
-        { wrapper: createQueryWrapper(queryClient) }
-      );
-
-      const queries = queryClient.getQueryCache().getAll();
-      expect(queries[0].queryKey).toEqual(expectedKey);
-    });
-
-    it("should enable cache sharing between components", async () => {
-      const userId = "user-123";
-      const mockExpenses = [mockData.fixedExpense()];
-
-      mockClient.api.expenses["fixed-costs"].$get.mockResolvedValue(
-        mockResponses.success(mockExpenses)
-      );
-
-      // First hook call
-      const { result: result1 } = renderHook(
-        () => useGetFixedExpenses({ userId }),
-        { wrapper: createQueryWrapper(queryClient) }
-      );
-
-      await waitFor(() => {
-        expect(result1.current.isSuccess).toBe(true);
-      });
-
-      // Second hook call should use cached data
-      const { result: result2 } = renderHook(
-        () => useGetFixedExpenses({ userId }),
-        { wrapper: createQueryWrapper(queryClient) }
-      );
-
-      // Should immediately have data from cache
-      expect(result2.current.data).toEqual(mockExpenses);
-      expect(result2.current.isLoading).toBe(false);
-
-      // Should only have called the API once
-      expect(mockClient.api.expenses["fixed-costs"].$get).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -1,6 +1,6 @@
-import type { Messages } from "../en";
+import type { TranslationStructure } from '@/types/translations';
 
-export const ptBR: Messages = {
+export const ptBR: TranslationStructure = {
   common: {
     title: "Bem-vindo",
     description: "Este é meu aplicativo",

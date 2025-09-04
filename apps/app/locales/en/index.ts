@@ -1,4 +1,6 @@
-export const en = {
+import type { TranslationStructure } from '@/types/translations';
+
+export const en: TranslationStructure = {
   common: {
     title: "Welcome",
     description: "This is my app",
@@ -198,4 +200,4 @@ export const en = {
   },
 };
 
-export type Messages = typeof en;
+export type Messages = TranslationStructure;

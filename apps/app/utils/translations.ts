@@ -1,27 +1,17 @@
-import { parseCookies } from "nookies";
-
-import { en } from "@/locales/en";
-import { ptBR } from "@/locales/pt-BR";
-
-const translations = {
-  en,
-  "pt-BR": ptBR,
-};
-
-export type SupportedLocales = keyof typeof translations;
-
 /**
- * Returns the translations for the current locale.
- *
- * The locale is determined by the NEXT_LOCALE cookie. If the cookie is not set,
- * the default locale is "en".
- *
- * @returns The translations for the current locale.
+ * Translation utilities
  */
 
-export const getTranslations = () => {
-  const cookies = parseCookies();
-  const locale = cookies.NEXT_LOCALE || "en";
+import type { Locale } from '@/contexts/locale-context';
+import { en } from '@/locales/en';
+import { ptBR } from '@/locales/pt-BR';
+import type { TranslationStructure } from '@/types/translations';
 
-  return translations[locale as SupportedLocales] || translations.en;
+const LOCALE_TRANSLATIONS: Record<Locale, TranslationStructure> = {
+  en: en,
+  'pt-BR': ptBR,
 };
+
+export function getTranslations(locale: Locale = 'en'): TranslationStructure {
+  return LOCALE_TRANSLATIONS[locale];
+}

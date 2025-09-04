@@ -5,7 +5,7 @@ import { cva } from "class-variance-authority";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { getTranslations } from "@/utils/translations";
+import { useTranslations } from "@/hooks/use-translation";
 import { AddExpenseForm } from "./add-expense-form";
 
 const card = cva(
@@ -78,7 +78,7 @@ export const AddCard: React.FC<AddCardProps> = ({
   userId,
   rankIndex,
 }) => {
-  const t = getTranslations();
+  const { t } = useTranslations();
   const [isActive, setIsActive] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
@@ -147,7 +147,7 @@ export const AddCard: React.FC<AddCardProps> = ({
             >
               <div className='flex h-32 flex-col items-center justify-center gap-2 text-card-foreground'>
                 <Icon name="plus" size="lg" label="add" color="current" />
-                <p className="text-sm">{t.expenses.actions["add-expense"]}</p>
+                <p className="text-sm">{t("expenses.actions.add-expense")}</p>
               </div>
             </div>
           </button>

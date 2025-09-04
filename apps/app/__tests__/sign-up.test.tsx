@@ -1,6 +1,11 @@
 import { render, screen } from '@testing-library/react';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import Page from '../app/(unauthenticated)/sign-up/[[...sign-up]]/page';
+
+// Mock Clerk components since they require ClerkProvider
+vi.mock('@clerk/nextjs', () => ({
+  SignUp: () => <div><h1>Create an account</h1></div>,
+}));
 
 test('Sign Up Page', () => {
   render(<Page />);

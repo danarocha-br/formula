@@ -1,23 +1,24 @@
-import React, { useState } from "react";
+import type React from "react";
+import { useState } from "react";
 import { z } from "zod";
 
-import { getTranslations } from "@/utils/translations";
-import { CostStatus } from "@/app/types";
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Combobox } from "@repo/design-system/components/ui/combobox";
 import { FIXED_COST_CATEGORIES } from "@/app/constants";
-import { cn } from "@repo/design-system/lib/utils";
-import { Icon, iconPath } from "@repo/design-system/components/ui/icon";
+import { useCurrencyStore } from "@/app/store/currency-store";
+import type { CostStatus } from "@/app/types";
+import { useTranslations } from "@/hooks/use-translation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckIcon } from "@repo/design-system/components/ui/animated-icon/check";
+import { Button } from "@repo/design-system/components/ui/button";
+import { Combobox } from "@repo/design-system/components/ui/combobox";
+import { Icon, type iconPath } from "@repo/design-system/components/ui/icon";
 import { Input } from "@repo/design-system/components/ui/input";
 import { SliderCard } from "@repo/design-system/components/ui/slider-card";
-import { Button } from "@repo/design-system/components/ui/button";
-import { closeButton, ComboboxOption, SelectOption } from "./add-expense-form";
-import { useUpdateFixedExpense } from "./server/update-fixed-expense";
-import { CheckIcon } from "@repo/design-system/components/ui/animated-icon/check";
-import { useToast } from "@repo/design-system/hooks/use-toast";
-import { useCurrencyStore } from "@/app/store/currency-store";
 import { ToggleGroup } from "@repo/design-system/components/ui/toggle-group";
+import { useToast } from "@repo/design-system/hooks/use-toast";
+import { cn } from "@repo/design-system/lib/utils";
+import { Controller, useForm } from "react-hook-form";
+import type { ComboboxOption, SelectOption, } from "./add-expense-form";
+import { useUpdateFixedExpense } from "./server/update-fixed-expense";
 
 interface EditExpenseForm {
   category: ComboboxOption | undefined;
@@ -41,7 +42,7 @@ export const EditExpenseForm = ({
   rankIndex,
   defaultValues,
 }: EditExpenseFormProps) => {
-  const t = getTranslations();
+  const { t } = useTranslations();
 
   const [isHovered, setIsHovered] = useState(false);
   const { selectedCurrency } = useCurrencyStore();
@@ -75,19 +76,19 @@ export const EditExpenseForm = ({
         slot: z.any().optional(),
       },
       {
-        required_error: t.validation.form.required,
-        invalid_type_error: t.validation.form.select,
+        required_error: t("validation.form.required"),
+        invalid_type_error: t("validation.form.select"),
       }
     ),
     amount: z.number({
-      required_error: t.validation.form.required,
+      required_error: t("validation.form.required"),
     }),
     name: z
       .string({
-        required_error: t.validation.form.required,
+        required_error: t("validation.form.required"),
       })
       .min(1, {
-        message: t.validation.form.required,
+        message: t("validation.form.required"),
       }),
   });
 
@@ -127,7 +128,7 @@ export const EditExpenseForm = ({
         },
         onError: () => {
           toast({
-            title: t.validation.error["update-failed"],
+            title: t("validation.error.update-failed"),
             variant: "destructive",
           });
         },
@@ -144,7 +145,7 @@ export const EditExpenseForm = ({
 
   return (
     <form
-      className="p-3 flex flex-col justify-between h-full"
+      className='flex h-full flex-col justify-between p-3'
       onSubmit={handleSubmit(onSubmit)}
     >
       <div className="flex w-full justify-between">
@@ -154,8 +155,8 @@ export const EditExpenseForm = ({
             control={control}
             render={({ field }) => (
               <Combobox
-                placeholder={t.expenses.form.category}
-                searchPlaceholder={t.common["search"]}
+                placeholder={t("expenses.form.category")}
+                searchPlaceholder={t("common.search")}
                 options={categoriesList}
                 value={field.value || undefined}
                 onChange={(option: SelectOption | SelectOption[]) => {
@@ -163,7 +164,7 @@ export const EditExpenseForm = ({
                     field.onChange(option);
                   }
                 }}
-                emptyMessage={t.common["not-found"]}
+                emptyMessage={t("common.not-found")}
                 errors={
                   errors?.category?.message
                     ? { message: errors.category.message }
@@ -173,10 +174,11 @@ export const EditExpenseForm = ({
             )}
           />
         </div>
-        <button type="button" className={closeButton()} onClick={handleClose}>
-          <Icon name="close" className="w-4 h-4" label="close" color="body" />
+        <button type="button" className="hover:bg-neutral-100 rounded p-1" onClick={handleClose}>
+          <Icon name="close" className='h-4 w-4' label="close" color="body" />
         </button>
       </div>
+
       <div>
         <div className="flex flex-col gap-2">
           <Controller
@@ -185,7 +187,7 @@ export const EditExpenseForm = ({
             render={({ field }) => (
               <Input
                 variant="secondary"
-                placeholder={t.expenses.form.name}
+                placeholder={t("expenses.form.name")}
                 className="w-full"
                 id="name"
                 {...field}
@@ -205,8 +207,8 @@ export const EditExpenseForm = ({
               <SliderCard
                 suffix={
                   billingPeriod === "monthly"
-                    ? t.common.period.monthly
-                    : t.common.period.yearly
+                    ? t("common.period.monthly")
+                    : t("common.period.yearly")
                 }
                 currency={selectedCurrency.symbol + " "}
                 min={1}
@@ -232,10 +234,10 @@ export const EditExpenseForm = ({
             className="w-full"
           >
             <ToggleGroup.Item value="monthly" className="w-full">
-              {t.common.period.monthly}
+              {t("common.period.monthly")}
             </ToggleGroup.Item>
             <ToggleGroup.Item value="yearly" className="w-full">
-              {t.common.period.yearly}
+              {t("common.period.yearly")}
             </ToggleGroup.Item>
           </ToggleGroup.Root>
 
@@ -249,7 +251,7 @@ export const EditExpenseForm = ({
               <i>
                 <CheckIcon size={20} animated={isHovered} />
               </i>
-              {t.expenses.actions["edit-expense"]}
+              {t("expenses.actions.edit-expense")}
             </Button>
           </div>
         </div>

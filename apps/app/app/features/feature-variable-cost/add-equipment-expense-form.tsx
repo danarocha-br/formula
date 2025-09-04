@@ -1,25 +1,24 @@
-import React, { useState, useMemo } from "react";
-import { z } from "zod";
-import { cva } from "class-variance-authority";
-
-import { getTranslations } from "@/utils/translations";
-import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@repo/design-system/components/ui/button";
 import { Combobox } from "@repo/design-system/components/ui/combobox";
+import { DatePicker } from "@repo/design-system/components/ui/date-picker";
+import { Icon, type iconPath } from "@repo/design-system/components/ui/icon";
 import { Input } from "@repo/design-system/components/ui/input";
 import { SliderCard } from "@repo/design-system/components/ui/slider-card";
-import { Button } from "@repo/design-system/components/ui/button";
 import { useToast } from "@repo/design-system/hooks/use-toast";
-import { Icon, iconPath } from "@repo/design-system/components/ui/icon";
-import { DatePicker } from "@repo/design-system/components/ui/date-picker";
+import { cva } from "class-variance-authority";
+import type React from "react";
+import { useMemo } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { EQUIPMENT_COST_CATEGORIES } from "@/app/constants";
-import { cn } from "@repo/design-system/lib/utils";
 import { useCurrencyStore } from "@/app/store/currency-store";
-import { useCreateEquipmentExpense } from "./server/create-equipment-expense";
 import { Label } from "@repo/design-system/components/ui/label";
-import { parseCookies } from "nookies";
 import { NumberInput } from "@repo/design-system/components/ui/number-input";
+import { cn } from "@repo/design-system/lib/utils";
+import { parseCookies } from "nookies";
+import { useCreateEquipmentExpense } from "./server/create-equipment-expense";
 
 interface NewExpenseForm {
   name: string | undefined;
@@ -79,7 +78,6 @@ export const AddEquipmentExpenseForm = ({
     lifeSpan: 0,
   },
 }: AddExpenseFormProps) => {
-  const t = getTranslations();
   const { toast } = useToast();
   const cookies = parseCookies();
   const userLocale = cookies.NEXT_LOCALE || navigator.language || "en";
@@ -92,8 +90,8 @@ export const AddEquipmentExpenseForm = ({
         slot: (
           <div
             className={cn(
-              "flex items-center justify-center p-1 h-6 w-6 rounded-[4px]",
-              category.color
+              'flex h-6 w-6 items-center justify-center rounded-[4px] p-1',
+              'ategoh-6 ry.color w-6 p-1'
             )}
           >
             <Icon
@@ -116,25 +114,25 @@ export const AddEquipmentExpenseForm = ({
         slot: z.any().optional(),
       },
       {
-        required_error: t.validation.form.required,
-        invalid_type_error: t.validation.form.select,
+        required_error: "This field is required",
+        invalid_type_error: "Invalid type",
       }
     ),
     amount: z.number({
-      required_error: t.validation.form.required,
+      required_error: "This field is required",
     }),
     usage: z.number({
-      required_error: t.validation.form.required,
+      required_error: "This field is required",
     }),
     purchaseDate: z.date({
-      required_error: t.validation.form.required,
+      required_error: "This field is required",
     }),
     name: z
       .string({
-        required_error: t.validation.form.required,
+        required_error: "This field is required",
       })
       .min(1, {
-        message: t.validation.form.required,
+        message: "This field is required",
       }),
   });
 
@@ -171,7 +169,7 @@ export const AddEquipmentExpenseForm = ({
       {
         onError: () => {
           toast({
-            title: t.validation.error["create-failed"],
+            title: "Failed to create expense",
             variant: "destructive",
           });
         },
@@ -180,7 +178,7 @@ export const AddEquipmentExpenseForm = ({
   }
   return (
     <form
-      className="p-3 flex flex-col justify-between h-full"
+      className='flex h-full flex-col justify-between p-3'
       onSubmit={handleSubmit(onSubmit)}
     >
       <div className="flex w-full justify-between">
@@ -190,8 +188,8 @@ export const AddEquipmentExpenseForm = ({
             control={control}
             render={({ field }) => (
               <Combobox
-                placeholder={t.expenses.form.category}
-                searchPlaceholder={t.common["search"]}
+                placeholder="Select category"
+                searchPlaceholder="Search"
                 options={categoriesList}
                 value={field.value || undefined}
                 onChange={(option: SelectOption | SelectOption[]) => {
@@ -199,7 +197,7 @@ export const AddEquipmentExpenseForm = ({
                     field.onChange(option);
                   }
                 }}
-                emptyMessage={t.common["not-found"]}
+                emptyMessage="No items found"
                 errors={
                   errors?.category?.message
                     ? { message: errors.category.message }
@@ -210,15 +208,16 @@ export const AddEquipmentExpenseForm = ({
           />
         </div>
         <button
+          type="button"
           className={closeButton()}
           onClick={() => {
             setIsActive(false);
           }}
         >
-          <Icon name="close" className="w-4 h-4" label="close" color="body" />
+          <Icon name="close" className='h-4 w-4' label="close" color="body" />
         </button>
       </div>
-      <div>
+      <div className='flex h-full flex-col justify-between p-3'>
         <div className="flex flex-col gap-2">
           <Controller
             control={control}
@@ -228,7 +227,7 @@ export const AddEquipmentExpenseForm = ({
                 <Label>Nome do equipamento</Label>
                 <Input
                   variant="secondary"
-                  placeholder={t.expenses.form.name}
+                  placeholder="Enter name"
                   className="w-full"
                   id="name"
                   {...field}
@@ -265,12 +264,12 @@ export const AddEquipmentExpenseForm = ({
             )}
           />
 
-          <div className="flex w-full gap-2 justify-between">
+          <div className='flex w-full justify-between gap-2'>
             <Controller
               control={control}
               name="purchaseDate"
               render={({ field }) => (
-                <div className="space-y-2 w-full">
+                <div className='w-full space-y-2'>
                   <Label>Data de compra</Label>
                   <DatePicker
                     {...field}
@@ -292,16 +291,16 @@ export const AddEquipmentExpenseForm = ({
               control={control}
               name="lifeSpan"
               render={({ field }) => (
-                <div className="space-y-2 w-full h-full">
-                  <Label>Tempo de uso</Label>
+                <div className='h-full w-full space-y-2'>
+                  <Label>Tempo de vida útil</Label>
                   <NumberInput
                     variant="secondary"
-                    className="bg-ring/60 h-full"
-                    suffix={t.common.period.months}
+                    className='h-full bg-ring/60'
+                    suffix="years"
                     {...field}
                     errors={
-                      errors?.purchaseDate?.message
-                        ? { message: errors.purchaseDate.message }
+                      errors?.lifeSpan?.message
+                        ? { message: errors.lifeSpan.message }
                         : undefined
                     }
                   />
@@ -315,7 +314,7 @@ export const AddEquipmentExpenseForm = ({
               <i>
                 <Icon name="plus" label="add" color="on-dark" />
               </i>
-              {t.expenses.actions["add-expense"]}
+              Add Expense
             </Button>
           </div>
         </div>

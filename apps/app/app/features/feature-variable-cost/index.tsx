@@ -1,25 +1,22 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { parseCookies } from "nookies";
+import { useViewPreferenceStore } from "@/app/store/view-preference-store";
+import type { EquipmentExpenseItem } from "@/app/types";
 import {
   DndContext,
-  DragEndEvent,
-  DragStartEvent,
+  type DragEndEvent,
+  type DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
+  arrayMove,
 } from "@dnd-kit/core";
-import { arrayMove, SortableContext } from "@dnd-kit/sortable";
+import { SortableContext } from "@dnd-kit/sortable";
 import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
-
-import { useCurrencyStore } from "@/app/store/currency-store";
-import { EquipmentExpenseItem } from "@/app/types";
-import { getTranslations } from "@/utils/translations";
-import { useViewPreferenceStore } from "@/app/store/view-preference-store";
-import { useGetEquipmentExpenses } from "./server/get-equipment-expenses";
-import { LoadingView } from "../feature-hourly-cost/loading-view";
+import { useEffect, useMemo, useState } from "react";
 import { GridView } from "./grid-view";
+import { LoadingView } from "../feature-hourly-cost/loading-view";
+import { useGetEquipmentExpenses } from "./server/get-equipment-expenses";
 
 type GridViewProps = {
   userId: string;
@@ -27,14 +24,9 @@ type GridViewProps = {
 
 export const VariableCostView = ({ userId }: GridViewProps) => {
   const { viewPreference } = useViewPreferenceStore();
-
-  const t = getTranslations();
-  const { data: initialExpenses, isLoading: isLoadingExpenses } =
-    useGetEquipmentExpenses({ userId });
+  const { data: initialExpenses, isLoading: isLoadingExpenses } = useGetEquipmentExpenses({ userId });
   const [expenses, setExpenses] = useState<EquipmentExpenseItem[] | []>([]);
-  const [activeCard, setActiveCard] = useState<EquipmentExpenseItem | null>(
-    null
-  );
+  const [activeCard, setActiveCard] = useState<EquipmentExpenseItem | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -78,34 +70,18 @@ export const VariableCostView = ({ userId }: GridViewProps) => {
     if (!over) return;
     if (active.id === over.id) return;
 
-    setExpenses((expenses) => {
+    setExpenses((expenses: EquipmentExpenseItem[]) => {
       const activeIndex = expenses.findIndex(
-        (expense) => expense.id === active.id
+        (expense: EquipmentExpenseItem) => expense.id === active.id
       );
-      const overIndex = expenses.findIndex((expense) => expense.id === over.id);
+      const overIndex = expenses.findIndex((expense: EquipmentExpenseItem) => expense.id === over.id);
       const newExpenses = arrayMove(expenses, activeIndex, overIndex);
 
-      const updatedExpenses = newExpenses.map((expense, index) => ({
+      const updatedExpenses = newExpenses.map((expense: EquipmentExpenseItem, index: number) => ({
         ...expense,
         rank: index + 1,
       }));
 
-      // updateBatchExpenses(
-      //   {
-      //     json: {
-      //       updates: updatedExpenses.map((expense) => ({
-      //         id: expense.id,
-      //         data: { rank: expense.rank },
-      //       })),
-      //       userId,
-      //     },
-      //   },
-      //   {
-      //     onError: () => {
-      //       toast({
-      //         title: t.validation.error["update-failed"],
-      //         variant: "destructive",
-      //       });
       //     },
       //   }
       // );
@@ -125,7 +101,7 @@ export const VariableCostView = ({ userId }: GridViewProps) => {
             onDragStart={onDragStart}
             onDragEnd={onDragEnd}
           >
-            <div className="p-2 w-full">
+            <div className='w-full p-2'>
               <SortableContext items={cardsId}>
                 {expenses && viewPreference === "grid" && (
                   <GridView

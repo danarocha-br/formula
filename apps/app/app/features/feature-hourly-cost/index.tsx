@@ -11,7 +11,6 @@ import { useCurrencyStore } from "@/app/store/currency-store";
 import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
 import { useViewPreferenceStore } from "@/app/store/view-preference-store";
 import type { ExpenseItem } from "@/app/types";
-import { getTranslations } from "@/utils/translations";
 import { BillableCosts } from "../feature-billable-cost";
 import { VariableCostView } from "../feature-variable-cost";
 import { AnalyticsView } from "./analytics-view";
@@ -24,7 +23,7 @@ type Props = {
 };
 
 export const FeatureHourlyCost = ({ userId }: Props) => {
-  const t = getTranslations();
+  const { t } = useTranslations();
   const { data: initialExpenses, isLoading: isLoadingExpenses } =
     useGetFixedExpenses({ userId });
 
@@ -106,10 +105,10 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
                 <Icon
                   name="work"
                   size="sm"
-                  label={t.navigation["bottom-level"]["fixed-cost"]}
+                  label={t("navigation.bottom-level.fixed-cost")}
                   color="current"
                 />
-                {t.navigation["bottom-level"]["fixed-cost"]}
+                {t("navigation.bottom-level.fixed-cost")}
               </TabButton>
               <TabButton
                 isActive={expenseTypeView === "variable"}
@@ -118,10 +117,10 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
                 <Icon
                   name="work"
                   size="sm"
-                  label={t.navigation["bottom-level"]["variable-cost"]}
+                  label={t("navigation.bottom-level.variable-cost")}
                   color="current"
                 />
-                {t.navigation["bottom-level"]["variable-cost"]}
+                {t("navigation.bottom-level.variable-cost")}
               </TabButton>
             </div>
 
@@ -132,7 +131,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
                 currency={selectedCurrency.code}
                 locale={selectedCurrency.locale}
               />
-              / {t.expenses.billable.breakeven["per-month"]}
+              / {t("expenses.billable.breakeven.per-month")}
             </div>
           </div>
         </div>
@@ -146,7 +145,7 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
             <BillableCosts userId={userId} />
 
             <div className='sticky bottom-0 mt-auto flex h-[54px] w-full items-center justify-between rounded-b-md bg-purple-200 px-5 py-4'>
-              <p>{t.expenses.billable.total.title}</p>
+              <p>{t("expenses.billable.total.title")}</p>
               <AnimatedNumber
                 className='font-semibold text-2xl '
                 value={hourlyCost}

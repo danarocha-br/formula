@@ -1,28 +1,28 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { parseCookies } from "nookies";
-import { EquipmentCard } from "@repo/design-system/components/ui/equipment-card";
 import {
   DndContext,
-  DragEndEvent,
-  DragStartEvent,
+  type DragEndEvent,
+  type DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { arrayMove, SortableContext } from "@dnd-kit/sortable";
+import { SortableContext, arrayMove } from "@dnd-kit/sortable";
+import { EquipmentCard } from "@repo/design-system/components/ui/equipment-card";
+import { parseCookies } from "nookies";
+import type React from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useCurrencyStore } from "@/app/store/currency-store";
-import { formatCurrency } from "@/utils/format-currency";
-import { EquipmentExpenseItem } from "@/app/types";
-import { getTranslations } from "@/utils/translations";
-import { useGetEquipmentExpenses } from "../server/get-equipment-expenses";
-import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
-import { LoadingView } from "../../feature-hourly-cost/loading-view";
 import { useViewPreferenceStore } from "@/app/store/view-preference-store";
+import type { EquipmentExpenseItem } from "@/app/types";
+import { formatCurrency } from "@/utils/format-currency";
+import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
 import { useToast } from "@repo/design-system/hooks/use-toast";
+import { LoadingView } from "../../feature-hourly-cost/loading-view";
 import { EmptyView } from "../empty-view";
+import { useGetEquipmentExpenses } from "../server/get-equipment-expenses";
 
 type GridViewProps = {
   expenses: EquipmentExpenseItem[];
@@ -39,7 +39,7 @@ export const GridView = ({ userId, loading }: GridViewProps) => {
   const { selectedCurrency } = useCurrencyStore();
   const { viewPreference } = useViewPreferenceStore();
 
-  const t = getTranslations();
+  const { t } = useTranslations();
   const { data: initialExpenses, isLoading: isLoadingExpenses } =
     useGetEquipmentExpenses({ userId });
   const [expenses, setExpenses] = useState<EquipmentExpenseItem[] | []>([]);
@@ -130,7 +130,7 @@ export const GridView = ({ userId, loading }: GridViewProps) => {
       {loading ? (
         <LoadingView />
       ) : (
-        <section className="relative @container">
+        <section className='@container relative'>
           <DndContext
             sensors={sensors}
             onDragStart={onDragStart}
@@ -141,7 +141,7 @@ export const GridView = ({ userId, loading }: GridViewProps) => {
                 {expenses &&
                 viewPreference === "grid" &&
                 expenses.length > 0 ? (
-                  <div className="w-full text-card-foreground grid gap-2 @[380px]:grid-cols-1 @[800px]:grid-cols-2 @[1200px]:grid-cols-3">
+                  <div className='grid w-full @[1200px]:grid-cols-3 @[380px]:grid-cols-1 @[800px]:grid-cols-2 gap-2 text-card-foreground'>
                     <EquipmentCard
                       data={{
                         name: "Macbook Pro 14",

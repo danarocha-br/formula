@@ -1,15 +1,17 @@
 "use client";
 
-import { cn } from "@repo/design-system/lib/utils";
-import { Navigation } from "@repo/design-system/components/ui/navigation";
-import { usePathname, useRouter } from "next/navigation";
+import React from "react";
 import { useCurrencyStore } from "@/app/store/currency-store";
+import { useTranslations } from "@/hooks/use-translation";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { UserButton } from "@clerk/nextjs";
 import {
   Combobox,
-  SelectOption,
+  type SelectOption,
 } from "@repo/design-system/components/ui/combobox";
-import { getTranslations } from "@/utils/translations";
-import { UserButton } from "@clerk/nextjs";
+import { Navigation } from "@repo/design-system/components/ui/navigation";
+import { cn } from "@repo/design-system/lib/utils";
+import { usePathname, useRouter } from "next/navigation";
 import { DockNavigation } from "./dock";
 
 type HeaderProps = {
@@ -25,15 +27,15 @@ export const Header = ({ items }: HeaderProps) => {
   const router = useRouter();
   const { currencies, selectedCurrency, setSelectedCurrency } =
     useCurrencyStore();
-  const t = getTranslations();
+  const { t } = useTranslations();
 
   const navigate = (href: string) => {
     router.push(href);
   };
 
   return (
-    <header className="bg-subdued h-12 w-full flex gap-2 rounded-md items-center justify-between px-2">
-      <Navigation as="nav" className='w-auto'>
+    <header className='flex h-12 w-full items-center justify-between gap-2 rounded-md bg-subdued px-2'>
+      <Navigation as="div" className="flex w-auto items-center justify-between bg-subdued">
         {({ ready, size, position, duration }) => (
           <div className="relative">
             <div
@@ -64,7 +66,7 @@ export const Header = ({ items }: HeaderProps) => {
                     onActivated={() => navigate(item.href)}
                   >
                     {({ setActive }) => (
-                      <button onClick={setActive}>
+                      <button type="button" onClick={setActive}>
                         {item.icon && item.icon}
                         <span>{item.label}</span>
                       </button>
@@ -80,16 +82,18 @@ export const Header = ({ items }: HeaderProps) => {
       <DockNavigation />
 
       <div className="flex items-center gap-2">
+        <LanguageSwitcher />
+
         <div>
           <Combobox
-            searchPlaceholder={t.common["search"]}
+            searchPlaceholder={t("common.search")}
             options={currencies
               .sort((a, b) => a.code.localeCompare(b.code))
               .map((currency) => ({
                 label: currency.code,
                 value: currency.code,
                 slot: (
-                  <b className="text-xs bg-neutral-900/15 w-8 h-8 flex items-center justify-center rounded-full">
+                  <b className='flex h-8 w-8 items-center justify-center rounded-full bg-neutral-900/15 text-xs'>
                     {currency.symbol}
                   </b>
                 ),
@@ -106,7 +110,7 @@ export const Header = ({ items }: HeaderProps) => {
                 if (currency) setSelectedCurrency(currency);
               }
             }}
-            emptyMessage={t.common["not-found"]}
+            emptyMessage={t("common.not-found")}
             triggerClassName="bg-transparent w-24 rounded-md pl-1 mr-6 text-foreground"
           />
         </div>

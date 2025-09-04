@@ -1,32 +1,31 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
+import React, { useEffect, useMemo, useState } from "react";
 
-import { ExpenseItem } from "@/app/types";
-import { getTranslations } from "@/utils/translations";
+import { FIXED_COST_CATEGORIES } from "@/app/constants";
+import { useViewPreferenceStore } from "@/app/store/view-preference-store";
+import type { ExpenseItem } from "@/app/types";
 import {
   DndContext,
-  DragEndEvent,
+  type DragEndEvent,
   DragOverlay,
-  DragStartEvent,
+  type DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { useToast } from "@repo/design-system/hooks/use-toast";
-import { useDeleteFixedExpenses } from "../server/delete-fixed-expenses";
-import { useUpdateBatchFixedExpense } from "../server/update-batch-fixed-expenses";
-import { FIXED_COST_CATEGORIES } from "@/app/constants";
-import { arrayMove, SortableContext } from "@dnd-kit/sortable";
-import { useViewPreferenceStore } from "@/app/store/view-preference-store";
+import { SortableContext, arrayMove } from "@dnd-kit/sortable";
+import { ItemCard } from "@repo/design-system/components/ui/item-card";
 import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
 import { LoadingView } from "../loading-view";
-import { Grid } from "./grid";
-import { TableView } from "../table-view";
+import { useToast } from "@repo/design-system/hooks/use-toast";
 import { createPortal } from "react-dom";
-import { ItemCard } from "@repo/design-system/components/ui/item-card";
-import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
+import { useDeleteFixedExpenses } from "../server/delete-fixed-expenses";
+import { useUpdateBatchFixedExpense } from "../server/update-batch-fixed-expenses";
+import { TableView } from "../table-view";
+import { Grid } from "./grid";
+import { useTranslations } from "@/hooks/use-translation";
 
 const DragOverlayWrapper = dynamic(
   () =>
@@ -71,7 +70,7 @@ export const GridView = ({
   userId,
   loading = false,
 }: GridViewProps) => {
-  const t = getTranslations();
+  const { t } = useTranslations();
   const [activeCard, setActiveCard] = useState<ExpenseItem | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const { toast } = useToast();
@@ -177,7 +176,7 @@ export const GridView = ({
         {
           onError: () => {
             toast({
-              title: t.validation.error["update-failed"],
+              title: t("validation.error.update-failed"),
               variant: "destructive",
             });
           },
@@ -194,7 +193,7 @@ export const GridView = ({
       {
         onError: () => {
           toast({
-            title: t.validation.error["delete-failed"],
+            title: t("validation.error.delete-failed"),
             variant: "destructive",
           });
         },
@@ -211,8 +210,8 @@ export const GridView = ({
   }, []);
 
   return (
-    <ScrollArea.Root className="h-[calc(100vh-7.7rem)]">
-      <div className="w-full text-card-foreground @container">
+    <ScrollArea className="h-[calc(100vh-7.7rem)]">
+      <div className="@container w-full text-card-foreground">
         {loading ? (
           <LoadingView />
         ) : (
@@ -222,7 +221,7 @@ export const GridView = ({
               onDragStart={onDragStart}
               onDragEnd={onDragEnd}
             >
-              <div className="p-2 w-full">
+              <div className="w-full p-2">
                 <SortableContext items={cardsId}>
                   {expenses && viewPreference === "grid" && (
                     <Grid
@@ -255,6 +254,6 @@ export const GridView = ({
           </section>
         )}
       </div>
-    </ScrollArea.Root>
+    </ScrollArea>
   );
 };
