@@ -47,12 +47,9 @@ export const useUpdateBillableExpense = () => {
 
       // Optimistically update the expense in the cache
       queryClient.setQueryData(queryKey, (old: any) => {
-        if (!old) return [];
-        return old.map((expense: any) =>
-          expense.id === updatedExpense.id
-            ? { ...expense, ...updatedExpense }
-            : expense
-        );
+        if (!old) {return null};
+        // The data is a single object, not an array
+        return { ...old, ...updatedExpense };
       });
 
       // Return a context object with the snapshotted value

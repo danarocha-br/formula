@@ -39,14 +39,25 @@ const handleUserCreated = async (data: UserJSON) => {
     })
   );
 
+  // Calculate default billable hours
+  const defaultWorkDays = 5;
+  const defaultHoursPerDay = 6;
+  const defaultHolidaysDays = 12;
+  const defaultVacationsDays = 30;
+  const defaultSickLeaveDays = 3;
+  const defaultTimeOff = defaultHolidaysDays + defaultVacationsDays + defaultSickLeaveDays;
+  const defaultWorkDaysPerYear = defaultWorkDays * 52;
+  const defaultActualWorkDays = defaultWorkDaysPerYear - defaultTimeOff;
+  const defaultBillableHours = defaultActualWorkDays * defaultHoursPerDay;
+
   await billableExpensesRepository.create({
     userId: data.id,
-    workDays: 5,
-    holidaysDays: 12,
-    vacationsDays: 30,
-    sickLeaveDays: 3,
-    billableHours: 0,
-    hoursPerDay: 6,
+    workDays: defaultWorkDays,
+    holidaysDays: defaultHolidaysDays,
+    vacationsDays: defaultVacationsDays,
+    sickLeaveDays: defaultSickLeaveDays,
+    billableHours: defaultBillableHours,
+    hoursPerDay: defaultHoursPerDay,
     monthlySalary: 0,
     taxes: 0,
     fees: 0,
@@ -57,12 +68,12 @@ const handleUserCreated = async (data: UserJSON) => {
     BillableCostCacheKeys.billableCost(data.id),
     JSON.stringify({
       userId: data.id,
-      workDays: 5,
-      holidaysDays: 12,
-      vacationsDays: 30,
-      sickLeaveDays: 3,
-      billableHours: 0,
-      hoursPerDay: 6,
+      workDays: defaultWorkDays,
+      holidaysDays: defaultHolidaysDays,
+      vacationsDays: defaultVacationsDays,
+      sickLeaveDays: defaultSickLeaveDays,
+      billableHours: defaultBillableHours,
+      hoursPerDay: defaultHoursPerDay,
       monthlySalary: 0,
       taxes: 0,
       fees: 0,

@@ -69,14 +69,36 @@ export const expensesBillableCosts = new Hono()
       const cacheRepository = new RedisCacheRepository();
 
       try {
+        // Check if billable cost already exists for this user
+        const existingExpense = await repository.findByUserId(userId);
+        if (existingExpense) {
+          // If it already exists, return it instead of creating a new one
+          return c.json({
+            status: 200,
+            success: true,
+            data: existingExpense,
+          });
+        }
+
+        // Calculate default billable hours
+        const defaultWorkDays = 5;
+        const defaultHoursPerDay = 6;
+        const defaultHolidaysDays = 12;
+        const defaultVacationsDays = 30;
+        const defaultSickLeaveDays = 3;
+        const defaultTimeOff = defaultHolidaysDays + defaultVacationsDays + defaultSickLeaveDays;
+        const defaultWorkDaysPerYear = defaultWorkDays * 52;
+        const defaultActualWorkDays = defaultWorkDaysPerYear - defaultTimeOff;
+        const defaultBillableHours = defaultActualWorkDays * defaultHoursPerDay;
+
         const billableCostExpenses = await repository.create({
           userId,
-          workDays: 5,
-          holidaysDays: 12,
-          vacationsDays: 30,
-          sickLeaveDays: 3,
-          billableHours: 0,
-          hoursPerDay: 6,
+          workDays: defaultWorkDays,
+          holidaysDays: defaultHolidaysDays,
+          vacationsDays: defaultVacationsDays,
+          sickLeaveDays: defaultSickLeaveDays,
+          billableHours: defaultBillableHours,
+          hoursPerDay: defaultHoursPerDay,
           monthlySalary: 0,
           taxes: 0,
           fees: 0,
@@ -95,6 +117,27 @@ export const expensesBillableCosts = new Hono()
         });
       } catch (error) {
         console.error("Failed to create billable expense:", error);
+        
+        // Handle specific Prisma constraint errors
+        if (error instanceof Error) {
+          if (error.message.includes('Unique constraint')) {
+            console.log('Billable expense already exists for user:', userId);
+            // Try to fetch the existing record instead
+            try {
+              const existingRecord = await repository.findByUserId(userId);
+              if (existingRecord) {
+                return c.json({
+                  status: 200,
+                  success: true,
+                  data: existingRecord,
+                });
+              }
+            } catch (fetchError) {
+              console.error('Failed to fetch existing record:', fetchError);
+            }
+          }
+        }
+        
         return c.json({
           status: 400,
           success: false,

@@ -20,7 +20,8 @@ export const useGetBillableExpenses = ({ userId }: UseGetBillableExpensesParams)
       const responseData = await response.json();
 
       if (responseData.success !== true) {
-        throw new Error("Failed to fetch billable expenses");
+        console.error('Failed to fetch billable expenses:', responseData);
+        throw new Error(responseData.error || "Failed to fetch billable expenses");
       }
 
       return responseData.data;
@@ -28,6 +29,14 @@ export const useGetBillableExpenses = ({ userId }: UseGetBillableExpensesParams)
     enabled: !!userId,
     staleTime: 3 * 60 * 1000, // 3 minutes - billable expenses change more frequently
     gcTime: 8 * 60 * 1000, // 8 minutes
+    retry: (failureCount, error) => {
+      // Don't retry on 404 or auth errors, but do retry on network errors
+      if (error.message?.includes('404') || error.message?.includes('Unauthorized')) {
+        return false;
+      }
+      return failureCount < 2; // Only retry twice
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Exponential backoff
   });
 };
 

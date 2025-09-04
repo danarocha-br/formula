@@ -59,7 +59,17 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
     reset,
     formState: { isDirty },
   } = useForm<BillableCostsForm>({
-    defaultValues: undefined,
+    defaultValues: {
+      work_days: 5,
+      hours_per_day: 6,
+      holiday_days: 12,
+      vacation_days: 30,
+      sick_leave: 3,
+      monthly_salary: 0,
+      taxes: 0,
+      fees: 0,
+      margin: 0,
+    },
   });
 
   useEffect(() => {
@@ -76,39 +86,39 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
         fees: initialExpenses.fees,
         margin: initialExpenses.margin,
       });
-    } else if (initialExpenses === null) {
-      createBillableExpenses(
-        {
-          json: {
-            userId: userId,
-          },
-        },
-        {
-          onError: () => {
-            toast({
-              title: t("validation.error.create-failed"),
-              variant: "destructive",
-            });
-          },
-        }
-      );
-    } else {
-      // Only set default values if no DB values exist
-      reset({
-        work_days: 5,
-        hours_per_day: 6,
-        holiday_days: 12,
-        vacation_days: 30,
-        sick_leave: 3,
-        monthly_salary: 0,
-        taxes: 0,
-        fees: 0,
-        margin: 0,
-      });
     }
+    // Note: OnboardingProvider handles initialization, so we don't need to create here
   }, [initialExpenses, reset]);
 
   const formData = watch();
+
+  const calculateMetrics = useCallback(
+    (data: BillableCostsForm): Calculations => {
+      // Provide fallbacks for undefined values
+      const workDays = data?.work_days || 5;
+      const hoursPerDay = data?.hours_per_day || 6;
+      const holidayDays = data?.holiday_days || 12;
+      const vacationDays = data?.vacation_days || 30;
+      const sickLeave = data?.sick_leave || 3;
+      
+      const timeOff = holidayDays + vacationDays + sickLeave;
+      const workDaysPerYear = workDays * 52;
+      const actualWorkDays = Math.max(0, workDaysPerYear - timeOff); // Ensure non-negative
+      const billableHours = Math.max(0, actualWorkDays * hoursPerDay); // Ensure non-negative
+
+      return {
+        timeOff,
+        actualWorkDays,
+        billableHours,
+      };
+    },
+    []
+  );
+
+  const hourlyCalculations = useMemo(
+    () => calculateMetrics(formData),
+    [formData]
+  );
 
   const updatePayload = useMemo(
     () => ({
@@ -123,9 +133,10 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
         taxes: formData.taxes,
         fees: formData.fees,
         margin: formData.margin,
+        billableHours: hourlyCalculations.billableHours, // Include calculated billable hours
       },
     }),
-    [userId, formData]
+    [userId, formData, hourlyCalculations.billableHours]
   );
 
   useDebounce(
@@ -136,8 +147,13 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
         formData.work_days &&
         initialExpenses !== null
       ) {
+        console.log('Updating billable expenses with payload:', updatePayload);
         updateBillableExpenses(updatePayload, {
-          onError: () => {
+          onSuccess: (data) => {
+            console.log('Successfully updated billable expenses:', data);
+          },
+          onError: (error) => {
+            console.error('Failed to update billable expenses:', error);
             toast({
               title: t("validation.error.update-failed"),
               variant: "destructive",
@@ -148,27 +164,6 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
     },
     1000,
     [formData, isLoadingExpenses, userId, isDirty]
-  );
-
-  const calculateMetrics = useCallback(
-    (data: BillableCostsForm): Calculations => {
-      const timeOff = data.holiday_days + data.vacation_days + data.sick_leave;
-      const workDaysPerYear = data.work_days * 52;
-      const actualWorkDays = workDaysPerYear - timeOff;
-      const billableHours = actualWorkDays * data.hours_per_day;
-
-      return {
-        timeOff,
-        actualWorkDays,
-        billableHours,
-      };
-    },
-    []
-  );
-
-  const hourlyCalculations = useMemo(
-    () => calculateMetrics(formData),
-    [formData]
   );
 
   const breakEvenMetrics = useMemo(

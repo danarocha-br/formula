@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 
 interface BreakEvenInput {
   billableHours: number;
@@ -27,6 +27,13 @@ const roundToTwoDecimals = (value: number): number => {
   return Math.round(value * 100) / 100;
 };
 
+const safeNumber = (value: number): number => {
+  if (Number.isNaN(value) || !Number.isFinite(value)) {
+    return 0;
+  }
+  return value;
+};
+
 export const useBreakEvenCalculator = (
   input: BreakEvenInput
 ): BreakEvenCalculations => {
@@ -41,23 +48,35 @@ export const useBreakEvenCalculator = (
     workDays,
   } = input;
 
-  const yearlySalary = monthlySalary * 12;
-  const totalYearlyExpenses = totalExpensesCostPerMonth * 12;
+  const yearlySalary = safeNumber(monthlySalary) * 12;
+  const totalYearlyExpenses = safeNumber(totalExpensesCostPerMonth) * 12;
   const totalExpenses = yearlySalary + totalYearlyExpenses;
 
-  const totalYearlyTaxes = calculateTaxes(totalExpenses, taxRate);
+  const totalYearlyTaxes = calculateTaxes(totalExpenses, safeNumber(taxRate));
   const totalYearlyCosts =
     yearlySalary + totalYearlyTaxes + totalYearlyExpenses;
 
-  const baseHourlyRate = totalYearlyCosts / billableHours;
-  const marginMultiplier = 1 + margin / 100;
-  const hourlyRate = baseHourlyRate * marginMultiplier;
-  const dayRate = hourlyRate * hoursPerDay;
-  const weekRate = dayRate * workDays;
-  const monthlyRate = (hourlyRate * billableHours) / 12;
+  // Prevent division by zero - if billableHours is 0 or invalid, return 0 for all rates
+  const safeBillableHours = safeNumber(billableHours);
+  if (safeBillableHours <= 0) {
+    return {
+      breakEven: roundToTwoDecimals(totalYearlyCosts),
+      hourlyRate: 0,
+      dayRate: 0,
+      weekRate: 0,
+      monthlyRate: 0,
+    };
+  }
+
+  const baseHourlyRate = totalYearlyCosts / safeBillableHours;
+  const marginMultiplier = 1 + safeNumber(margin) / 100;
+  const hourlyRate = safeNumber(baseHourlyRate * marginMultiplier);
+  const dayRate = safeNumber(hourlyRate * safeNumber(hoursPerDay));
+  const weekRate = safeNumber(dayRate * safeNumber(workDays));
+  const monthlyRate = safeNumber((hourlyRate * safeBillableHours) / 12);
 
   return {
-    breakEven: roundToTwoDecimals(totalYearlyCosts),
+    breakEven: roundToTwoDecimals(safeNumber(totalYearlyCosts)),
     hourlyRate: roundToTwoDecimals(hourlyRate),
     dayRate: roundToTwoDecimals(dayRate),
     weekRate: roundToTwoDecimals(weekRate),

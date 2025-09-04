@@ -55,6 +55,7 @@ export const ClerkProvider = (
       </Script>
       <ClerkProviderRaw
         {...props}
+        dynamic
         appearance={{ baseTheme, variables, elements }}
       >
         {props.children}
