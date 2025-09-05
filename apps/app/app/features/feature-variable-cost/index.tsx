@@ -1,86 +1,57 @@
 "use client";
 
 import { useViewPreferenceStore } from "@/app/store/view-preference-store";
-import type { EquipmentExpenseItem } from "@/app/types";
-import {
-  DndContext,
-  type DragEndEvent,
-  type DragStartEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
-import { useEffect, useMemo, useState } from "react";
 import { LoadingView } from "../feature-hourly-cost/loading-view";
 import { GridView } from "./grid-view";
-import { useGetEquipmentExpenses } from "./server/get-equipment-expenses";
+import { useStableEquipment } from "@/hooks/use-stable-equipment";
+import { useExpenseComponentSafeguards } from "@/utils/use-effect-safeguards";
+import { useMemoryLeakDetection } from "@/utils/memory-leak-detection";
+import { useRenderFrequencyMonitor } from "@/utils/re-render-monitoring";
+import { useEffect } from "react";
 
 type GridViewProps = {
   userId: string;
 };
 
 export const VariableCostView = ({ userId }: GridViewProps) => {
+  // Performance safeguards for equipment cost feature
+  const {
+    isComponentHealthy,
+    healthReport,
+  } = useExpenseComponentSafeguards('VariableCostView', 'equipment-expenses', {
+    maxRenders: 30,
+    enableMemoryTracking: true,
+  });
+
+  // Memory leak detection
+  const { registerCleanup } = useMemoryLeakDetection('VariableCostView');
+
+  // Render frequency monitoring
+  const { isExcessive } = useRenderFrequencyMonitor('VariableCostView');
+
   const { viewPreference } = useViewPreferenceStore();
-  const { data: initialExpenses, isLoading: isLoadingExpenses } = useGetEquipmentExpenses({ userId });
-  const [expenses, setExpenses] = useState<EquipmentExpenseItem[] | []>([]);
-  const [activeCard, setActiveCard] = useState<EquipmentExpenseItem | null>(null);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const { isLoading: isLoadingExpenses } = useStableEquipment({ userId });
 
+  // Log component health in development
   useEffect(() => {
-    if (initialExpenses) {
-      const sortedExpenses = [...initialExpenses].sort(
-        (a, b) => (a.rank ?? 0) - (b.rank ?? 0)
-      );
-      setExpenses(sortedExpenses);
+    if (process.env.NODE_ENV === 'development' && (!isComponentHealthy || isExcessive)) {
+      console.warn('VariableCostView component health warning:', {
+        isComponentHealthy,
+        isExcessive,
+        healthReport,
+      });
     }
-  }, [initialExpenses]);
+  }, [isComponentHealthy, isExcessive, healthReport]);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 3,
-      },
-    })
-  );
-
-  const cardsId = useMemo(() => expenses.map((item) => item.id), [expenses]);
-
-  function onDragStart(event: DragStartEvent) {
-    const { active } = event;
-
-    if (active.data.current?.type === "card") {
-      setActiveCard(active.data.current.data);
-      return;
-    }
-  }
-
-  function onDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-
-    if (!over) {
-      return;
-    }
-    if (active.id === over.id) {
-      return;
-    }
-
-    setExpenses((expenses: EquipmentExpenseItem[]) => {
-      const activeIndex = expenses.findIndex(
-        (expense: EquipmentExpenseItem) => expense.id === active.id
-      );
-      const overIndex = expenses.findIndex((expense: EquipmentExpenseItem) => expense.id === over.id);
-      const newExpenses = arrayMove(expenses, activeIndex, overIndex);
-
-      const updatedExpenses = newExpenses.map((expense: EquipmentExpenseItem, index: number) => ({
-        ...expense,
-        rank: index + 1,
-      }));
-
-      return updatedExpenses;
+  // Register cleanup for component unmount
+  useEffect(() => {
+    const cleanup = registerCleanup(() => {
+      console.log('Cleaning up VariableCostView component');
     });
-  }
+
+    return cleanup;
+  }, [registerCleanup]);
 
   return (
     <ScrollArea.Root className="h-[calc(100vh-7.7rem)]">
@@ -88,19 +59,11 @@ export const VariableCostView = ({ userId }: GridViewProps) => {
         <LoadingView />
       ) : (
         <section className="relative">
-          <DndContext
-            sensors={sensors}
-            onDragStart={onDragStart}
-            onDragEnd={onDragEnd}
-          >
-            <div className='w-full p-2'>
-              <SortableContext items={cardsId}>
-                {expenses && viewPreference === "grid" && (
-                  <GridView userId={userId} />
-                )}
-              </SortableContext>
-            </div>
-          </DndContext>
+          <div className='w-full p-2'>
+            {viewPreference === "grid" && (
+              <GridView userId={userId} />
+            )}
+          </div>
         </section>
       )}
     </ScrollArea.Root>

@@ -1,12 +1,56 @@
-# Query Cache Utils
+# Utils Directory
 
-This directory contains utilities for managing React Query cache operations to prevent stack overflow issues and improve performance.
+This directory contains utilities for managing React Query cache operations, performance monitoring, and debugging tools to prevent stack overflow issues and improve performance across all expense management features.
 
-## Files
+## 📚 Documentation
 
-- **`query-cache-utils.ts`** - Main utility functions for precise cache management
+### **[React Query Optimization Documentation Index](./REACT_QUERY_OPTIMIZATION_INDEX.md)**
+
+**Start here** - Complete documentation suite for React Query optimization patterns, migration guides, performance optimization, and troubleshooting.
+
+### Core Documentation Files
+
+- **[React Query Optimization Guide](./REACT_QUERY_OPTIMIZATION_GUIDE.md)** - Primary reference for optimization patterns and best practices
+- **[Expense Feature Migration Guide](./EXPENSE_FEATURE_MIGRATION_GUIDE.md)** - Step-by-step guide for migrating features
+- **[Performance Optimization Guidelines](./PERFORMANCE_OPTIMIZATION_GUIDELINES.md)** - Comprehensive performance strategies
+- **[Cache Troubleshooting Guide](./CACHE_TROUBLESHOOTING_GUIDE.md)** - Troubleshooting guide for cache issues
+
+## 🛠️ Core Utilities
+
+### Cache Management
+
+- **`query-cache-utils.ts`** - Main utility functions for precise cache management (fixed expenses)
+- **`billable-cost-cache-utils.ts`** - Specialized utilities for billable cost cache management
+- **`equipment-cache-utils.ts`** - Specialized utilities for equipment expense cache management
+- **`generic-cache-utils.ts`** - Generic cache utilities framework for all expense types
+
+### Performance & Monitoring
+
+- **`performance-monitor.ts`** - Performance tracking and metrics collection
+- **`memory-leak-detection.ts`** - Memory leak detection and monitoring
+- **`automated-cache-cleanup.ts`** - Automated cache cleanup utilities
+- **`re-render-monitoring.ts`** - Component re-render frequency monitoring
+
+### Error Handling
+
+- **`cache-error-handling.ts`** - Standardized cache error handling
+- **`circuit-breaker.ts`** - Circuit breaker pattern for cache operations
+- **`retry-with-backoff.ts`** - Retry logic with exponential backoff
+
+### Debugging Tools
+
+- **`cache-operation-dashboard.tsx`** - Real-time cache operation dashboard
+- **`cache-state-inspector.ts`** - Cache state inspection utilities
+- **`performance-metrics-visualizer.tsx`** - Performance metrics visualization
+- **`debugging-tools-integration.tsx`** - Integrated debugging tools
+
+## 📋 Test Files
+
 - **`query-cache-utils.test.ts`** - Comprehensive test suite (26 tests)
-- **`query-cache-utils.example.ts`** - Usage examples and best practices
+- **`billable-cost-cache-utils.test.ts`** - Billable cost cache utilities tests
+- **`equipment-cache-utils.test.ts`** - Equipment cache utilities tests
+- **`generic-cache-utils.test.ts`** - Generic cache utilities tests
+- **Performance and integration test files** - Various performance and integration tests
 
 ## Key Features
 

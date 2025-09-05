@@ -2,19 +2,21 @@ import { ListItem } from "@/app/(authenticated)/components/list-item";
 import { useCurrencyStore } from "@/app/store/currency-store";
 import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
 import { useBreakEvenCalculator } from "@/hooks/use-break-even-calculator";
+import { useStableBillable } from "@/hooks/use-stable-billable";
 import { useTranslations } from "@/hooks/use-translation";
 import { formatCurrency } from "@/utils/format-currency";
+import { useExpenseComponentSafeguards } from "@/utils/use-effect-safeguards";
+import { useMemoryLeakDetection } from "@/utils/memory-leak-detection";
+import { useRenderFrequencyMonitor } from "@/utils/re-render-monitoring";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Heading } from "@repo/design-system/components/ui/heading";
 import { Icon } from "@repo/design-system/components/ui/icon";
 import { List } from "@repo/design-system/components/ui/list";
 import { SliderCard } from "@repo/design-system/components/ui/slider-card";
 import { useToast } from "@repo/design-system/hooks/use-toast";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo, useRef, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useDebounce } from "react-use";
-import { useCreateBillableExpense } from "./server/create-billable-expense";
-import { useGetBillableExpenses } from "./server/get-billable-expenses";
 import { useUpdateBillableExpense } from "./server/update-billable-expense";
 
 type BillableCostsForm = {
@@ -35,19 +37,36 @@ type Calculations = {
   billableHours: number;
 };
 
-type BreakEvenCalculations = {
-  breakEven: number;
-  hourlyRate: number;
-  dayRate: number;
-  weekRate: number;
-  monthlyRate: number;
-};
+
 
 export const BillableCosts = ({ userId }: { userId: string }) => {
-  const { data: initialExpenses, isLoading: isLoadingExpenses } =
-    useGetBillableExpenses({ userId });
+  // Performance safeguards for billable cost feature
+  const {
+    shouldExecuteMutation,
+    trackMutation,
+    isComponentHealthy,
+    healthReport,
+  } = useExpenseComponentSafeguards('BillableCosts', 'billable-expenses', {
+    maxRenders: 50,
+    maxMutations: 3,
+    enableMemoryTracking: true,
+  });
+
+  // Memory leak detection
+  const { registerCleanup } = useMemoryLeakDetection('BillableCosts');
+
+  // Render frequency monitoring
+  const { isExcessive } = useRenderFrequencyMonitor('BillableCosts');
+
+  // Use stable data selector for billable cost data
+  const {
+    billableData: initialExpenses,
+    isLoading: isLoadingExpenses,
+    isError,
+    error
+  } = useStableBillable({ userId });
+
   const { mutate: updateBillableExpenses } = useUpdateBillableExpense();
-  const { mutate: createBillableExpenses } = useCreateBillableExpense();
   const { t } = useTranslations();
   const { toast } = useToast();
 
@@ -72,10 +91,14 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
     },
   });
 
+  const formData = watch();
+  const hasResetRef = useRef(false);
+
+  // Effect for form reset - using stable billable data
   useEffect(() => {
-    if (initialExpenses) {
-      // Reset form with DB values when they're available
-      reset({
+    if (initialExpenses && !isLoadingExpenses && !hasResetRef.current) {
+      // Only reset form once when data is first loaded
+      const currentFormData = {
         work_days: initialExpenses.workDays,
         hours_per_day: initialExpenses.hoursPerDay,
         holiday_days: initialExpenses.holidaysDays,
@@ -85,12 +108,25 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
         taxes: initialExpenses.taxes,
         fees: initialExpenses.fees,
         margin: initialExpenses.margin,
-      });
-    }
-    // Note: OnboardingProvider handles initialization, so we don't need to create here
-  }, [initialExpenses, reset]);
+      };
 
-  const formData = watch();
+      console.log('Resetting form with billable data:', currentFormData);
+      reset(currentFormData);
+      hasResetRef.current = true;
+    }
+  }, [
+    initialExpenses?.workDays,
+    initialExpenses?.hoursPerDay,
+    initialExpenses?.holidaysDays,
+    initialExpenses?.vacationsDays,
+    initialExpenses?.sickLeaveDays,
+    initialExpenses?.monthlySalary,
+    initialExpenses?.taxes,
+    initialExpenses?.fees,
+    initialExpenses?.margin,
+    isLoadingExpenses,
+    reset,
+  ]);
 
   const calculateMetrics = useCallback(
     (data: BillableCostsForm): Calculations => {
@@ -115,42 +151,66 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
     []
   );
 
+  // Use stable reference for form data to prevent unnecessary recalculations
+  const stableFormData = useMemo(() => formData, [
+    formData.work_days,
+    formData.hours_per_day,
+    formData.holiday_days,
+    formData.vacation_days,
+    formData.sick_leave,
+    formData.monthly_salary,
+    formData.taxes,
+    formData.fees,
+    formData.margin,
+  ]);
+
   const hourlyCalculations = useMemo(
-    () => calculateMetrics(formData),
-    [formData]
+    () => calculateMetrics(stableFormData),
+    [
+      calculateMetrics,
+      stableFormData.work_days,
+      stableFormData.hours_per_day,
+      stableFormData.holiday_days,
+      stableFormData.vacation_days,
+      stableFormData.sick_leave,
+    ]
   );
 
-  const updatePayload = useMemo(
-    () => ({
-      json: {
-        userId: userId,
-        workDays: formData.work_days,
-        hoursPerDay: formData.hours_per_day,
-        holidaysDays: formData.holiday_days,
-        vacationsDays: formData.vacation_days,
-        sickLeaveDays: formData.sick_leave,
-        monthlySalary: formData.monthly_salary,
-        taxes: formData.taxes,
-        fees: formData.fees,
-        margin: formData.margin,
-        billableHours: hourlyCalculations.billableHours, // Include calculated billable hours
-      },
-    }),
-    [userId, formData, hourlyCalculations.billableHours]
-  );
 
+
+  // Debounced updates with optimized cache management
   useDebounce(
     () => {
       if (
         !isLoadingExpenses &&
         isDirty &&
-        formData.work_days &&
-        initialExpenses !== null
+        stableFormData.work_days &&
+        initialExpenses !== null &&
+        shouldExecuteMutation('update')
       ) {
-        console.log('Updating billable expenses with payload:', updatePayload);
-        updateBillableExpenses(updatePayload, {
+        // Create payload inside the debounced function to avoid dependency issues
+        const currentUpdatePayload = {
+          json: {
+            userId: userId,
+            workDays: stableFormData.work_days,
+            hoursPerDay: stableFormData.hours_per_day,
+            holidaysDays: stableFormData.holiday_days,
+            vacationsDays: stableFormData.vacation_days,
+            sickLeaveDays: stableFormData.sick_leave,
+            monthlySalary: stableFormData.monthly_salary,
+            taxes: stableFormData.taxes,
+            fees: stableFormData.fees,
+            margin: stableFormData.margin,
+            billableHours: hourlyCalculations.billableHours,
+          },
+        };
+
+        console.log('Updating billable expenses with optimized cache management:', currentUpdatePayload);
+        trackMutation('update');
+
+        updateBillableExpenses(currentUpdatePayload, {
           onSuccess: (data) => {
-            console.log('Successfully updated billable expenses:', data);
+            console.log('Successfully updated billable expenses with precise cache updates:', data);
           },
           onError: (error) => {
             console.error('Failed to update billable expenses:', error);
@@ -163,27 +223,87 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
       }
     },
     1000,
-    [formData, isLoadingExpenses, userId, isDirty]
+[
+      stableFormData.work_days,
+      stableFormData.hours_per_day,
+      stableFormData.holiday_days,
+      stableFormData.vacation_days,
+      stableFormData.sick_leave,
+      stableFormData.monthly_salary,
+      stableFormData.taxes,
+      stableFormData.fees,
+      stableFormData.margin,
+      hourlyCalculations.billableHours,
+      isLoadingExpenses,
+      userId,
+      isDirty,
+      shouldExecuteMutation,
+      trackMutation,
+      updateBillableExpenses,
+      toast,
+      t,
+    ]
   );
 
   const breakEvenMetrics = useMemo(
     () =>
       useBreakEvenCalculator({
         billableHours: hourlyCalculations.billableHours,
-        monthlySalary: formData.monthly_salary,
-        taxRate: formData.taxes,
-        fees: formData.fees,
-        margin: formData.margin,
+        monthlySalary: stableFormData.monthly_salary,
+        taxRate: stableFormData.taxes,
+        fees: stableFormData.fees,
+        margin: stableFormData.margin,
         totalExpensesCostPerMonth: totalMonthlyExpenses,
-        hoursPerDay: formData.hours_per_day,
-        workDays: formData.work_days,
+        hoursPerDay: stableFormData.hours_per_day,
+        workDays: stableFormData.work_days,
       }),
-    [hourlyCalculations.billableHours, formData, totalMonthlyExpenses]
+    [
+      hourlyCalculations.billableHours,
+      stableFormData.monthly_salary,
+      stableFormData.taxes,
+      stableFormData.fees,
+      stableFormData.margin,
+      stableFormData.hours_per_day,
+      stableFormData.work_days,
+      totalMonthlyExpenses,
+    ]
   );
 
+  // Effect for setting hourly cost
   useEffect(() => {
     setHourlyCost(breakEvenMetrics.hourlyRate);
-  }, [breakEvenMetrics.hourlyRate, setHourlyCost]);
+
+    // Register cleanup to reset hourly cost if component unmounts
+    const cleanup = registerCleanup(() => {
+      console.log('Cleaning up BillableCosts component');
+    });
+
+    return cleanup;
+  }, [breakEvenMetrics.hourlyRate, setHourlyCost, registerCleanup]);
+
+  // Handle errors from stable data selector
+  useEffect(() => {
+    if (isError && error) {
+      console.error('Error loading billable cost data:', error);
+      toast({
+        title: t("validation.error.load-failed"),
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  }, [isError, error, toast, t]);
+
+  // Log component health in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && (!isComponentHealthy || isExcessive)) {
+      console.warn('BillableCosts component health warning:', {
+        isComponentHealthy,
+        isExcessive,
+        healthReport,
+        stableDataError: isError ? error?.message : null,
+      });
+    }
+  }, [isComponentHealthy, isExcessive, healthReport, isError, error]);
 
   return (
     <div className="flex h-full flex-col px-6 py-5">

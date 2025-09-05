@@ -75,10 +75,10 @@ export const AddEquipmentExpenseForm = ({
   defaultValues = {
     name: "",
     category: undefined,
-    amount: 0,
+    amount: 1,
     purchaseDate: new Date(),
-    usage: 0,
-    lifeSpan: 0,
+    usage: 100,
+    lifeSpan: 1,
   },
 }: AddExpenseFormProps) => {
   const { t } = useTranslations();
@@ -172,41 +172,43 @@ export const AddEquipmentExpenseForm = ({
   });
 
   const { mutate: createEquipmentExpense } = useCreateEquipmentExpense();
-  async function onSubmit(data: NewExpenseForm) {
+
+  function onSubmit(data: NewExpenseForm) {
     if (!data.category || !data.name) return;
 
-    try {
-      await createEquipmentExpense.mutate({
-        json: {
-          userId,
-          name: data.name,
-          amount: data.amount,
-          category: data.category.value,
-          rank: rankIndex,
-          purchaseDate: data.purchaseDate,
-          usage: data.usage,
-          lifeSpan: data.lifeSpan,
-        },
-      });
-
-      // Only reset and close after successful creation
-      reset(defaultValues);
-      setIsActive(false);
-    } catch (error) {
-      const errorMessage = handleApiError(error, errorPatterns.default);
-      toast({
-        title: errorMessage,
-        variant: "destructive",
-      });
-    }
+    createEquipmentExpense({
+      json: {
+        userId,
+        name: data.name,
+        amount: data.amount,
+        category: data.category.value,
+        rank: rankIndex,
+        purchaseDate: data.purchaseDate,
+        usage: data.usage,
+        lifeSpan: data.lifeSpan,
+      },
+    }, {
+      onSuccess: () => {
+        // Reset and close after successful creation
+        reset(defaultValues);
+        setIsActive(false);
+      },
+      onError: (error) => {
+        const errorMessage = handleApiError(error, errorPatterns.default);
+        toast({
+          title: errorMessage,
+          variant: "destructive",
+        });
+      },
+    });
   }
   return (
     <form
-      className='flex h-full flex-col justify-between p-3'
+      className='flex flex-col gap-3 p-3 h-full'
       onSubmit={handleSubmit(onSubmit)}
     >
-      <div className="flex w-full justify-between">
-        <div onClick={(e) => e.stopPropagation()}>
+      <div className="flex w-full justify-between items-start">
+        <div onClick={(e) => e.stopPropagation()} className="flex-1 mr-2">
           <Controller
             name="category"
             control={control}
@@ -242,7 +244,8 @@ export const AddEquipmentExpenseForm = ({
           <Icon name="close" className='h-4 w-4' label={t("common.actions.close", "close")} color="body" />
         </button>
       </div>
-      <div className='flex h-full flex-col justify-between p-3'>
+
+      <div className="flex flex-col gap-3 flex-1 overflow-y-auto">
         <div className="flex flex-col gap-2">
           <Controller
             control={control}
@@ -282,6 +285,29 @@ export const AddEquipmentExpenseForm = ({
                   errors={
                     errors?.amount?.message
                       ? { message: errors.amount.message }
+                      : undefined
+                  }
+                />
+              </div>
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="usage"
+            render={({ field }) => (
+              <div className="space-y-2">
+                <Label>{t("forms.equipment.usage", "Usage")}</Label>
+                <SliderCard
+                  suffix="h/month"
+                  min={0}
+                  max={100}
+                  value={field.value}
+                  onChange={field.onChange}
+                  removePaddings
+                  errors={
+                    errors?.usage?.message
+                      ? { message: errors.usage.message }
                       : undefined
                   }
                 />
@@ -334,14 +360,15 @@ export const AddEquipmentExpenseForm = ({
             />
           </div>
 
-          <div className="mt-4">
-            <Button type="submit" className="whitespace-nowrap">
-              <i>
-                <Icon name="plus" label={t("common.actions.add", "add")} color="on-dark" />
-              </i>
-              {t("expenses.actions.add-expense", "Add Expense")}
-            </Button>
-          </div>
+        </div>
+
+        <div className="mt-auto pt-3">
+          <Button type="submit" className="w-full">
+            <i>
+              <Icon name="plus" label={t("common.actions.add", "add")} color="on-dark" />
+            </i>
+            {t("expenses.actions.add-expense", "Add Expense")}
+          </Button>
         </div>
       </div>
     </form>

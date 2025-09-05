@@ -56,15 +56,10 @@ export const Grid = ({
   ) : (
     <MasonryGrid>
       {data.map((expense) => {
-        const isLarge = expense.amount > maxValue * 0.4;
-
         return (
           <div
             key={`expense-${expense.id}-${expense.rank}`}
-            className={cn(
-              'relative h-[320px] min-h-[300px]',
-              isLarge && 'col-span-2'
-            )}
+            className="relative h-[320px] min-h-[300px]"
             style={{
               width: "100%",
             }}

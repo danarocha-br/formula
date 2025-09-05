@@ -116,7 +116,7 @@ export const EditExpenseForm = ({
   });
 
   const { mutate: updateFixedExpense } = useUpdateFixedExpense();
-  async function onSubmit(data: EditExpenseForm) {
+  function onSubmit(data: EditExpenseForm) {
     if (!data.category || !data.name) return;
 
     updateFixedExpense(

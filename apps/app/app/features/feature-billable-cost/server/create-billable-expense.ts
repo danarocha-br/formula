@@ -1,81 +1,144 @@
-import { getTranslations } from "@/utils/translations";
-import { reactQueryKeys } from "@repo/database/cache-keys/react-query-keys";
+import { getTranslations } from "../../../../utils/translations";
+import { billableCostSpecializedUtils, type BillableCostItem } from "../../../../utils/query-cache-utils";
+import { circuitBreakers } from "../../../../utils/circuit-breaker";
+import { retryWithBackoff, RetryConfigs } from "../../../../utils/retry-with-backoff";
 import { client } from "@repo/design-system/lib/rpc";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { InferRequestType, InferResponseType } from "hono";
 
-type ResponseType = InferResponseType<
-  (typeof client.api.expenses)["billable-costs"]["$post"],
-  201
->;
-type RequestType = InferRequestType<
-  (typeof client.api.expenses)["billable-costs"]["$post"]
->;
+type ResponseType = {
+  status: number;
+  success: boolean;
+  error?: string;
+  data?: BillableCostItem;
+};
+
+type RequestType = {
+  json: {
+    userId: string;
+  };
+};
+
+import type { QueryKey } from "@tanstack/react-query";
+
+interface OptimisticUpdateContext {
+  previousData: BillableCostItem | null;
+  queryKey: QueryKey;
+}
 
 export const useCreateBillableExpense = () => {
   const queryClient = useQueryClient();
   const t = getTranslations();
 
-  const mutation = useMutation<ResponseType, Error, RequestType>({
+  const mutation = useMutation<ResponseType, Error, RequestType, OptimisticUpdateContext>({
     mutationFn: async ({ json }) => {
-      try {
-        const response = await client.api.expenses["billable-costs"].$post({
-          json,
+      // Use circuit breaker and retry logic for the API call
+      return circuitBreakers.createExpense.execute(async () => {
+        return retryWithBackoff(async () => {
+          try {
+            const response = await client.api.expenses["billable-costs"].$post({
+              json,
+            });
+
+            if (
+              !response.ok ||
+              !response.headers.get("content-type")?.includes("application/json")
+            ) {
+              throw new Error(t.validation.error["create-failed"]);
+            }
+
+            const data = await response.json();
+
+            if (data.success === false) {
+              throw new Error(t.validation.error["create-failed"]);
+            }
+
+            return data;
+          } catch (error) {
+            console.log(error);
+            throw error instanceof Error
+              ? error
+              : new Error(t.validation.error["create-failed"]);
+          }
+        }, {
+          ...RetryConfigs.mutation,
+          name: "createBillableExpense",
         });
-
-        if (
-          !response.ok ||
-          !response.headers.get("content-type")?.includes("application/json")
-        ) {
-          throw new Error(t.validation.error["create-failed"]);
-        }
-
-        const data = await response.json();
-
-        if (data.success === false) {
-          throw new Error(t.validation.error["create-failed"]);
-        }
-
-        return data;
-      } catch (error) {
-        console.log(error);
-        throw error instanceof Error
-          ? error
-          : new Error(t.validation.error["create-failed"]);
-      }
+      });
     },
 
     onMutate: async ({ json: newExpense }) => {
-      const queryKey = reactQueryKeys.billableExpenses.byUserId(newExpense.userId);
+      const userId = newExpense.userId;
 
       // Cancel any outgoing refetches to avoid overwriting our optimistic update
-      await queryClient.cancelQueries({ queryKey });
-
-      // Snapshot the previous value
-      const previousExpenses = queryClient.getQueryData(queryKey);
-
-      // Optimistically update the cache
-      queryClient.setQueryData(queryKey, (old: any) => {
-        if (!old) return [{ ...newExpense, id: `temp-${Date.now()}` }];
-        return [...old, { ...newExpense, id: `temp-${Date.now()}` }];
+      await queryClient.cancelQueries({
+        queryKey: ["billable-expenses", userId]
       });
 
-      // Return a context object with the snapshotted value
-      return { previousExpenses, queryKey };
+      // Create default billable cost item for optimistic update
+      const defaultFormData = {
+        work_days: 5,
+        hours_per_day: 6,
+        holiday_days: 12,
+        vacation_days: 30,
+        sick_leave: 3,
+        monthly_salary: 0,
+        taxes: 0,
+        fees: 0,
+        margin: 0,
+      };
+
+      // Create optimistic billable cost item with defaults
+      const optimisticItem = billableCostSpecializedUtils.createBillableCostItem(
+        userId,
+        defaultFormData
+      );
+
+      // Create optimistic update using specialized utilities
+      const context = billableCostSpecializedUtils.createOptimisticUpdate(
+        queryClient,
+        userId,
+        optimisticItem
+      );
+
+      // Return context for rollback on error
+      return context;
     },
 
     onError: (err, variables, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
-      if (context?.previousExpenses && context?.queryKey) {
-        queryClient.setQueryData(context.queryKey, context.previousExpenses);
+      // Rollback optimistic update using specialized utilities
+      if (context) {
+        billableCostSpecializedUtils.rollbackOptimisticUpdate(
+          queryClient,
+          variables.json.userId,
+          context.previousData
+        );
       }
     },
 
-    onSettled: (data, error, variables) => {
-      // Always refetch after error or success to ensure we have the latest data
-      const queryKey = reactQueryKeys.billableExpenses.byUserId(variables.json.userId);
-      queryClient.invalidateQueries({ queryKey });
+    onSuccess: (data, variables) => {
+      // Update cache with real server data using precise cache updates
+      if (data.success && 'data' in data && data.data) {
+        const transformedData = billableCostSpecializedUtils.transformServerResponse(data.data);
+        billableCostSpecializedUtils.updateFromFormData(
+          queryClient,
+          variables.json.userId,
+          {
+            work_days: transformedData.workDays,
+            hours_per_day: transformedData.hoursPerDay,
+            holiday_days: transformedData.holidaysDays,
+            vacation_days: transformedData.vacationsDays,
+            sick_leave: transformedData.sickLeaveDays,
+            monthly_salary: transformedData.monthlySalary,
+            taxes: transformedData.taxes,
+            fees: transformedData.fees,
+            margin: transformedData.margin,
+          },
+          transformedData.billableHours
+        );
+      }
     },
+
+    // Removed onSettled with invalidateQueries - using precise cache updates instead
   });
 
   return mutation;

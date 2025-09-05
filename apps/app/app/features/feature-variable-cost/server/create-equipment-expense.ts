@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { InferRequestType, InferResponseType } from "hono";
 import { EQUIPMENT_COST_CATEGORIES } from "@/app/constants";
 import type { EquipmentExpenseItem } from "@/app/types";
+import { equipmentExpenseCacheUtils } from "@/utils/equipment-cache-utils";
 
 type ResponseType = {
   status: number;
@@ -66,7 +67,7 @@ export const useCreateEquipmentExpense = () => {
         }
 
         const data = await response.json();
-        
+
         if (data.success === false) {
           throw new Error(t.validation.error["create-failed"]);
         }
@@ -97,39 +98,64 @@ export const useCreateEquipmentExpense = () => {
 
     onMutate: async ({ json: newExpense }) => {
       const queryKey = reactQueryKeys.equipmentExpenses.byUserId(newExpense.userId);
-      const tempId = Date.now();
 
+      // Cancel any outgoing refetches to avoid overwriting our optimistic update
       await queryClient.cancelQueries({ queryKey });
 
-      const previousExpenses = queryClient.getQueryData(queryKey);
+      // Snapshot the previous value
+      const previousExpenses = equipmentExpenseCacheUtils.getCurrentItems(queryClient, newExpense.userId);
 
-      queryClient.setQueryData(queryKey, (old: EquipmentExpenseItem[] = []) => {
-        if (!old) return [{ ...newExpense, id: tempId }];
-        return [...old, { ...newExpense, id: tempId }];
-      });
+      // Validate equipment data before optimistic update
+      const validationErrors = equipmentExpenseCacheUtils.validateEquipment({
+        ...newExpense,
+        id: 0, // Temporary ID for validation
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      } as EquipmentExpenseItem);
 
-      return { previousExpenses, queryKey, tempId };
+      if (validationErrors.length > 0) {
+        throw new Error(`Validation failed: ${validationErrors.join(', ')}`);
+      }
+
+      // Use cache utilities for optimistic update
+      const optimisticItem = equipmentExpenseCacheUtils.addOptimisticEquipment(
+        queryClient,
+        newExpense.userId,
+        newExpense
+      );
+
+      return {
+        previousExpenses,
+        queryKey,
+        tempId: optimisticItem.id,
+        optimisticItem
+      };
     },
+
     onError: (err, variables, context) => {
+      // Rollback optimistic update using cache utilities
       if (context?.previousExpenses && context?.queryKey) {
-        queryClient.setQueryData(context.queryKey, context.previousExpenses);
+        equipmentExpenseCacheUtils.replaceAllItems(
+          queryClient,
+          variables.json.userId,
+          context.previousExpenses
+        );
       }
     },
+
     onSuccess: (data, variables, context) => {
-      const queryKey = reactQueryKeys.equipmentExpenses.byUserId(variables.json.userId);
-
-      queryClient.setQueryData(queryKey, (old: EquipmentExpenseItem[] = []) => {
-        if (!old || !context?.tempId) return [...old, data.data];
-
-        return old.map(expense =>
-          expense.id === context.tempId ? { ...data.data } : expense
+      // Replace temporary item with real server data using cache utilities
+      if (context?.tempId && data.data) {
+        equipmentExpenseCacheUtils.replaceOptimisticEquipment(
+          queryClient,
+          variables.json.userId,
+          context.tempId,
+          data.data as EquipmentExpenseItem
         );
-      });
+      }
     },
-    onSettled: (data, error, variables) => {
-      const queryKey = reactQueryKeys.equipmentExpenses.byUserId(variables.json.userId);
-      queryClient.invalidateQueries({ queryKey });
-    },
+
+    // Remove onSettled to avoid invalidation - we use precise cache updates instead
   });
 
   return mutation;

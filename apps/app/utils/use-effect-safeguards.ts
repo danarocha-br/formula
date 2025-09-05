@@ -234,6 +234,269 @@ export function useStableReference<T>(
 }
 
 /**
+ * Enhanced safeguards specifically for expense features
+ */
+export function useExpenseFeatureSafeguards(
+  componentName: string,
+  feature: 'fixed-expenses' | 'billable-expenses' | 'equipment-expenses'
+): {
+  safeEffect: (effect: React.EffectCallback, deps: React.DependencyList | undefined, effectName?: string) => void;
+  stableDeps: <T extends React.DependencyList>(deps: T, effectName?: string) => T;
+  stableRef: <T>(value: T, referenceName?: string) => T;
+  trackCleanup: (cleanupFn: () => void, effectName?: string) => () => void;
+  isRenderSafe: boolean;
+} {
+  const renderCount = useRef(0);
+  const lastRenderTime = useRef(Date.now());
+  const { trackCleanup } = useEffectCleanupTracker(componentName);
+
+  // Track render frequency for expense features
+  renderCount.current += 1;
+  const now = Date.now();
+  const timeSinceLastRender = now - lastRenderTime.current;
+  lastRenderTime.current = now;
+
+  // Check for excessive rendering in expense features
+  const isRenderSafe = renderCount.current < 100 && timeSinceLastRender > 10;
+
+  if (!isRenderSafe) {
+    console.warn(
+      `⚠️ Excessive rendering detected in ${feature} feature (${componentName}): ` +
+      `${renderCount.current} renders, ${timeSinceLastRender}ms since last render`
+    );
+  }
+
+  const safeEffect = useCallback((
+    effect: React.EffectCallback,
+    deps: React.DependencyList | undefined,
+    effectName = 'anonymous'
+  ) => {
+    useSafeEffect(effect, deps, componentName, `${feature}-${effectName}`);
+  }, [componentName, feature]);
+
+  const stableDeps = useCallback(<T extends React.DependencyList>(
+    deps: T,
+    effectName = 'anonymous'
+  ): T => {
+    return useStableDependencies(deps, componentName, `${feature}-${effectName}`);
+  }, [componentName, feature]);
+
+  const stableRef = useCallback(<T>(
+    value: T,
+    referenceName = 'anonymous'
+  ): T => {
+    return useStableReference(value, componentName, `${feature}-${referenceName}`);
+  }, [componentName, feature]);
+
+  return {
+    safeEffect,
+    stableDeps,
+    stableRef,
+    trackCleanup,
+    isRenderSafe,
+  };
+}
+
+/**
+ * Safeguards for React Query operations in expense features
+ */
+export function useQuerySafeguards(
+  queryKey: React.DependencyList,
+  componentName: string,
+  feature: string
+): {
+  safeQueryKey: React.DependencyList;
+  shouldRefetch: boolean;
+  refetchCount: number;
+} {
+  const refetchCount = useRef(0);
+  const lastRefetchTime = useRef(0);
+  const stableQueryKey = useStableDependencies(queryKey, componentName, `${feature}-query`);
+
+  // Track refetch frequency
+  const now = Date.now();
+  if (now - lastRefetchTime.current < 1000) {
+    refetchCount.current += 1;
+  } else {
+    refetchCount.current = 0;
+  }
+  lastRefetchTime.current = now;
+
+  // Prevent excessive refetching
+  const shouldRefetch = refetchCount.current < 10;
+
+  if (!shouldRefetch) {
+    console.warn(
+      `🚨 Excessive query refetching detected in ${componentName} (${feature}): ` +
+      `${refetchCount.current} refetches in 1 second`
+    );
+  }
+
+  return {
+    safeQueryKey: stableQueryKey,
+    shouldRefetch,
+    refetchCount: refetchCount.current,
+  };
+}
+
+/**
+ * Safeguards for mutation operations in expense features
+ */
+export function useMutationSafeguards(
+  componentName: string,
+  feature: string
+): {
+  shouldExecuteMutation: (mutationType: string) => boolean;
+  trackMutation: (mutationType: string) => void;
+  getMutationCount: (mutationType: string) => number;
+} {
+  const mutationCounts = useRef<Map<string, { count: number; lastExecution: number }>>(new Map());
+
+  const shouldExecuteMutation = useCallback((mutationType: string): boolean => {
+    const now = Date.now();
+    const existing = mutationCounts.current.get(mutationType);
+
+    if (!existing) {
+      mutationCounts.current.set(mutationType, { count: 1, lastExecution: now });
+      return true;
+    }
+
+    // Reset count if enough time has passed
+    if (now - existing.lastExecution > 5000) {
+      mutationCounts.current.set(mutationType, { count: 1, lastExecution: now });
+      return true;
+    }
+
+    // Check for excessive mutations
+    if (existing.count >= 5) {
+      console.error(
+        `🚨 Excessive mutations detected in ${componentName} (${feature}): ` +
+        `${existing.count} ${mutationType} mutations in 5 seconds`
+      );
+      return false;
+    }
+
+    existing.count += 1;
+    existing.lastExecution = now;
+    return true;
+  }, [componentName, feature]);
+
+  const trackMutation = useCallback((mutationType: string) => {
+    const now = Date.now();
+    const existing = mutationCounts.current.get(mutationType);
+
+    if (existing) {
+      existing.count += 1;
+      existing.lastExecution = now;
+    } else {
+      mutationCounts.current.set(mutationType, { count: 1, lastExecution: now });
+    }
+  }, []);
+
+  const getMutationCount = useCallback((mutationType: string): number => {
+    return mutationCounts.current.get(mutationType)?.count || 0;
+  }, []);
+
+  return {
+    shouldExecuteMutation,
+    trackMutation,
+    getMutationCount,
+  };
+}
+
+/**
+ * Comprehensive safeguards for expense feature components
+ */
+export function useExpenseComponentSafeguards(
+  componentName: string,
+  feature: 'fixed-expenses' | 'billable-expenses' | 'equipment-expenses',
+  options: {
+    maxRenders?: number;
+    maxMutations?: number;
+    maxRefetches?: number;
+    enableMemoryTracking?: boolean;
+  } = {}
+): {
+  safeEffect: (effect: React.EffectCallback, deps: React.DependencyList | undefined, effectName?: string) => void;
+  stableDeps: <T extends React.DependencyList>(deps: T, effectName?: string) => T;
+  stableRef: <T>(value: T, referenceName?: string) => T;
+  safeQueryKey: (queryKey: React.DependencyList) => React.DependencyList;
+  shouldExecuteMutation: (mutationType: string) => boolean;
+  trackMutation: (mutationType: string) => void;
+  isComponentHealthy: boolean;
+  healthReport: {
+    renderCount: number;
+    isRenderSafe: boolean;
+    mutationCounts: Record<string, number>;
+    memoryUsage?: number;
+  };
+} {
+  const {
+    maxRenders = 100,
+    maxMutations = 5,
+    maxRefetches = 10,
+    enableMemoryTracking = true,
+  } = options;
+
+  // Use existing safeguards
+  const { safeEffect, stableDeps, stableRef, isRenderSafe } = useExpenseFeatureSafeguards(componentName, feature);
+  const { shouldExecuteMutation, trackMutation, getMutationCount } = useMutationSafeguards(componentName, feature);
+
+  // Track component health
+  const renderCount = useRef(0);
+  const memoryUsage = useRef(0);
+
+  renderCount.current += 1;
+
+  // Memory tracking (if enabled and available)
+  useEffect(() => {
+    if (enableMemoryTracking && typeof process !== 'undefined' && process.memoryUsage) {
+      memoryUsage.current = process.memoryUsage().heapUsed;
+    }
+  });
+
+  const safeQueryKey = useCallback((queryKey: React.DependencyList): React.DependencyList => {
+    const { safeQueryKey } = useQuerySafeguards(queryKey, componentName, feature);
+    return safeQueryKey;
+  }, [componentName, feature]);
+
+  // Determine overall component health
+  const isComponentHealthy = isRenderSafe && renderCount.current < maxRenders;
+
+  const healthReport = {
+    renderCount: renderCount.current,
+    isRenderSafe,
+    mutationCounts: {
+      create: getMutationCount('create'),
+      update: getMutationCount('update'),
+      delete: getMutationCount('delete'),
+    },
+    memoryUsage: enableMemoryTracking ? memoryUsage.current : undefined,
+  };
+
+  // Log health warnings
+  useEffect(() => {
+    if (!isComponentHealthy) {
+      console.warn(
+        `⚠️ Component health warning for ${componentName} (${feature}):`,
+        healthReport
+      );
+    }
+  }, [isComponentHealthy, componentName, feature, healthReport]);
+
+  return {
+    safeEffect,
+    stableDeps,
+    stableRef,
+    safeQueryKey,
+    shouldExecuteMutation,
+    trackMutation,
+    isComponentHealthy,
+    healthReport,
+  };
+}
+
+/**
  * Development-only hook to log effect executions
  */
 export function useEffectDebugger(

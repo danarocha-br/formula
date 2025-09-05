@@ -149,10 +149,8 @@ export const AddExpenseForm = ({
   });
 
   const { mutate: createFixedExpense } = useCreateFixedExpenses();
-  async function onSubmit(data: NewExpenseForm) {
+  function onSubmit(data: NewExpenseForm) {
     if (!data.category || !data.name) return;
-    reset(defaultValues);
-    setIsActive(false);
 
     createFixedExpense(
       {
@@ -166,6 +164,10 @@ export const AddExpenseForm = ({
         },
       },
       {
+        onSuccess: () => {
+          reset(defaultValues);
+          setIsActive(false);
+        },
         onError: (error) => {
           const errorMessage = handleApiError(error, errorPatterns.default);
           toast({

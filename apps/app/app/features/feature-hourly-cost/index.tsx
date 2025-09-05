@@ -5,7 +5,7 @@ import { Resizable } from "@repo/design-system/components/ui/resizable-panel";
 import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
 import { TabButton } from "@repo/design-system/components/ui/tab-button";
 import { cn } from "@repo/design-system/lib/utils";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 import { useCurrencyStore } from "@/app/store/currency-store";
 import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
@@ -14,7 +14,9 @@ import { useViewPreferenceStore } from "@/app/store/view-preference-store";
 import { useStableExpenses } from "@/hooks/use-stable-expenses";
 import { useTranslations } from "@/hooks/use-translation";
 import { useRenderTracker } from "@/utils/performance-monitor";
-import { useSafeEffect } from "@/utils/use-effect-safeguards";
+import { useExpenseComponentSafeguards } from "@/utils/use-effect-safeguards";
+import { useMemoryLeakDetection } from "@/utils/memory-leak-detection";
+import { useRenderFrequencyMonitor } from "@/utils/re-render-monitoring";
 import { BillableCosts } from "../feature-billable-cost";
 import { VariableCostView } from "../feature-variable-cost";
 import { AnalyticsView } from "./analytics-view";
@@ -29,6 +31,21 @@ type Props = {
 export const FeatureHourlyCost = ({ userId }: Props) => {
   // Track component renders for performance monitoring
   useRenderTracker('FeatureHourlyCost');
+
+  // Performance safeguards for fixed cost feature
+  const {
+    isComponentHealthy,
+    healthReport,
+  } = useExpenseComponentSafeguards('FeatureHourlyCost', 'fixed-expenses', {
+    maxRenders: 40,
+    enableMemoryTracking: true,
+  });
+
+  // Memory leak detection
+  const { registerCleanup } = useMemoryLeakDetection('FeatureHourlyCost');
+
+  // Render frequency monitoring
+  const { isExcessive } = useRenderFrequencyMonitor('FeatureHourlyCost');
 
   const { t } = useTranslations();
   const { expenses, isLoading: isLoadingExpenses } = useStableExpenses({ userId });
@@ -57,9 +74,29 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
   );
 
   // Update total monthly expenses when calculation changes
-  useMemo(() => {
+  useEffect(() => {
     setTotalMonthlyExpenses(totalExpensesCostPerMonth);
   }, [totalExpensesCostPerMonth, setTotalMonthlyExpenses]);
+
+  // Log component health in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && (!isComponentHealthy || isExcessive)) {
+      console.warn('FeatureHourlyCost component health warning:', {
+        isComponentHealthy,
+        isExcessive,
+        healthReport,
+      });
+    }
+  }, [isComponentHealthy, isExcessive, healthReport]);
+
+  // Register cleanup for component unmount
+  useEffect(() => {
+    const cleanup = registerCleanup(() => {
+      console.log('Cleaning up FeatureHourlyCost component');
+    });
+
+    return cleanup;
+  }, [registerCleanup]);
 
   // Handle different view preferences
   if (viewPreference === "node") {
