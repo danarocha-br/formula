@@ -1,9 +1,10 @@
+import { useTranslations } from "@/hooks/use-translation";
 import { Icon } from "@repo/design-system/components/ui/icon";
 import { useOutsideClick } from "@repo/design-system/hooks/use-outside-click";
 import { cn } from "@repo/design-system/lib/utils";
 import { cva } from "class-variance-authority";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AddEquipmentExpenseForm } from "./add-equipment-expense-form";
 
 const card = cva(
@@ -76,7 +77,7 @@ export const AddCard: React.FC<AddCardProps> = ({
   userId,
   rankIndex,
 }) => {
-
+  const { t } = useTranslations();
   const [isActive, setIsActive] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -145,8 +146,8 @@ export const AddCard: React.FC<AddCardProps> = ({
               )}
             >
               <div className='flex h-32 flex-col items-center justify-center gap-2 text-card-foreground'>
-                <Icon name="plus" size="lg" color="current" label="Add Expense" />
-                <p className="text-sm">Add Expense</p>
+                <Icon name="plus" size="lg" color="current" label={t("expenses.actions.add-expense", "Add Expense")} />
+                <p className="text-sm">{t("expenses.actions.add-expense", "Add Expense")}</p>
               </div>
             </div>
           </button>

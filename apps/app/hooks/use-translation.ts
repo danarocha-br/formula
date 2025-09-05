@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale } from '@/contexts/locale-context';
-import type { } from '@/types/translations';
+import type { AllTranslationKeys } from '@/types/translations';
 
 /**
  * Safe translation access function that handles missing keys gracefully

@@ -1,5 +1,5 @@
 "use client";
-
+import { useTranslations } from "@/hooks/use-translation";
 import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
 import { ModeToggle } from "@repo/design-system/components/mode-toggle";
 import {
@@ -49,7 +49,7 @@ type GlobalSidebarProperties = {
   readonly children: ReactNode;
 };
 
-const data = {
+const getData = (t: (key: string) => string) => ({
   user: {
     name: "shadcn",
     email: "m@example.com",
@@ -101,19 +101,19 @@ const data = {
       icon: BookOpenIcon,
       items: [
         {
-          title: "Introduction",
+          title: t('sidebar.introduction'),
           url: "#",
         },
         {
-          title: "Get Started",
+          title: t('sidebar.getStarted'),
           url: "#",
         },
         {
-          title: "Tutorials",
+          title: t('sidebar.tutorials'),
           url: "#",
         },
         {
-          title: "Changelog",
+          title: t('sidebar.changelog'),
           url: "#",
         },
       ],
@@ -156,25 +156,27 @@ const data = {
   ],
   projects: [
     {
-      name: "Design Engineering",
+      name: t('sidebar.designEngineering'),
       url: "#",
       icon: FrameIcon,
     },
     {
-      name: "Sales & Marketing",
+      name: t('sidebar.salesMarketing'),
       url: "#",
       icon: PieChartIcon,
     },
     {
-      name: "Travel",
+      name: t('sidebar.travel'),
       url: "#",
       icon: MapIcon,
     },
   ],
-};
+});
 
 export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
   const sidebar = useSidebar();
+  const { t } = useTranslations();
+  const data = getData(t);
 
   return (
     <>
@@ -266,16 +268,16 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                     >
                       <Dropdown.Item>
                         <FolderIcon className="text-muted-foreground" />
-                        <span>View Project</span>
+                        <span>{t('sidebar.viewProject')}</span>
                       </Dropdown.Item>
                       <Dropdown.Item>
                         <ShareIcon className="text-muted-foreground" />
-                        <span>Share Project</span>
+                        <span>{t('sidebar.shareProject')}</span>
                       </Dropdown.Item>
                       <Dropdown.Separator />
                       <Dropdown.Item>
                         <Trash2Icon className="text-muted-foreground" />
-                        <span>Delete Project</span>
+                        <span>{t('sidebar.deleteProject')}</span>
                       </Dropdown.Item>
                     </Dropdown.Content>
                   </Dropdown.Menu>

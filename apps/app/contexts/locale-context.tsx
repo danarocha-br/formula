@@ -2,6 +2,7 @@
 
 import { en } from '@/locales/en';
 import { ptBR } from '@/locales/pt-BR';
+import type { TranslationStructure } from '@/types/translations';
 import { type ReactNode, createContext, useContext, useState } from 'react';
 
 export type Locale = 'en' | 'pt-BR';

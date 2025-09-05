@@ -1,9 +1,25 @@
 import SignIn from "@/app/features/feature-sign-in";
+import type { Locale } from "@/contexts/locale-context";
+import { getTranslations } from "@/utils/translations";
 import { createMetadata } from "@repo/design-system/lib/metadata";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 
-const title = "Welcome back";
-const description = "Enter your details to sign in.";
+// Helper function to get locale-aware translations
+function getLocaleAwareTranslations() {
+  try {
+    const cookieStore = cookies();
+    const locale = (cookieStore.get('NEXT_LOCALE')?.value as Locale) || 'en';
+    return getTranslations(locale);
+  } catch {
+    // Fallback to English if cookies are not available
+    return getTranslations('en');
+  }
+}
+
+const translations = getLocaleAwareTranslations();
+const title = translations.auth.welcomeBack;
+const description = translations.auth.signInDescription;
 
 export const metadata: Metadata = createMetadata({ title, description });
 

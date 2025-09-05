@@ -6,6 +6,8 @@ import { FIXED_COST_CATEGORIES } from "@/app/constants";
 import { useCurrencyStore } from "@/app/store/currency-store";
 import type { CostStatus } from "@/app/types";
 import { useTranslations } from "@/hooks/use-translation";
+import { ErrorPatterns, createApiErrorHandler } from "@/utils/api-error-handler";
+import { createValidationMessages } from "@/utils/validation-messages";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckIcon } from "@repo/design-system/components/ui/animated-icon/check";
 import { Button } from "@repo/design-system/components/ui/button";
@@ -43,6 +45,8 @@ export const EditExpenseForm = ({
   defaultValues,
 }: EditExpenseFormProps) => {
   const { t } = useTranslations();
+  const handleApiError = createApiErrorHandler(t);
+  const errorPatterns = ErrorPatterns.UPDATE(t);
 
   const [isHovered, setIsHovered] = useState(false);
   const { selectedCurrency } = useCurrencyStore();
@@ -68,6 +72,8 @@ export const EditExpenseForm = ({
     ),
   }));
 
+  const validationMessages = createValidationMessages(t);
+
   const expenseSchema = z.object({
     category: z.object(
       {
@@ -76,19 +82,23 @@ export const EditExpenseForm = ({
         slot: z.any().optional(),
       },
       {
-        required_error: t("validation.form.required"),
-        invalid_type_error: t("validation.form.select"),
+        required_error: validationMessages.required(),
+        invalid_type_error: validationMessages.select(),
       }
     ),
     amount: z.number({
-      required_error: t("validation.form.required"),
+      required_error: validationMessages.required(),
+      invalid_type_error: validationMessages.number(),
+    }).min(1, {
+      message: validationMessages.min(1),
     }),
     name: z
       .string({
-        required_error: t("validation.form.required"),
+        required_error: validationMessages.required(),
+        invalid_type_error: validationMessages.string(),
       })
       .min(1, {
-        message: t("validation.form.required"),
+        message: validationMessages.required(),
       }),
   });
 
@@ -126,9 +136,10 @@ export const EditExpenseForm = ({
           reset(defaultValues);
           onClose();
         },
-        onError: () => {
+        onError: (error) => {
+          const errorMessage = handleApiError(error, errorPatterns.default);
           toast({
-            title: t("validation.error.update-failed"),
+            title: errorMessage,
             variant: "destructive",
           });
         },
@@ -157,6 +168,7 @@ export const EditExpenseForm = ({
               <Combobox
                 placeholder={t("expenses.form.category")}
                 searchPlaceholder={t("common.search")}
+                aria-label={t("common.accessibility.selectCategory")}
                 options={categoriesList}
                 value={field.value || undefined}
                 onChange={(option: SelectOption | SelectOption[]) => {
@@ -175,7 +187,7 @@ export const EditExpenseForm = ({
           />
         </div>
         <button type="button" className="hover:bg-neutral-100 rounded p-1" onClick={handleClose}>
-          <Icon name="close" className='h-4 w-4' label="close" color="body" />
+          <Icon name="close" className='h-4 w-4' label={t("common.actions.close")} color="body" />
         </button>
       </div>
 

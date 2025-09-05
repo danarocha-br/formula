@@ -1,10 +1,11 @@
 'use client';
 
-import { useAuth } from '@clerk/nextjs';
-import { useToast } from '@repo/design-system/hooks/use-toast';
-import { ToastAction } from '@repo/design-system/components/ui/toast';
-import { useEffect, useState } from 'react';
 import { initializeUserBillableCosts } from '@/app/actions/initialize-user-data';
+import { useTranslations } from '@/hooks/use-translation';
+import { useAuth } from '@clerk/nextjs';
+import { ToastAction } from '@repo/design-system/components/ui/toast';
+import { useToast } from '@repo/design-system/hooks/use-toast';
+import { useEffect, useState } from 'react';
 
 interface OnboardingProviderProps {
   children: React.ReactNode;
@@ -16,6 +17,7 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslations();
 
   useEffect(() => {
     if (isLoaded && userId && !isInitialized && !isLoading && !hasError) {
@@ -26,15 +28,15 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
   const initializeUser = async () => {
     setIsLoading(true);
     setHasError(false);
-    
+
     try {
       const result = await initializeUserBillableCosts();
       if (result.success) {
         setIsInitialized(true);
         if (result.created) {
           toast({
-            title: 'Welcome to Formula!',
-            description: 'Your freelance toolkit has been set up successfully.',
+            title: t('onboarding.welcome'),
+            description: t('onboarding.setupSuccess'),
             variant: 'default',
           });
         }
@@ -52,20 +54,20 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
         });
       }
       setHasError(true);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : t('onboarding.unknownError');
       toast({
-        title: 'Setup Error',
-        description: `There was a problem setting up your account: ${errorMessage}. Please refresh the page or contact support.`,
+        title: t('onboarding.setupError'),
+        description: t('onboarding.setupErrorMessage').replace('{errorMessage}', errorMessage),
         variant: 'destructive',
         action: (
           <ToastAction
-            altText="Retry setup"
+            altText={t('onboarding.retrySetup')}
             onClick={() => {
               setHasError(false);
               setIsInitialized(false);
             }}
           >
-            Retry Setup
+            {t('onboarding.retrySetup')}
           </ToastAction>
         ),
       });
@@ -81,9 +83,9 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
         <div className="text-center space-y-4 max-w-sm">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold">Setting up Formula</h3>
+            <h3 className="text-lg font-semibold">{t('onboarding.settingUp')}</h3>
             <p className="text-sm text-muted-foreground">
-              We're preparing your freelance workspace...
+              {t('onboarding.setupSuccess')}
             </p>
           </div>
         </div>

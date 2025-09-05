@@ -14,6 +14,9 @@ import { z } from "zod";
 
 import { EQUIPMENT_COST_CATEGORIES } from "@/app/constants";
 import { useCurrencyStore } from "@/app/store/currency-store";
+import { useTranslations } from "@/hooks/use-translation";
+import { createApiErrorHandler, ErrorPatterns } from "@/utils/api-error-handler";
+import { createValidationMessages } from "@/utils/validation-messages";
 import { Label } from "@repo/design-system/components/ui/label";
 import { NumberInput } from "@repo/design-system/components/ui/number-input";
 import { cn } from "@repo/design-system/lib/utils";
@@ -78,7 +81,10 @@ export const AddEquipmentExpenseForm = ({
     lifeSpan: 0,
   },
 }: AddExpenseFormProps) => {
+  const { t } = useTranslations();
   const { toast } = useToast();
+  const handleApiError = createApiErrorHandler(t);
+  const errorPatterns = ErrorPatterns.CREATE(t);
   const cookies = parseCookies();
   const userLocale = cookies.NEXT_LOCALE || navigator.language || "en";
 
@@ -106,6 +112,8 @@ export const AddEquipmentExpenseForm = ({
   );
   const { selectedCurrency } = useCurrencyStore();
 
+  const validationMessages = createValidationMessages(t);
+
   const expenseSchema = z.object({
     category: z.object(
       {
@@ -114,25 +122,41 @@ export const AddEquipmentExpenseForm = ({
         slot: z.any().optional(),
       },
       {
-        required_error: "This field is required",
-        invalid_type_error: "Invalid type",
+        required_error: validationMessages.required(),
+        invalid_type_error: validationMessages.select(),
       }
     ),
     amount: z.number({
-      required_error: "This field is required",
+      required_error: validationMessages.required(),
+      invalid_type_error: validationMessages.number(),
+    }).min(1, {
+      message: validationMessages.min(1),
     }),
     usage: z.number({
-      required_error: "This field is required",
+      required_error: validationMessages.required(),
+      invalid_type_error: validationMessages.number(),
+    }).min(0, {
+      message: validationMessages.min(0),
+    }).max(100, {
+      message: validationMessages.max(100),
+    }),
+    lifeSpan: z.number({
+      required_error: validationMessages.required(),
+      invalid_type_error: validationMessages.number(),
+    }).min(1, {
+      message: validationMessages.min(1),
     }),
     purchaseDate: z.date({
-      required_error: "This field is required",
+      required_error: validationMessages.required(),
+      invalid_type_error: validationMessages.date(),
     }),
     name: z
       .string({
-        required_error: "This field is required",
+        required_error: validationMessages.required(),
+        invalid_type_error: validationMessages.string(),
       })
       .min(1, {
-        message: "This field is required",
+        message: validationMessages.required(),
       }),
   });
 
@@ -147,34 +171,34 @@ export const AddEquipmentExpenseForm = ({
     mode: "onBlur",
   });
 
-  const { mutate: createFixedExpense } = useCreateEquipmentExpense();
+  const { mutate: createEquipmentExpense } = useCreateEquipmentExpense();
   async function onSubmit(data: NewExpenseForm) {
     if (!data.category || !data.name) return;
-    reset(defaultValues);
-    setIsActive(false);
 
-    createFixedExpense(
-      {
+    try {
+      await createEquipmentExpense.mutate({
         json: {
           userId,
           name: data.name,
           amount: data.amount,
           category: data.category.value,
           rank: rankIndex,
-          purchaseDate: new Date(),
-          usage: 20,
-          lifeSpan: 20,
+          purchaseDate: data.purchaseDate,
+          usage: data.usage,
+          lifeSpan: data.lifeSpan,
         },
-      },
-      {
-        onError: () => {
-          toast({
-            title: "Failed to create expense",
-            variant: "destructive",
-          });
-        },
-      }
-    );
+      });
+
+      // Only reset and close after successful creation
+      reset(defaultValues);
+      setIsActive(false);
+    } catch (error) {
+      const errorMessage = handleApiError(error, errorPatterns.default);
+      toast({
+        title: errorMessage,
+        variant: "destructive",
+      });
+    }
   }
   return (
     <form
@@ -188,8 +212,9 @@ export const AddEquipmentExpenseForm = ({
             control={control}
             render={({ field }) => (
               <Combobox
-                placeholder="Select category"
-                searchPlaceholder="Search"
+                placeholder={t("common.placeholders.selectCategory", "Select category")}
+                searchPlaceholder={t("common.placeholders.search", "Search")}
+                aria-label={t("common.accessibility.selectCategory")}
                 options={categoriesList}
                 value={field.value || undefined}
                 onChange={(option: SelectOption | SelectOption[]) => {
@@ -197,7 +222,7 @@ export const AddEquipmentExpenseForm = ({
                     field.onChange(option);
                   }
                 }}
-                emptyMessage="No items found"
+                emptyMessage={t("common.not-found", "No items found")}
                 errors={
                   errors?.category?.message
                     ? { message: errors.category.message }
@@ -214,7 +239,7 @@ export const AddEquipmentExpenseForm = ({
             setIsActive(false);
           }}
         >
-          <Icon name="close" className='h-4 w-4' label="close" color="body" />
+          <Icon name="close" className='h-4 w-4' label={t("common.actions.close", "close")} color="body" />
         </button>
       </div>
       <div className='flex h-full flex-col justify-between p-3'>
@@ -224,10 +249,10 @@ export const AddEquipmentExpenseForm = ({
             name="name"
             render={({ field }) => (
               <div className="space-y-2">
-                <Label>Nome do equipamento</Label>
+                <Label>{t("forms.equipment.name", "Equipment name")}</Label>
                 <Input
                   variant="secondary"
-                  placeholder="Enter name"
+                  placeholder={t("common.placeholders.enterName", "Enter name")}
                   className="w-full"
                   id="name"
                   {...field}
@@ -246,7 +271,7 @@ export const AddEquipmentExpenseForm = ({
             name="amount"
             render={({ field }) => (
               <div className="space-y-2">
-                <Label>Custo do equipamento</Label>
+                <Label>{t("forms.equipment.cost", "Equipment cost")}</Label>
                 <SliderCard
                   currency={selectedCurrency.symbol + " "}
                   min={1}
@@ -270,7 +295,7 @@ export const AddEquipmentExpenseForm = ({
               name="purchaseDate"
               render={({ field }) => (
                 <div className='w-full space-y-2'>
-                  <Label>Data de compra</Label>
+                  <Label>{t("forms.equipment.purchaseDate", "Purchase date")}</Label>
                   <DatePicker
                     {...field}
                     format={
@@ -292,11 +317,11 @@ export const AddEquipmentExpenseForm = ({
               name="lifeSpan"
               render={({ field }) => (
                 <div className='h-full w-full space-y-2'>
-                  <Label>Tempo de vida útil</Label>
+                  <Label>{t("forms.equipment.lifespan", "Lifespan")}</Label>
                   <NumberInput
                     variant="secondary"
                     className='h-full bg-ring/60'
-                    suffix="years"
+                    suffix={t("common.period.years", "years")}
                     {...field}
                     errors={
                       errors?.lifeSpan?.message
@@ -312,9 +337,9 @@ export const AddEquipmentExpenseForm = ({
           <div className="mt-4">
             <Button type="submit" className="whitespace-nowrap">
               <i>
-                <Icon name="plus" label="add" color="on-dark" />
+                <Icon name="plus" label={t("common.actions.add", "add")} color="on-dark" />
               </i>
-              Add Expense
+              {t("expenses.actions.add-expense", "Add Expense")}
             </Button>
           </div>
         </div>

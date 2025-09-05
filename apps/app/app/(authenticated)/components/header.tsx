@@ -64,7 +64,7 @@ export const Header = ({ items }: HeaderProps) => {
             >
               <li>
                 <IconButton
-                  label="Open settings"
+                  label={t("common.accessibility.openSettings")}
                   icon="panel-left"
                   className="bg-transparent hover:bg-neutral-600"
                 />
@@ -107,6 +107,7 @@ export const Header = ({ items }: HeaderProps) => {
         <div>
           <Combobox
             searchPlaceholder={t("common.search")}
+            aria-label={t("common.accessibility.selectCurrency")}
             options={currencies
               .sort((a, b) => a.code.localeCompare(b.code))
               .map((currency) => ({
@@ -150,7 +151,7 @@ export const Header = ({ items }: HeaderProps) => {
         />
 
         <IconButton
-          label={isBillablePanelVisible ? "Hide billable panel" : "Show billable panel"}
+          label={isBillablePanelVisible ? t("common.accessibility.hideBillablePanel") : t("common.accessibility.showBillablePanel")}
           icon="panel-right"
           className={cn(
             "bg-transparent hover:bg-neutral-600 transition-all duration-200 ease-in-out",

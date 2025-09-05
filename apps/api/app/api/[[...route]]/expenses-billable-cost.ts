@@ -1,9 +1,9 @@
 import { zValidator } from "@hono/zod-validator";
+import { BillableCostExpensesRepository } from "@repo/database";
+import { BillableCostCacheKeys } from "@repo/database/cache-keys/billable-cost-cache-keys";
+import { RedisCacheRepository } from "@repo/database/repositories/redis-cache-repository";
 import { Hono } from "hono";
 import { z } from "zod";
-import { BillableCostExpensesRepository } from "@repo/database";
-import { RedisCacheRepository } from "@repo/database/repositories/redis-cache-repository";
-import { BillableCostCacheKeys } from "@repo/database/cache-keys/billable-cost-cache-keys";
 
 const updateBillableSchema = z.object({
   userId: z.string(),
@@ -117,10 +117,9 @@ export const expensesBillableCosts = new Hono()
         });
       } catch (error) {
         console.error("Failed to create billable expense:", error);
-        
+
         // Handle specific Prisma constraint errors
-        if (error instanceof Error) {
-          if (error.message.includes('Unique constraint')) {
+        if (error instanceof Error && error.message.includes('Unique constraint')) {
             console.log('Billable expense already exists for user:', userId);
             // Try to fetch the existing record instead
             try {
@@ -136,8 +135,7 @@ export const expensesBillableCosts = new Hono()
               console.error('Failed to fetch existing record:', fetchError);
             }
           }
-        }
-        
+
         return c.json({
           status: 400,
           success: false,

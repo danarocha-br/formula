@@ -1,3 +1,4 @@
+import { ErrorPatterns, createApiErrorHandler } from "@/utils/api-error-handler";
 import { getTranslations } from "@/utils/translations";
 // Note: Server-side hooks use getTranslations() directly since they don't have React context
 import { reactQueryKeys } from "@repo/database/cache-keys/react-query-keys";
@@ -16,6 +17,8 @@ type RequestType = InferRequestType<
 export const useUpdateFixedExpense = () => {
   const queryClient = useQueryClient();
   const t = getTranslations();
+  const handleApiError = createApiErrorHandler(t);
+  const errorPatterns = ErrorPatterns.UPDATE(t);
 
   const mutation = useMutation<ResponseType, Error, RequestType>({
     mutationFn: async ({ json, param: { id } }) => {
@@ -30,13 +33,12 @@ export const useUpdateFixedExpense = () => {
         const data = await response.json();
 
         if (data.success === false) {
-          throw new Error(t.validation.error["update-failed"]);
+          throw new Error(errorPatterns.default);
         }
         return data;
       } catch (error) {
-        throw error instanceof Error
-          ? error
-          : new Error(t.validation.error["update-failed"]);
+        const errorMessage = handleApiError(error, errorPatterns.default);
+        throw new Error(errorMessage);
       }
     },
 

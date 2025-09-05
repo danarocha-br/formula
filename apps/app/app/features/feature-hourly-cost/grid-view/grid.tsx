@@ -3,6 +3,7 @@ import { useMemo } from "react";
 
 import { useCurrencyStore } from "@/app/store/currency-store";
 import type { ExpenseItem } from "@/app/types";
+import { useTranslations } from "@/hooks/use-translation";
 import { ItemCard } from "@repo/design-system/components/ui/item-card";
 import { cn } from "@repo/design-system/lib/utils";
 import { AddCard } from "../add-expense-card";

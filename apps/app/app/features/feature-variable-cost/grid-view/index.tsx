@@ -10,9 +10,8 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { EquipmentCard } from "@repo/design-system/components/ui/equipment-card";
-import { parseCookies } from "nookies";
-import type React from "react";
 import { useEffect, useMemo, useState } from "react";
+import { AddCard } from "../add-equipment-expense-card";
 
 import { useCurrencyStore } from "@/app/store/currency-store";
 import { useViewPreferenceStore } from "@/app/store/view-preference-store";
@@ -22,47 +21,24 @@ import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
 import { useToast } from "@repo/design-system/hooks/use-toast";
 import { LoadingView } from "../../feature-hourly-cost/loading-view";
 import { EmptyView } from "../empty-view";
+import { useDeleteEquipmentExpense } from "../server/delete-equipment-expense";
 import { useGetEquipmentExpenses } from "../server/get-equipment-expenses";
 
 type GridViewProps = {
-  expenses: EquipmentExpenseItem[];
-  setExpenses: React.Dispatch<React.SetStateAction<EquipmentExpenseItem[]>>;
   userId: string;
-  loading?: boolean;
 };
 
-export const GridView = ({ userId, loading }: GridViewProps) => {
-  const cookies = parseCookies();
-  const locale = cookies.NEXT_LOCALE || navigator.language || "en";
-  const { toast } = useToast();
+export const GridView = ({ userId }: GridViewProps) => {
+  const { data: expenses, isLoading: isLoadingExpenses } = useGetEquipmentExpenses({ userId });
+  const { mutate: deleteExpense } = useDeleteEquipmentExpense();
 
+  const { t } = useTranslations();
+  const { toast } = useToast();
   const { selectedCurrency } = useCurrencyStore();
   const { viewPreference } = useViewPreferenceStore();
 
-  const { t } = useTranslations();
-  const { data: initialExpenses, isLoading: isLoadingExpenses } =
-    useGetEquipmentExpenses({ userId });
-  const [expenses, setExpenses] = useState<EquipmentExpenseItem[] | []>([]);
-  const [activeCard, setActiveCard] = useState<EquipmentExpenseItem | null>(
-    null
-  );
-  const [editingId, setEditingId] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (initialExpenses) {
-      setExpenses(initialExpenses);
-    }
-  }, [initialExpenses]);
-
-  useEffect(() => {
-    if (initialExpenses) {
-      const sortedExpenses = [...initialExpenses].sort(
-        (a, b) => (a.rank ?? 0) - (b.rank ?? 0)
-      );
-      // @ts-ignore
-      setExpenses(sortedExpenses);
-    }
-  }, [initialExpenses]);
+  const [activeCard, setActiveCard] = useState<string | null>(null);
+  const [localExpenses, setLocalExpenses] = useState<EquipmentExpenseItem[]>([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -72,7 +48,31 @@ export const GridView = ({ userId, loading }: GridViewProps) => {
     })
   );
 
-  const cardsId = useMemo(() => expenses.map((item) => item.id), [expenses]);
+  const cardsId = useMemo(() => localExpenses.map((item) => item.id), [localExpenses]);
+
+  useEffect(() => {
+    if (expenses) {
+      setLocalExpenses(expenses);
+    }
+  }, [expenses]);
+
+  const handleDelete = (id: string) => {
+    deleteExpense(
+      { param: { id, userId } },
+      {
+        onError: () => {
+          toast({
+            title: t("validation.error.delete-failed", "Failed to delete equipment expense"),
+            variant: "destructive",
+          });
+        },
+      }
+    );
+  };
+
+  if (!expenses) {
+    return null;
+  }
 
   function onDragStart(event: DragStartEvent) {
     const { active } = event;
@@ -86,40 +86,22 @@ export const GridView = ({ userId, loading }: GridViewProps) => {
   function onDragEnd(event: DragEndEvent) {
     const { active, over } = event;
 
-    if (!over) return;
-    if (active.id === over.id) return;
+    if (!over) {
+      return;
+    }
+    if (active.id === over.id) {
+      return;
+    }
 
-    setExpenses((expenses) => {
-      const activeIndex = expenses.findIndex(
-        (expense) => expense.id === active.id
-      );
-      const overIndex = expenses.findIndex((expense) => expense.id === over.id);
-      const newExpenses = arrayMove(expenses, activeIndex, overIndex);
+    setLocalExpenses((currentExpenses) => {
+      const activeIndex = currentExpenses.findIndex((expense) => expense.id === active.id);
+      const overIndex = currentExpenses.findIndex((expense) => expense.id === over.id);
+      const newExpenses = arrayMove(currentExpenses, activeIndex, overIndex);
 
       const updatedExpenses = newExpenses.map((expense, index) => ({
         ...expense,
         rank: index + 1,
       }));
-
-      // updateBatchExpenses(
-      //   {
-      //     json: {
-      //       updates: updatedExpenses.map((expense) => ({
-      //         id: expense.id,
-      //         data: { rank: expense.rank },
-      //       })),
-      //       userId,
-      //     },
-      //   },
-      //   {
-      //     onError: () => {
-      //       toast({
-      //         title: t.validation.error["update-failed"],
-      //         variant: "destructive",
-      //       });
-      //     },
-      //   }
-      // );
 
       return updatedExpenses;
     });
@@ -127,43 +109,48 @@ export const GridView = ({ userId, loading }: GridViewProps) => {
 
   return (
     <ScrollArea.Root className="h-[calc(100vh-7.7rem)]">
-      {loading ? (
+      {isLoadingExpenses ? (
         <LoadingView />
       ) : (
-        <section className='@container relative'>
-          <DndContext
-            sensors={sensors}
-            onDragStart={onDragStart}
-            onDragEnd={onDragEnd}
-          >
+        <section className="container relative">
+          <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
             <div className="w-full">
               <SortableContext items={cardsId}>
-                {expenses &&
-                viewPreference === "grid" &&
-                expenses.length > 0 ? (
-                  <div className='grid w-full @[1200px]:grid-cols-3 @[380px]:grid-cols-1 @[800px]:grid-cols-2 gap-2 text-card-foreground'>
-                    <EquipmentCard
-                      data={{
-                        name: "Macbook Pro 14",
-                        categoryIcon: "computer",
-                        color: "bg-froly-200",
-                        purchaseDate: new Date().toLocaleDateString(locale),
-                        id: 1,
-                        lifeSpan: "Lifespan: 32 months",
-                        isEmpty: false,
-                        usage: "32 h/month",
-                        usageLabel: "Usage",
-                        usagePercent: 32,
-                        totalCost: formatCurrency(1000, {
-                          currency: selectedCurrency.code,
-                        }),
-                        totalLabel: "Total cost",
-                        hourlyLabel: "Hourly cost",
-                        hourlyCost: formatCurrency(1000, {
-                          currency: selectedCurrency.code,
-                        }),
-                      }}
-                      loading={loading}
+                {localExpenses && viewPreference === "grid" && localExpenses.length > 0 ? (
+                  <div key="expense-grid" className="grid w-full @[1200px]:grid-cols-3 @[380px]:grid-cols-1 @[800px]:grid-cols-2 gap-2 text-card-foreground">
+                    {localExpenses.map((expense) => (
+                      <EquipmentCard
+                        key={expense.id}
+                        data={{
+                          name: expense.name,
+                          categoryIcon: expense.category.icon,
+                          color: expense.category.color,
+                          purchaseDate: expense.purchaseDate instanceof Date ? expense.purchaseDate.toISOString() : expense.purchaseDate,
+                          id: expense.id,
+                          lifeSpan: `${t("forms.equipment.lifespan", "Lifespan")}: ${expense.lifeSpan} ${t("common.period.months", "months")}`,
+                          isEmpty: false,
+                          usage: `${expense.usage} h/month`,
+                          usageLabel: t("forms.equipment.usageLabel", "Usage"),
+                          usagePercent: expense.usage,
+                          totalCost: formatCurrency(expense.amount, {
+                            currency: selectedCurrency.code,
+                          }),
+                          totalLabel: t("forms.equipment.totalCost", "Total cost"),
+                          hourlyLabel: t("forms.equipment.hourlyCost", "Hourly cost"),
+                          hourlyCost: formatCurrency(
+                            expense.amount / expense.lifeSpan / expense.usage,
+                            {
+                              currency: selectedCurrency.code,
+                            }
+                          ),
+                        }}
+                        loading={isLoadingExpenses}
+                        onDelete={() => handleDelete(expense.id)}
+                      />
+                    ))}
+                    <AddCard
+                      userId={userId}
+                      rankIndex={localExpenses.length + 1}
                     />
                   </div>
                 ) : (

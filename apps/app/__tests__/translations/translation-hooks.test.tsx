@@ -1,6 +1,6 @@
 /**
- * Comprehensive tests for the translation system
- * Tests safe translation access, locale context, fallback mechanisms, and error handling
+ * Translation hooks tests
+ * Tests the useTranslations hook and locale context functionality
  */
 
 import { act, render, screen } from '@testing-library/react';
@@ -11,7 +11,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LocaleProvider, useLocale } from '@/contexts/locale-context';
 import type { Locale } from '@/contexts/locale-context';
 import { useTranslations } from '@/hooks/use-translation';
-import { getTranslations } from '@/utils/translations';
 
 // Mock the locale files
 vi.mock('@/locales/en', () => ({
@@ -20,12 +19,46 @@ vi.mock('@/locales/en', () => ({
       title: 'Welcome',
       search: 'Search...',
       'not-found': 'No results found.',
+      actions: {
+        add: 'Add',
+        save: 'Save',
+        cancel: 'Cancel',
+        close: 'Close',
+        open: 'Open',
+      },
+      labels: {
+        name: 'Name',
+        cost: 'Cost',
+        category: 'Category',
+        date: 'Date',
+        amount: 'Amount',
+      },
+      placeholders: {
+        enterName: 'Enter name',
+        selectCategory: 'Select category',
+        search: 'Search',
+      },
       categories: {
         equipment: {
           computer: 'Computer',
           phone: 'Phone'
         }
       }
+    },
+    forms: {
+      equipment: {
+        name: 'Equipment name',
+        cost: 'Equipment cost',
+        purchaseDate: 'Purchase date',
+        lifespan: 'Lifespan',
+        usage: 'Usage percentage',
+      },
+      validation: {
+        required: 'This field is required',
+        invalidType: 'Invalid input type',
+        minLength: 'Minimum length not met',
+        email: 'Please enter a valid email address',
+      },
     },
     validation: {
       form: {
@@ -49,12 +82,46 @@ vi.mock('@/locales/pt-BR', () => ({
       title: 'Bem-vindo',
       search: 'Procurar...',
       'not-found': 'Nenhum resultado encontrado.',
+      actions: {
+        add: 'Adicionar',
+        save: 'Salvar',
+        cancel: 'Cancelar',
+        close: 'Fechar',
+        open: 'Abrir',
+      },
+      labels: {
+        name: 'Nome',
+        cost: 'Custo',
+        category: 'Categoria',
+        date: 'Data',
+        amount: 'Valor',
+      },
+      placeholders: {
+        enterName: 'Digite o nome',
+        selectCategory: 'Selecione a categoria',
+        search: 'Pesquisar',
+      },
       categories: {
         equipment: {
           computer: 'Computador',
           phone: 'Telefone'
         }
       }
+    },
+    forms: {
+      equipment: {
+        name: 'Nome do equipamento',
+        cost: 'Custo do equipamento',
+        purchaseDate: 'Data de compra',
+        lifespan: 'Vida útil',
+        usage: 'Percentual de uso',
+      },
+      validation: {
+        required: 'Este campo é obrigatório',
+        invalidType: 'Tipo de entrada inválido',
+        minLength: 'Comprimento mínimo não atendido',
+        email: 'Por favor, insira um endereço de email válido',
+      },
     },
     validation: {
       form: {
@@ -92,7 +159,7 @@ function TestWrapper({ children, locale = 'en' }: TestWrapperProps) {
   );
 }
 
-describe('Translation System', () => {
+describe('Translation Hooks', () => {
   beforeEach(() => {
     // Clear any existing cookies
     Object.defineProperty(document, 'cookie', {
@@ -106,27 +173,6 @@ describe('Translation System', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-  });
-
-  describe('getTranslations utility', () => {
-    it('should return English translations by default', () => {
-      const translations = getTranslations();
-      expect(translations.common.title).toBe('Welcome');
-    });
-
-    it('should return Portuguese translations when specified', () => {
-      const translations = getTranslations('pt-BR');
-      expect(translations.common.title).toBe('Bem-vindo');
-    });
-
-    it('should return English translations for invalid locale', () => {
-      const translations = getTranslations('invalid' as Locale);
-      expect(translations).toBeDefined();
-      // Should fallback to English or return undefined - either is acceptable
-      if (translations) {
-        expect(translations.common?.title).toBe('Welcome');
-      }
-    });
   });
 
   describe('LocaleProvider', () => {
@@ -172,7 +218,10 @@ describe('Translation System', () => {
 
       expect(result.current.t('common.title')).toBe('Welcome');
       expect(result.current.t('common.search')).toBe('Search...');
-      expect(result.current.t('validation.form.required')).toBe('This field is required.');
+      expect(result.current.t('forms.validation.required')).toBe('This field is required');
+      expect(result.current.t('common.actions.add')).toBe('Add');
+      expect(result.current.t('common.labels.name')).toBe('Name');
+      expect(result.current.t('common.placeholders.enterName')).toBe('Enter name');
     });
 
     it('should handle nested object keys correctly', () => {
@@ -182,6 +231,8 @@ describe('Translation System', () => {
 
       expect(result.current.t('common.categories.equipment.computer')).toBe('Computer');
       expect(result.current.t('common.categories.equipment.phone')).toBe('Phone');
+      expect(result.current.t('forms.equipment.name')).toBe('Equipment name');
+      expect(result.current.t('forms.equipment.cost')).toBe('Equipment cost');
     });
 
     it('should return fallback for missing keys', () => {
@@ -240,6 +291,12 @@ describe('Translation System', () => {
 
       expect(enResult.current.t('common.title')).toBe('Welcome');
       expect(ptResult.current.t('common.title')).toBe('Bem-vindo');
+
+      expect(enResult.current.t('common.actions.add')).toBe('Add');
+      expect(ptResult.current.t('common.actions.add')).toBe('Adicionar');
+
+      expect(enResult.current.t('common.labels.name')).toBe('Name');
+      expect(ptResult.current.t('common.labels.name')).toBe('Nome');
     });
   });
 
@@ -278,6 +335,8 @@ describe('Translation System', () => {
       });
 
       expect(result.current.hasTranslation('common.title')).toBe(true);
+      expect(result.current.hasTranslation('common.actions.add')).toBe(true);
+      expect(result.current.hasTranslation('common.labels.name')).toBe(true);
       expect(result.current.hasTranslation('missing.key')).toBe(false);
       expect(result.current.hasTranslation('common.categories')).toBe(false); // Object, not string
     });
@@ -291,6 +350,15 @@ describe('Translation System', () => {
       expect(nested).toEqual({
         computer: 'Computer',
         phone: 'Phone'
+      });
+
+      const actions = result.current.getNestedTranslations('common.actions');
+      expect(actions).toEqual({
+        add: 'Add',
+        save: 'Save',
+        cancel: 'Cancel',
+        close: 'Close',
+        open: 'Open',
       });
     });
 
@@ -311,8 +379,12 @@ describe('Translation System', () => {
       const keys = result.current.getAvailableKeys();
       expect(keys).toContain('common.title');
       expect(keys).toContain('common.search');
+      expect(keys).toContain('common.actions.add');
+      expect(keys).toContain('common.labels.name');
+      expect(keys).toContain('common.placeholders.enterName');
       expect(keys).toContain('common.categories.equipment.computer');
-      expect(keys).toContain('validation.form.required');
+      expect(keys).toContain('forms.validation.required');
+      expect(keys).toContain('forms.equipment.name');
     });
 
     it('should provide type-safe translation function', () => {
@@ -323,30 +395,7 @@ describe('Translation System', () => {
       // This should work with TypeScript type checking
       expect(result.current.tSafe('common.title')).toBe('Welcome');
       expect(result.current.tSafe('common.search')).toBe('Search...');
-    });
-  });
-
-  describe('Error handling', () => {
-    it('should not crash when translation object is corrupted', () => {
-      // Mock a corrupted translation object
-      vi.doMock('@/locales/en', () => ({
-        en: null
-      }));
-
-      const { result } = renderHook(() => useTranslations(), {
-        wrapper: ({ children }) => <TestWrapper>{children}</TestWrapper>
-      });
-
-      expect(() => result.current.t('any.key')).not.toThrow();
-    });
-
-    it('should handle circular references gracefully', () => {
-      const { result } = renderHook(() => useTranslations(), {
-        wrapper: ({ children }) => <TestWrapper>{children}</TestWrapper>
-      });
-
-      // Should not cause infinite loops
-      expect(() => result.current.getAvailableKeys()).not.toThrow();
+      expect(result.current.tSafe('common.actions.add')).toBe('Add');
     });
   });
 
@@ -379,6 +428,9 @@ describe('Translation System', () => {
         <div>
           <h1>{t('common.title')}</h1>
           <p>{t('common.search')}</p>
+          <button>{t('common.actions.add')}</button>
+          <label>{t('common.labels.name')}</label>
+          <input placeholder={t('common.placeholders.enterName')} />
           <span>{t('missing.key', 'Default text')}</span>
         </div>
       );
@@ -393,6 +445,9 @@ describe('Translation System', () => {
 
       expect(screen.getByText('Welcome')).toBeDefined();
       expect(screen.getByText('Search...')).toBeDefined();
+      expect(screen.getByText('Add')).toBeDefined();
+      expect(screen.getByText('Name')).toBeDefined();
+      expect(screen.getByPlaceholderText('Enter name')).toBeDefined();
       expect(screen.getByText('Default text')).toBeDefined();
     });
 
@@ -404,6 +459,7 @@ describe('Translation System', () => {
         return (
           <div>
             <h1>{t('common.title')}</h1>
+            <button>{t('common.actions.add')}</button>
             <button onClick={() => setLocale('pt-BR')}>
               Switch to Portuguese
             </button>
@@ -418,12 +474,14 @@ describe('Translation System', () => {
       );
 
       expect(screen.getByText('Welcome')).toBeDefined();
+      expect(screen.getByText('Add')).toBeDefined();
 
       act(() => {
         screen.getByText('Switch to Portuguese').click();
       });
 
       expect(screen.getByText('Bem-vindo')).toBeDefined();
+      expect(screen.getByText('Adicionar')).toBeDefined();
     });
   });
 

@@ -1,4 +1,4 @@
-import { Icon, iconPath } from '@repo/design-system/components/ui/icon';
+import { Icon, type iconPath } from '@repo/design-system/components/ui/icon';
 import { List } from '@repo/design-system/components/ui/list';
 import { cn } from '@repo/design-system/lib/utils';
 
@@ -6,6 +6,7 @@ type ListItemProps = {
   title: string;
   data: React.ReactNode;
   icon: keyof typeof iconPath;
+  iconLabel?: string;
   itemsOnHover: React.ReactNode;
   className?: string;
 };
@@ -16,11 +17,12 @@ export const ListItem = ({
   data,
   className,
   itemsOnHover,
+  iconLabel,
 }: ListItemProps) => {
   return (
     <List.Item className={cn("relative group/list-item", className)}>
       <div className="flex items-center gap-2">
-        <Icon name={icon} size="sm" label="Time off" />
+        <Icon name={icon} size="sm" label={iconLabel || title} />
         <span className="text-sm">{title}</span>
       </div>
 

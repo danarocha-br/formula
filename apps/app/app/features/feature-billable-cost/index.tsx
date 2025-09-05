@@ -100,7 +100,7 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
       const holidayDays = data?.holiday_days || 12;
       const vacationDays = data?.vacation_days || 30;
       const sickLeave = data?.sick_leave || 3;
-      
+
       const timeOff = holidayDays + vacationDays + sickLeave;
       const workDaysPerYear = workDays * 52;
       const actualWorkDays = Math.max(0, workDaysPerYear - timeOff); // Ensure non-negative
@@ -192,7 +192,7 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
 
         <div className="flex gap-2 pb-2 text-muted text-sm">
           <i className="mt-1 mr-4">
-            <Icon name="alert" color="caption" label="alert" />
+            <Icon name="alert" color="caption" label={t("common.accessibility.alert")} />
           </i>
           <p>{t("expenses.billable.subtitle")}</p>
         </div>
@@ -295,7 +295,7 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
 
         <div className="flex gap-2 pb-2 text-muted text-sm">
           <i className="mt-1 mr-4">
-            <Icon name="alert" color="caption" label="alert" />
+            <Icon name="alert" color="caption" label={t("common.accessibility.alert")} />
           </i>
           <p>{t("expenses.billable.taxes.subtitle")}</p>
         </div>
@@ -339,7 +339,7 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
 
         <div className="flex gap-2 pb-2 text-muted text-sm">
           <i className="mt-1 mr-4">
-            <Icon name="alert" color="caption" label="alert" />
+            <Icon name="alert" color="caption" label={t("common.accessibility.alert")} />
           </i>
           <p>{t("expenses.billable.margin.subtitle")}</p>
         </div>

@@ -254,14 +254,14 @@ export const TableView = ({
             (table.getIsSomePageRowsSelected() && "indeterminate")
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
+          aria-label={t("forms.accessibility.selectAll")}
         />
       ),
       cell: ({ row }) => (
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
+          aria-label={t("forms.accessibility.selectRow")}
           className="ml-1.5"
         />
       ),
@@ -291,6 +291,7 @@ export const TableView = ({
                     {...field}
                     placeholder={t("expenses.form.category")}
                     searchPlaceholder={t("common.search")}
+                    aria-label={t("common.accessibility.selectCategory")}
                     options={categoriesList}
                     value={selectedCategory}
                     onChange={(option: SelectOption | SelectOption[]) => {
@@ -388,6 +389,7 @@ export const TableView = ({
                   {...field}
                   placeholder={t("expenses.form.category")}
                   searchPlaceholder={t("common.search")}
+                  aria-label={t("common.accessibility.selectCategory")}
                   options={categoriesList}
                   value={field.value || undefined}
                   onChange={(option: SelectOption | SelectOption[]) => {
@@ -915,6 +917,7 @@ export const TableView = ({
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
               onClick={handleDeleteRow}
+              aria-label={t("common.accessibility.deleteItem")}
               className={cn(
                 iconbutton({ size: "sm" }),
                 "opacity-60 hover:opacity-100"
@@ -935,13 +938,14 @@ export const TableView = ({
       <DataTable columns={columns} data={tableData} />
       <button
         onClick={handleAddNewRow}
+        aria-label={t("common.accessibility.addItem")}
         className={cn(
           'w-full border-muted-foreground/50 border-t-0 border-b py-2',
-          'hover:r-primarmuted-foreground/50/50 pyn2 hover:bg-card/5b',
-          'flex items-center justify-center gap-2" transition-colors'
+          'hover:bg-card/50 transition-colors',
+          'flex items-center justify-center gap-2'
         )}
       >
-        <Icon name="plus" label="Add" color="primary" />
+        <Icon name="plus" label={t("common.accessibility.addItem")} color="primary" />
         <span className='text-card-foreground/60 text-sm'>{t("expenses.actions.add-expense")}</span>
       </button>
     </div>

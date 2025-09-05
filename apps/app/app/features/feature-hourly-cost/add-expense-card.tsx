@@ -146,7 +146,7 @@ export const AddCard: React.FC<AddCardProps> = ({
               )}
             >
               <div className='flex h-32 flex-col items-center justify-center gap-2 text-card-foreground'>
-                <Icon name="plus" size="lg" label="add" color="current" />
+                <Icon name="plus" size="lg" label={t("common.actions.add")} color="current" />
                 <p className="text-sm">{t("expenses.actions.add-expense")}</p>
               </div>
             </div>

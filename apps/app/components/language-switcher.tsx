@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale } from "@/contexts/locale-context";
+import { useTranslations } from '@/hooks/use-translation';
 import { Dropdown } from "@repo/design-system/components/ui/dropdown-menu";
 import { Icon } from '@repo/design-system/components/ui/icon';
 import { cn } from '@repo/design-system/lib/utils';
@@ -19,12 +20,14 @@ const LANGUAGES = {
 
 export function LanguageSwitcher() {
   const { locale, setLocale } = useLocale();
+  const { t } = useTranslations();
 
   return (
     <Dropdown.Menu>
       <Dropdown.Trigger asChild>
         <button
           type="button"
+          aria-label={t("common.accessibility.selectLanguage")}
           className="flex items-center gap-2 px-2 py-2 rounded-full group-hover:bg-ring/10 text-sm hover:bg-ring/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/20 focus-visible:ring-offset-1 focus-visible:ring-offset-neutral-900"
         >
           <Globe className="size-4" />
@@ -32,7 +35,7 @@ export function LanguageSwitcher() {
           {/* <span className="sm:hidden">{LANGUAGES[locale].flag}</span> */}
           <Icon
             name="down"
-            label="open menu"
+            label={t("common.accessibility.openMenu")}
             size="xs"
             color="current"
             className="ml-auto shrink-0"

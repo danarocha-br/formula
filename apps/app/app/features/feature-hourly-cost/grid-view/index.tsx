@@ -6,6 +6,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { FIXED_COST_CATEGORIES } from "@/app/constants";
 import { useViewPreferenceStore } from "@/app/store/view-preference-store";
 import type { ExpenseItem } from "@/app/types";
+import { useTranslations } from "@/hooks/use-translation";
 import {
   DndContext,
   type DragEndEvent,
@@ -18,14 +19,13 @@ import {
 import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { ItemCard } from "@repo/design-system/components/ui/item-card";
 import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
-import { LoadingView } from "../loading-view";
 import { useToast } from "@repo/design-system/hooks/use-toast";
 import { createPortal } from "react-dom";
+import { LoadingView } from "../loading-view";
 import { useDeleteFixedExpenses } from "../server/delete-fixed-expenses";
 import { useUpdateBatchFixedExpense } from "../server/update-batch-fixed-expenses";
 import { TableView } from "../table-view";
 import { Grid } from "./grid";
-import { useTranslations } from "@/hooks/use-translation";
 
 const DragOverlayWrapper = dynamic(
   () =>
@@ -36,7 +36,7 @@ const DragOverlayWrapper = dynamic(
         setMounted(true);
       }, []);
 
-      if (!mounted) return null;
+      if (!mounted) {return null};
 
       return createPortal(
         <DragOverlay>
@@ -148,8 +148,8 @@ export const GridView = ({
   function onDragEnd(event: DragEndEvent) {
     const { active, over } = event;
 
-    if (!over) return;
-    if (active.id === over.id) return;
+    if (!over) {return};
+    if (active.id === over.id) {return};
 
     setExpenses((expenses) => {
       const activeIndex = expenses.findIndex(
@@ -188,10 +188,21 @@ export const GridView = ({
   }
 
   function handleDeleteExpense(id: number) {
+    // Optimistically remove the expense immediately
+    setExpenses((prev) => prev.filter((e) => e.id !== id));
+
+    // Then make the API call
     deleteExpense(
       { param: { id: String(id), userId } },
       {
         onError: () => {
+          // If deletion fails, add the expense back
+          const deletedExpense = expenses.find((e) => e.id === id);
+          if (deletedExpense) {
+            setExpenses((prev) => [...prev, deletedExpense]);
+          } else {
+            console.error('Failed to find deleted expense in state');
+          }
           toast({
             title: t("validation.error.delete-failed"),
             variant: "destructive",
@@ -210,7 +221,7 @@ export const GridView = ({
   }, []);
 
   return (
-    <ScrollArea className="h-[calc(100vh-7.7rem)]">
+    <ScrollArea.Root className="h-[calc(100vh-7.7rem)]">
       <div className="@container w-full text-card-foreground">
         {loading ? (
           <LoadingView />
@@ -254,6 +265,6 @@ export const GridView = ({
           </section>
         )}
       </div>
-    </ScrollArea>
+    </ScrollArea.Root>
   );
 };

@@ -1,16 +1,32 @@
+import type { Locale } from "@/contexts/locale-context";
+import { getTranslations } from "@/utils/translations";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { reactQueryKeys } from "@repo/database/cache-keys/react-query-keys";
 import { prefetchQueries } from "@repo/design-system/lib/server-prefetch";
 import { QueryProvider } from "@repo/design-system/providers/query-provider";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import type { ReactElement } from "react";
 import { getBillableExpenses } from "../features/feature-billable-cost/server/get-billable-expenses";
 import { FeatureHourlyCost } from "../features/feature-hourly-cost";
 import { getFixedExpenses } from "../features/feature-hourly-cost/server/get-fixed-expenses";
 import { getEquipmentExpenses } from "../features/feature-variable-cost/server/get-equipment-expenses";
 
-const title = "Formula by Compasso";
-const description = "Manage your expenses";
+// Helper function to get locale-aware translations
+function getLocaleAwareTranslations() {
+  try {
+    const cookieStore = cookies();
+    const locale = (cookieStore.get('NEXT_LOCALE')?.value as Locale) || 'en';
+    return getTranslations(locale);
+  } catch {
+    // Fallback to English if cookies are not available
+    return getTranslations('en');
+  }
+}
+
+const translations = getLocaleAwareTranslations();
+const title = translations.app.title;
+const description = translations.app.description;
 
 export const metadata: Metadata = {
   title,
@@ -23,7 +39,7 @@ const App = async (): Promise<ReactElement> => {
 
   if (!user) {
     redirectToSignIn();
-    throw new Error("User is not authenticated.");
+    throw new Error(translations.auth.userNotAuthenticated);
   }
 
   // Prefetch all expense data on the server

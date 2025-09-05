@@ -3,9 +3,9 @@
  * Tests the core translation functionality without React components
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getTranslations } from '@/utils/translations';
 import type { Locale } from '@/contexts/locale-context';
+import { getTranslations } from '@/utils/translations';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the locale files
 vi.mock('@/locales/en', () => ({
@@ -14,12 +14,46 @@ vi.mock('@/locales/en', () => ({
       title: 'Welcome',
       search: 'Search...',
       'not-found': 'No results found.',
+      actions: {
+        add: 'Add',
+        save: 'Save',
+        cancel: 'Cancel',
+        close: 'Close',
+        open: 'Open',
+      },
+      labels: {
+        name: 'Name',
+        cost: 'Cost',
+        category: 'Category',
+        date: 'Date',
+        amount: 'Amount',
+      },
+      placeholders: {
+        enterName: 'Enter name',
+        selectCategory: 'Select category',
+        search: 'Search',
+      },
       categories: {
         equipment: {
           computer: 'Computer',
           phone: 'Phone'
         }
       }
+    },
+    forms: {
+      equipment: {
+        name: 'Equipment name',
+        cost: 'Equipment cost',
+        purchaseDate: 'Purchase date',
+        lifespan: 'Lifespan',
+        usage: 'Usage percentage',
+      },
+      validation: {
+        required: 'This field is required',
+        invalidType: 'Invalid input type',
+        minLength: 'Minimum length not met',
+        email: 'Please enter a valid email address',
+      },
     },
     validation: {
       form: {
@@ -43,12 +77,46 @@ vi.mock('@/locales/pt-BR', () => ({
       title: 'Bem-vindo',
       search: 'Procurar...',
       'not-found': 'Nenhum resultado encontrado.',
+      actions: {
+        add: 'Adicionar',
+        save: 'Salvar',
+        cancel: 'Cancelar',
+        close: 'Fechar',
+        open: 'Abrir',
+      },
+      labels: {
+        name: 'Nome',
+        cost: 'Custo',
+        category: 'Categoria',
+        date: 'Data',
+        amount: 'Valor',
+      },
+      placeholders: {
+        enterName: 'Digite o nome',
+        selectCategory: 'Selecione a categoria',
+        search: 'Pesquisar',
+      },
       categories: {
         equipment: {
           computer: 'Computador',
           phone: 'Telefone'
         }
       }
+    },
+    forms: {
+      equipment: {
+        name: 'Nome do equipamento',
+        cost: 'Custo do equipamento',
+        purchaseDate: 'Data de compra',
+        lifespan: 'Vida útil',
+        usage: 'Percentual de uso',
+      },
+      validation: {
+        required: 'Este campo é obrigatório',
+        invalidType: 'Tipo de entrada inválido',
+        minLength: 'Comprimento mínimo não atendido',
+        email: 'Por favor, insira um endereço de email válido',
+      },
     },
     validation: {
       form: {
@@ -100,6 +168,9 @@ describe('Core Translation System', () => {
       expect(typeof enTranslations.common).toBe('object');
       expect(typeof ptTranslations.common).toBe('object');
 
+      expect(typeof enTranslations.forms).toBe('object');
+      expect(typeof ptTranslations.forms).toBe('object');
+
       expect(typeof enTranslations.validation).toBe('object');
       expect(typeof ptTranslations.validation).toBe('object');
 
@@ -149,6 +220,7 @@ describe('Core Translation System', () => {
       const translations = getTranslations('en');
 
       expect(translations).toHaveProperty('common');
+      expect(translations).toHaveProperty('forms');
       expect(translations).toHaveProperty('validation');
       expect(translations).toHaveProperty('expenses');
     });
@@ -159,7 +231,20 @@ describe('Core Translation System', () => {
       expect(translations.common).toHaveProperty('title');
       expect(translations.common).toHaveProperty('search');
       expect(translations.common).toHaveProperty('not-found');
+      expect(translations.common).toHaveProperty('actions');
+      expect(translations.common).toHaveProperty('labels');
+      expect(translations.common).toHaveProperty('placeholders');
       expect(translations.common).toHaveProperty('categories');
+    });
+
+    it('should have all required form translations', () => {
+      const translations = getTranslations('en');
+
+      expect(translations.forms).toHaveProperty('equipment');
+      expect(translations.forms).toHaveProperty('validation');
+      expect(translations.forms.equipment).toHaveProperty('name');
+      expect(translations.forms.equipment).toHaveProperty('cost');
+      expect(translations.forms.validation).toHaveProperty('required');
     });
 
     it('should have all required validation translations', () => {
@@ -185,6 +270,9 @@ describe('Core Translation System', () => {
       // Test accessing deeply nested keys
       expect(translations.common.categories.equipment.computer).toBe('Computer');
       expect(translations.common.categories.equipment.phone).toBe('Phone');
+      expect(translations.common.actions.add).toBe('Add');
+      expect(translations.common.labels.name).toBe('Name');
+      expect(translations.common.placeholders.enterName).toBe('Enter name');
     });
 
     it('should provide consistent values across locales for same keys', () => {
@@ -195,8 +283,11 @@ describe('Core Translation System', () => {
       expect(typeof enTranslations.common.title).toBe('string');
       expect(typeof ptTranslations.common.title).toBe('string');
 
-      expect(typeof enTranslations.validation.form.required).toBe('string');
-      expect(typeof ptTranslations.validation.form.required).toBe('string');
+      expect(typeof enTranslations.forms.validation.required).toBe('string');
+      expect(typeof ptTranslations.forms.validation.required).toBe('string');
+
+      expect(typeof enTranslations.common.actions.add).toBe('string');
+      expect(typeof ptTranslations.common.actions.add).toBe('string');
     });
   });
 
@@ -212,7 +303,9 @@ describe('Core Translation System', () => {
       // All translation values should be non-empty strings
       expect(translations.common.title).toBeTruthy();
       expect(translations.common.search).toBeTruthy();
-      expect(translations.validation.form.required).toBeTruthy();
+      expect(translations.forms.validation.required).toBeTruthy();
+      expect(translations.common.actions.add).toBeTruthy();
+      expect(translations.common.labels.name).toBeTruthy();
     });
 
     it('should maintain object immutability', () => {
