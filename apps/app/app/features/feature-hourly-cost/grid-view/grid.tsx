@@ -38,25 +38,32 @@ export const Grid = ({
 }: GridViewProps) => {
   const { t } = useTranslations();
   const { selectedCurrency } = useCurrencyStore();
-  // const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
   const maxValue = useMemo(
-    () => Math.max(...data.map((item) => item.amount)),
+    () => data.length > 0 ? Math.max(...data.map((item) => item.amount)) : 0,
     [data]
   );
+
+  // Calculate the next rank index for new expenses
+  const nextRankIndex = useMemo(() => {
+    if (data.length === 0) return 1;
+    const maxRank = Math.max(...data.map(expense => expense.rank ?? 0));
+    return maxRank + 1;
+  }, [data]);
+
   return data && data.length === 0 ? (
     <EmptyView userId={userId} />
   ) : (
     <MasonryGrid>
-      {data.map((expense, index) => {
+      {data.map((expense) => {
         const isLarge = expense.amount > maxValue * 0.4;
 
         return (
           <div
-            key={expense.id + expense.rank}
+            key={`expense-${expense.id}-${expense.rank}`}
             className={cn(
               'relative h-[320px] min-h-[300px]',
-              '/ isLarge"co320pxn-min-2"300px'
+              isLarge && 'col-span-2'
             )}
             style={{
               width: "100%",
@@ -106,7 +113,7 @@ export const Grid = ({
       <AddCard
         className="h-[320px]"
         userId={userId}
-        rankIndex={data.length + 1}
+        rankIndex={nextRankIndex}
       />
     </MasonryGrid>
   );

@@ -284,6 +284,22 @@ export const en: TranslationStructure = {
   errors: {
     globalError: "Oops, something went wrong",
     tryAgain: "Try again",
+    "stack-overflow": {
+      title: "System Error Detected",
+      description: "We've detected a system error that could affect your experience. Don't worry, your data is safe.",
+    },
+    generic: {
+      title: "Something Went Wrong",
+      description: "An unexpected error occurred. We're working to fix this issue.",
+    },
+    retry: "Try Again",
+    "retry-with-delay": "Retry in {delay}s",
+    "clear-cache": "Clear Cache & Reload",
+    dismiss: "Dismiss",
+    "max-retries": {
+      title: "Maximum Retries Reached",
+      description: "We've tried multiple times but couldn't complete the operation. Please try clearing the cache or contact support if the issue persists.",
+    },
   },
   auth: {
     signIn: "Sign In",

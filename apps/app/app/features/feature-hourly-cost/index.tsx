@@ -5,33 +5,36 @@ import { Resizable } from "@repo/design-system/components/ui/resizable-panel";
 import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
 import { TabButton } from "@repo/design-system/components/ui/tab-button";
 import { cn } from "@repo/design-system/lib/utils";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { useCurrencyStore } from "@/app/store/currency-store";
 import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
 import { usePanelToggleStore } from "@/app/store/panel-toggle-store";
 import { useViewPreferenceStore } from "@/app/store/view-preference-store";
-import type { ExpenseItem } from "@/app/types";
+import { useStableExpenses } from "@/hooks/use-stable-expenses";
 import { useTranslations } from "@/hooks/use-translation";
+import { useRenderTracker } from "@/utils/performance-monitor";
+import { useSafeEffect } from "@/utils/use-effect-safeguards";
 import { BillableCosts } from "../feature-billable-cost";
 import { VariableCostView } from "../feature-variable-cost";
 import { AnalyticsView } from "./analytics-view";
+import { ExpensesErrorBoundary } from './components/expenses-error-boundary';
 import { GridView } from "./grid-view";
 import { NodeView } from "./node-view";
-import { useGetFixedExpenses } from "./server/get-fixed-expenses";
 
 type Props = {
   userId: string;
 };
 
 export const FeatureHourlyCost = ({ userId }: Props) => {
+  // Track component renders for performance monitoring
+  useRenderTracker('FeatureHourlyCost');
+
   const { t } = useTranslations();
-  const { data: initialExpenses, isLoading: isLoadingExpenses } =
-    useGetFixedExpenses({ userId });
+  const { expenses, isLoading: isLoadingExpenses } = useStableExpenses({ userId });
 
   const { selectedCurrency } = useCurrencyStore();
 
-  const [expenses, setExpenses] = useState<ExpenseItem[] | []>([]);
   const [expenseTypeView, setExpenseTypeView] = useState<"fixed" | "variable">(
     "fixed"
   );
@@ -53,19 +56,10 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
     [expenses]
   );
 
-  useEffect(() => {
+  // Update total monthly expenses when calculation changes
+  useMemo(() => {
     setTotalMonthlyExpenses(totalExpensesCostPerMonth);
   }, [totalExpensesCostPerMonth, setTotalMonthlyExpenses]);
-
-  useEffect(() => {
-    if (initialExpenses) {
-      const sortedExpenses = [...initialExpenses].sort(
-        (a, b) => (a.rank ?? 0) - (b.rank ?? 0)
-      );
-      // @ts-ignore
-      setExpenses(sortedExpenses);
-    }
-  }, [initialExpenses]);
 
   // Handle different view preferences
   if (viewPreference === "node") {
@@ -90,7 +84,6 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
         <GridView
           userId={userId}
           expenses={expenses}
-          setExpenses={setExpenses}
           loading={isLoadingExpenses}
         />
       )}
@@ -158,41 +151,43 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
     </section>
   );
 
-  // Conditional rendering with smooth transitions
+  // Conditional rendering with smooth transitions wrapped in error boundary
   return (
-    <div className="relative h-full w-full overflow-hidden" data-testid="panel-container">
-      {isBillablePanelVisible ? (
-        <div
-          key="panel-visible"
-          className="animate-in fade-in-0 duration-300 h-full w-full"
-        >
-          <Resizable.Group direction="horizontal" className="h-full">
-            <Resizable.Panel defaultSize={60} className="min-w-0">
-              <div className="animate-in slide-in-from-left-2 duration-300 ease-out h-full">
-                {mainContent}
-              </div>
-            </Resizable.Panel>
+    <ExpensesErrorBoundary userId={userId}>
+      <div className="relative h-full w-full overflow-hidden" data-testid="panel-container">
+        {isBillablePanelVisible ? (
+          <div
+            key="panel-visible"
+            className="animate-in fade-in-0 duration-300 h-full w-full"
+          >
+            <Resizable.Group direction="horizontal" className="h-full">
+              <Resizable.Panel defaultSize={60} className="min-w-0">
+                <div className="animate-in slide-in-from-left-2 duration-300 ease-out h-full">
+                  {mainContent}
+                </div>
+              </Resizable.Panel>
 
-            <Resizable.Handle
-              withHandle
-              className="animate-in fade-in-0 duration-200 delay-150 opacity-100 hover:bg-purple-100/10 transition-colors duration-200"
-            />
+              <Resizable.Handle
+                withHandle
+                className="animate-in fade-in-0 duration-200 delay-150 opacity-100 hover:bg-purple-100/10 transition-colors duration-200"
+              />
 
-            <Resizable.Panel defaultSize={40} className="min-w-0">
-              <div className="animate-in slide-in-from-right-2 duration-300 ease-out delay-75 h-full">
-                {billablePanel}
-              </div>
-            </Resizable.Panel>
-          </Resizable.Group>
-        </div>
-      ) : (
-        <div
-          key="panel-hidden"
-          className="animate-in fade-in-0 slide-in-from-left-2 duration-300 ease-out h-full w-full"
-        >
-          {mainContent}
-        </div>
-      )}
-    </div>
+              <Resizable.Panel defaultSize={40} className="min-w-0">
+                <div className="animate-in slide-in-from-right-2 duration-300 ease-out delay-75 h-full">
+                  {billablePanel}
+                </div>
+              </Resizable.Panel>
+            </Resizable.Group>
+          </div>
+        ) : (
+          <div
+            key="panel-hidden"
+            className="animate-in fade-in-0 slide-in-from-left-2 duration-300 ease-out h-full w-full"
+          >
+            {mainContent}
+          </div>
+        )}
+      </div>
+    </ExpensesErrorBoundary>
   );
 };

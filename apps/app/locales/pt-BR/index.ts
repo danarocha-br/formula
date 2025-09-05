@@ -292,6 +292,22 @@ export const ptBR: TranslationStructure = {
   errors: {
     globalError: "Ops, algo deu errado",
     tryAgain: "Tentar novamente",
+    "stack-overflow": {
+      title: "Erro do Sistema Detectado",
+      description: "Detectamos um erro do sistema que pode afetar sua experiência. Não se preocupe, seus dados estão seguros.",
+    },
+    generic: {
+      title: "Algo Deu Errado",
+      description: "Ocorreu um erro inesperado. Estamos trabalhando para corrigir este problema.",
+    },
+    retry: "Tentar Novamente",
+    "retry-with-delay": "Tentar novamente em {delay}s",
+    "clear-cache": "Limpar Cache e Recarregar",
+    dismiss: "Dispensar",
+    "max-retries": {
+      title: "Máximo de Tentativas Atingido",
+      description: "Tentamos várias vezes mas não conseguimos completar a operação. Tente limpar o cache ou entre em contato com o suporte se o problema persistir.",
+    },
   },
   auth: {
     signIn: "Entrar",

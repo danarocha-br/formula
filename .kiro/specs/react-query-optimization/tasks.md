@@ -32,72 +32,72 @@
   - Use targeted query invalidation
   - _Requirements: 2.1, 3.1, 3.2_
 
-- [ ] 6. Update billable expenses query hooks for server/client compatibility
+- [x] 6. Update billable expenses query hooks for server/client compatibility
 
   - Refactor useGetBillableExpenses to use the query key factory
   - Create a server-side fetcher function for the same data
   - Implement proper error handling and loading states
   - _Requirements: 1.3, 1.4, 4.1, 4.2_
 
-- [ ] 7. Enhance billable expenses mutation hooks with optimistic updates
+- [x] 7. Enhance billable expenses mutation hooks with optimistic updates
 
   - Update useCreateBillableExpense with optimistic update pattern
   - Implement proper rollback mechanism for failed mutations
   - Use targeted query invalidation
   - _Requirements: 2.1, 3.1, 3.2_
 
-- [ ] 8. Update equipment expenses query hooks for server/client compatibility
+- [x] 8. Update equipment expenses query hooks for server/client compatibility
 
   - Refactor useGetEquipmentExpenses to use the query key factory
   - Create a server-side fetcher function for the same data
   - Implement proper error handling and loading states
   - _Requirements: 1.3, 1.4, 4.1, 4.2_
 
-- [ ] 9. Enhance equipment expenses mutation hooks with optimistic updates
+- [x] 9. Enhance equipment expenses mutation hooks with optimistic updates
 
   - Update useCreateEquipmentExpense with optimistic update pattern
   - Implement proper rollback mechanism for failed mutations
   - Use targeted query invalidation
   - _Requirements: 2.1, 3.1, 3.2_
 
-- [ ] 10. Implement QueryErrorBoundary component
+- [x] 10. Implement QueryErrorBoundary component
 
   - Create a reusable error boundary component for query errors
   - Implement retry functionality
   - _Requirements: 4.2_
 
-- [ ] 11. Create loading state components
+- [x] 11. Create loading state components
 
   - Implement skeleton loaders for query loading states
   - Create a background refetch indicator
   - _Requirements: 4.1, 4.3, 4.4_
 
-- [ ] 12. Update page components to use server-side prefetching
+- [x] 12. Update page components to use server-side prefetching
 
   - Modify the project page to prefetch necessary queries
   - Pass dehydrated state to QueryProvider
   - _Requirements: 1.1, 1.2_
 
-- [ ] 13. Implement persistence for offline support
+- [x] 13. Implement persistence for offline support
 
   - Add persistence plugin to QueryClient
   - Configure persistence options for critical data
   - _Requirements: 2.4_
 
-- [ ] 14. Create test utilities for React Query
+- [x] 14. Create test utilities for React Query
 
   - Set up test wrapper for React Query hooks
   - Configure Mock Service Worker for API mocking
   - _Requirements: 1.4_
 
-- [ ] 15. Write tests for query hooks
+- [x] 15. Write tests for query hooks
 
   - Test successful query scenarios
   - Test error handling
   - Test loading states
   - _Requirements: 1.4, 4.2_
 
-- [ ] 16. Write tests for mutation hooks
+- [x] 16. Write tests for mutation hooks
   - Test successful mutation scenarios
   - Test optimistic updates
   - Test error handling and rollbacks

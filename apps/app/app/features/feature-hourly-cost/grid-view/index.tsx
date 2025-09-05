@@ -59,14 +59,12 @@ const DragOverlayWrapper = dynamic(
 
 type GridViewProps = {
   expenses: ExpenseItem[];
-  setExpenses: React.Dispatch<React.SetStateAction<ExpenseItem[]>>;
   userId: string;
   loading?: boolean;
 };
 
 export const GridView = ({
   expenses,
-  setExpenses,
   userId,
   loading = false,
 }: GridViewProps) => {
@@ -148,61 +146,51 @@ export const GridView = ({
   function onDragEnd(event: DragEndEvent) {
     const { active, over } = event;
 
-    if (!over) {return};
-    if (active.id === over.id) {return};
+    if (!over) return;
+    if (active.id === over.id) return;
 
-    setExpenses((expenses) => {
-      const activeIndex = expenses.findIndex(
-        (expense) => expense.id === active.id
-      );
-      const overIndex = expenses.findIndex((expense) => expense.id === over.id);
-      const newExpenses = arrayMove(expenses, activeIndex, overIndex);
+    const activeIndex = expenses.findIndex(
+      (expense) => expense.id === active.id
+    );
+    const overIndex = expenses.findIndex((expense) => expense.id === over.id);
 
-      const updatedExpenses = newExpenses.map((expense, index) => ({
-        ...expense,
-        rank: index + 1,
-      }));
+    if (activeIndex === -1 || overIndex === -1) return;
 
-      updateBatchExpenses(
-        {
-          json: {
-            updates: updatedExpenses.map((expense) => ({
-              id: expense.id,
-              data: { rank: expense.rank },
-            })),
-            userId,
-          },
+    const newExpenses = arrayMove(expenses, activeIndex, overIndex);
+
+    const updatedExpenses = newExpenses.map((expense, index) => ({
+      ...expense,
+      rank: index + 1,
+    }));
+
+    // The mutation hook now handles optimistic updates and cache management
+    updateBatchExpenses(
+      {
+        json: {
+          updates: updatedExpenses.map((expense) => ({
+            id: expense.id,
+            data: { rank: expense.rank },
+          })),
+          userId,
         },
-        {
-          onError: () => {
-            toast({
-              title: t("validation.error.update-failed"),
-              variant: "destructive",
-            });
-          },
-        }
-      );
-
-      return updatedExpenses;
-    });
+      },
+      {
+        onError: () => {
+          toast({
+            title: t("validation.error.update-failed"),
+            variant: "destructive",
+          });
+        },
+      }
+    );
   }
 
   function handleDeleteExpense(id: number) {
-    // Optimistically remove the expense immediately
-    setExpenses((prev) => prev.filter((e) => e.id !== id));
-
-    // Then make the API call
+    // The optimistic update is now handled by the mutation hook's onMutate
     deleteExpense(
       { param: { id: String(id), userId } },
       {
         onError: () => {
-          // If deletion fails, add the expense back
-          const deletedExpense = expenses.find((e) => e.id === id);
-          if (deletedExpense) {
-            setExpenses((prev) => [...prev, deletedExpense]);
-          } else {
-            console.error('Failed to find deleted expense in state');
-          }
           toast({
             title: t("validation.error.delete-failed"),
             variant: "destructive",
