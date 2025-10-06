@@ -1,5 +1,3 @@
-import { useMemo } from "react";
-
 interface BreakEvenInput {
   billableHours: number;
   monthlySalary: number;
@@ -19,10 +17,6 @@ interface BreakEvenCalculations {
   monthlyRate: number;
 }
 
-const calculateTaxes = (totalExpenses: number, taxRate: number): number => {
-  return (totalExpenses * taxRate) / 100;
-};
-
 const roundToTwoDecimals = (value: number): number => {
   return Math.round(value * 100) / 100;
 };
@@ -41,23 +35,36 @@ export const useBreakEvenCalculator = (
     workDays,
   } = input;
 
-  const yearlySalary = monthlySalary * 12;
-  const totalYearlyExpenses = totalExpensesCostPerMonth * 12;
-  const totalExpenses = yearlySalary + totalYearlyExpenses;
+  const safeBillableHours = Math.max(billableHours, 0);
 
-  const totalYearlyTaxes = calculateTaxes(totalExpenses, taxRate);
-  const totalYearlyCosts =
-    yearlySalary + totalYearlyTaxes + totalYearlyExpenses;
+  if (safeBillableHours === 0) {
+    return {
+      breakEven: 0,
+      hourlyRate: 0,
+      dayRate: 0,
+      weekRate: 0,
+      monthlyRate: 0,
+    };
+  }
 
-  const baseHourlyRate = totalYearlyCosts / billableHours;
-  const marginMultiplier = 1 + margin / 100;
-  const hourlyRate = baseHourlyRate * marginMultiplier;
+  const yearlySalary = Math.max(monthlySalary, 0) * 12;
+  const totalYearlyExpenses = Math.max(totalExpensesCostPerMonth, 0) * 12;
+  const baseYearlyCosts = yearlySalary + totalYearlyExpenses;
+
+  const marginMultiplier = 1 + Math.max(margin, 0) / 100;
+  const costsWithMargin = baseYearlyCosts * marginMultiplier;
+
+  const deductionRate = Math.min(Math.max(taxRate + fees, 0) / 100, 0.99);
+  const netRevenueFactor = 1 - deductionRate;
+
+  const grossYearlyRevenue = costsWithMargin / netRevenueFactor;
+  const hourlyRate = grossYearlyRevenue / safeBillableHours;
   const dayRate = hourlyRate * hoursPerDay;
   const weekRate = dayRate * workDays;
-  const monthlyRate = (hourlyRate * billableHours) / 12;
+  const monthlyRate = grossYearlyRevenue / 12;
 
   return {
-    breakEven: roundToTwoDecimals(totalYearlyCosts),
+    breakEven: roundToTwoDecimals(grossYearlyRevenue),
     hourlyRate: roundToTwoDecimals(hourlyRate),
     dayRate: roundToTwoDecimals(dayRate),
     weekRate: roundToTwoDecimals(weekRate),

@@ -155,7 +155,7 @@ export const BillableCosts = ({ userId }: { userId: string }) => {
     (data: BillableCostsForm): Calculations => {
       const timeOff = data.holiday_days + data.vacation_days + data.sick_leave;
       const workDaysPerYear = data.work_days * 52;
-      const actualWorkDays = workDaysPerYear - timeOff;
+      const actualWorkDays = Math.max(workDaysPerYear - timeOff, 0);
       const billableHours = actualWorkDays * data.hours_per_day;
 
       return {
