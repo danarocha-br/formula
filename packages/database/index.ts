@@ -29,6 +29,9 @@ export type { IFixedCostExpensesRepository } from "./repositories/dtos/fixed-cos
 export { PrismaBillableCostExpensesRepository as BillableCostExpensesRepository } from "./repositories/prisma-billable-cost-expenses";
 export type { IBillableCostExpensesRepository } from "./repositories/dtos/billable-cost-expenses-repository";
 export { PrismaEquipmentCostRepository as EquipmentCostRepository } from "./repositories/prisma-equipment-cost";
+export { type IEquipmentCostRepository } from "./repositories/dtos/equipment-cost-repository";
+export { CloudflareKvCacheRepository } from "./repositories/cloudflare-kv-cache-repository";
+export { type ICacheRepository } from "./repositories/dtos/cache-repository";
 export type { IEquipmentCostRepository } from "./repositories/dtos/equipment-cost-repository";
 
 // Export cache keys (both server-side and React Query keys)

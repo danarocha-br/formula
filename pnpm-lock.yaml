@@ -363,9 +363,6 @@ importers:
       '@prisma/client':
         specifier: 5.21.1
         version: 5.21.1(prisma@5.21.1)
-      ioredis:
-        specifier: ^5.4.1
-        version: 5.4.1
       server-only:
         specifier: ^0.0.1
         version: 0.0.1

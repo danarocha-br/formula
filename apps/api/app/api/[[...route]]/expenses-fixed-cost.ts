@@ -2,7 +2,7 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 import { FixedCostExpensesRepository } from "@repo/database";
-import { RedisCacheRepository } from "@repo/database/repositories/redis-cache-repository";
+import { CloudflareKvCacheRepository } from "@repo/database/repositories/cloudflare-kv-cache-repository";
 import { FixedCostCacheKeys } from "@repo/database/cache-keys/fixed-cost-cache-keys";
 
 const createExpenseSchema = z.object({
@@ -49,7 +49,7 @@ export const expensesFixedCosts = new Hono()
         throw new Error("Unauthorized");
       }
       const fixedCostExpensesRepository = new FixedCostExpensesRepository();
-      const cacheRepository = new RedisCacheRepository();
+      const cacheRepository = new CloudflareKvCacheRepository();
 
       const cache = await cacheRepository.get(
         FixedCostCacheKeys.fixedCostsList(userId)
@@ -85,7 +85,7 @@ export const expensesFixedCosts = new Hono()
         }
 
         const repository = new FixedCostExpensesRepository();
-        const cacheRepository = new RedisCacheRepository();
+        const cacheRepository = new CloudflareKvCacheRepository();
 
         await repository.update(userId, id, {
           name,
@@ -121,7 +121,7 @@ export const expensesFixedCosts = new Hono()
       }
 
       const repository = new FixedCostExpensesRepository();
-      const cacheRepository = new RedisCacheRepository();
+      const cacheRepository = new CloudflareKvCacheRepository();
 
       const updatedExpenses = await repository.updateBatch(userId, updates);
 
@@ -151,7 +151,7 @@ export const expensesFixedCosts = new Hono()
       }
 
       const repository = new FixedCostExpensesRepository();
-      const cacheRepository = new RedisCacheRepository();
+      const cacheRepository = new CloudflareKvCacheRepository();
 
       const expense = await repository.create({
         name,
@@ -194,7 +194,7 @@ export const expensesFixedCosts = new Hono()
       }
 
       const repository = new FixedCostExpensesRepository();
-      const cacheRepository = new RedisCacheRepository();
+      const cacheRepository = new CloudflareKvCacheRepository();
 
       await repository.delete(userId, id);
 

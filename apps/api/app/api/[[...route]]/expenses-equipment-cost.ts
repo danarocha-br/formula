@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 import { EquipmentCostRepository } from "@repo/database";
+import { CloudflareKvCacheRepository } from "@repo/database/repositories/cloudflare-kv-cache-repository";
 import { EquipmentCostCacheKeys } from "@repo/database/cache-keys/equipment-cost-cache-keys";
 import { RedisCacheRepository } from "@repo/database/repositories/redis-cache-repository";
 
@@ -38,7 +39,7 @@ export const expensesEquipmentCosts = new Hono()
         throw new Error("Unauthorized");
       }
       const repository = new EquipmentCostRepository();
-      const cacheRepository = new RedisCacheRepository();
+      const cacheRepository = new CloudflareKvCacheRepository();
 
       const cache = await cacheRepository.get(
         EquipmentCostCacheKeys.list(userId)
@@ -71,7 +72,7 @@ export const expensesEquipmentCosts = new Hono()
         throw new Error("Unauthorized");
       }
       const repository = new EquipmentCostRepository();
-      const cacheRepository = new RedisCacheRepository();
+      const cacheRepository = new CloudflareKvCacheRepository();
 
       try {
         const equipmentCost = await repository.create({
@@ -110,7 +111,7 @@ export const expensesEquipmentCosts = new Hono()
         }
 
         const repository = new EquipmentCostRepository();
-        const cacheRepository = new RedisCacheRepository();
+        const cacheRepository = new CloudflareKvCacheRepository();
 
         const equipmentCost = await repository.update(userId, {
           ...data,

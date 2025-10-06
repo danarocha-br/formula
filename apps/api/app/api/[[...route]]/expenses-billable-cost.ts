@@ -1,5 +1,6 @@
 import { zValidator } from "@hono/zod-validator";
 import { BillableCostExpensesRepository } from "@repo/database";
+import { CloudflareKvCacheRepository } from "@repo/database/repositories/cloudflare-kv-cache-repository";
 import { BillableCostCacheKeys } from "@repo/database/cache-keys/billable-cost-cache-keys";
 import { RedisCacheRepository } from "@repo/database/repositories/redis-cache-repository";
 import { Hono } from "hono";
@@ -33,7 +34,7 @@ export const expensesBillableCosts = new Hono()
         throw new Error("Unauthorized");
       }
       const repository = new BillableCostExpensesRepository();
-      const cacheRepository = new RedisCacheRepository();
+      const cacheRepository = new CloudflareKvCacheRepository();
 
       const cache = await cacheRepository.get(
         BillableCostCacheKeys.billableCost(userId)
@@ -66,7 +67,7 @@ export const expensesBillableCosts = new Hono()
         throw new Error("Unauthorized");
       }
       const repository = new BillableCostExpensesRepository();
-      const cacheRepository = new RedisCacheRepository();
+      const cacheRepository = new CloudflareKvCacheRepository();
 
       try {
         // Check if billable cost already exists for this user
@@ -170,7 +171,7 @@ export const expensesBillableCosts = new Hono()
         }
 
         const repository = new BillableCostExpensesRepository();
-        const cacheRepository = new RedisCacheRepository();
+        const cacheRepository = new CloudflareKvCacheRepository();
 
         const data = await repository.update(userId, {
           workDays,
