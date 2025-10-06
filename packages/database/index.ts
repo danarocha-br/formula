@@ -30,3 +30,5 @@ export { PrismaBillableCostExpensesRepository as BillableCostExpensesRepository 
 export { type IBillableCostExpensesRepository } from "./repositories/dtos/billable-cost-expenses-repository";
 export { PrismaEquipmentCostRepository as EquipmentCostRepository } from "./repositories/prisma-equipment-cost";
 export { type IEquipmentCostRepository } from "./repositories/dtos/equipment-cost-repository";
+export { CloudflareKvCacheRepository } from "./repositories/cloudflare-kv-cache-repository";
+export { type ICacheRepository } from "./repositories/dtos/cache-repository";

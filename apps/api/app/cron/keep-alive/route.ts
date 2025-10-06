@@ -1,9 +1,9 @@
 import { database } from "@repo/database";
-import { RedisCacheRepository } from '@repo/database/repositories/redis-cache-repository';
+import { CloudflareKvCacheRepository } from "@repo/database/repositories/cloudflare-kv-cache-repository";
 import { NextResponse } from "next/server";
 
 export const POST = async () => {
-  const cacheRepository = new RedisCacheRepository();
+  const cacheRepository = new CloudflareKvCacheRepository();
 
   await cacheRepository.set("keep-alive", "keep-alive");
   const pages = await database.expensesFixedCost.count();

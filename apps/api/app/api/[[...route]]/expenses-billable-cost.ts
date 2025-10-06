@@ -2,7 +2,7 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 import { BillableCostExpensesRepository } from "@repo/database";
-import { RedisCacheRepository } from "@repo/database/repositories/redis-cache-repository";
+import { CloudflareKvCacheRepository } from "@repo/database/repositories/cloudflare-kv-cache-repository";
 import { BillableCostCacheKeys } from "@repo/database/cache-keys/billable-cost-cache-keys";
 
 const updateBillableSchema = z.object({
@@ -33,7 +33,7 @@ export const expensesBillableCosts = new Hono()
         throw new Error("Unauthorized");
       }
       const repository = new BillableCostExpensesRepository();
-      const cacheRepository = new RedisCacheRepository();
+      const cacheRepository = new CloudflareKvCacheRepository();
 
       const cache = await cacheRepository.get(
         BillableCostCacheKeys.billableCost(userId)
@@ -66,7 +66,7 @@ export const expensesBillableCosts = new Hono()
         throw new Error("Unauthorized");
       }
       const repository = new BillableCostExpensesRepository();
-      const cacheRepository = new RedisCacheRepository();
+      const cacheRepository = new CloudflareKvCacheRepository();
 
       try {
         const billableCostExpenses = await repository.create({
@@ -129,7 +129,7 @@ export const expensesBillableCosts = new Hono()
         }
 
         const repository = new BillableCostExpensesRepository();
-        const cacheRepository = new RedisCacheRepository();
+        const cacheRepository = new CloudflareKvCacheRepository();
 
         const data = await repository.update(userId, {
           workDays,

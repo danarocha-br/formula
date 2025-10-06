@@ -6,7 +6,7 @@ import type {
   WebhookEvent,
 } from "@clerk/nextjs/server";
 import { log } from "@logtail/next";
-import { RedisCacheRepository } from "@repo/database/repositories/redis-cache-repository";
+import { CloudflareKvCacheRepository } from "@repo/database/repositories/cloudflare-kv-cache-repository";
 import { UserCacheKeys } from "@repo/database/cache-keys/user-cache-keys";
 import { BillableCostCacheKeys } from "@repo/database/cache-keys/billable-cost-cache-keys";
 import { PrismaBillableCostExpensesRepository } from "@repo/database/repositories/prisma-billable-cost-expenses";
@@ -18,7 +18,7 @@ import { Webhook } from "svix";
 const handleUserCreated = async (data: UserJSON) => {
   const billableExpensesRepository = new PrismaBillableCostExpensesRepository();
   const usersRepository = new PrismaUserRepository();
-  const cacheRepository = new RedisCacheRepository();
+  const cacheRepository = new CloudflareKvCacheRepository();
 
   await usersRepository.create({
     id: data.id,
@@ -99,7 +99,7 @@ const handleUserUpdated = async (data: UserJSON) => {
     avatar: data.image_url,
   });
 
-  const cacheRepository = new RedisCacheRepository();
+  const cacheRepository = new CloudflareKvCacheRepository();
 
   await cacheRepository.delete(UserCacheKeys.user(data.id));
 
@@ -136,7 +136,7 @@ const handleUserUpdated = async (data: UserJSON) => {
 
 const handleUserDeleted = async (data: DeletedObjectJSON) => {
   const usersRepository = new PrismaUserRepository();
-  const cacheRepository = new RedisCacheRepository();
+  const cacheRepository = new CloudflareKvCacheRepository();
 
   if (data.id) {
     usersRepository.delete(data.id);
