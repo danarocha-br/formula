@@ -12,7 +12,7 @@ const updateEquipmentSchema = z.object({
   amount: z.number().optional(),
   rank: z.number().optional(),
   category: z.string().optional(),
-  purchaseDate: z.date().optional(),
+  purchaseDate: z.coerce.date().optional(),
   usage: z.number().optional(),
   lifeSpan: z.number().optional(),
 });
@@ -23,7 +23,7 @@ const createEquipmentSchema = z.object({
   amount: z.number(),
   rank: z.number(),
   category: z.string(),
-  purchaseDate: z.date(),
+  purchaseDate: z.coerce.date(),
   usage: z.number(),
   lifeSpan: z.number(),
 });
