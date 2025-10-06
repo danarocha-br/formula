@@ -271,6 +271,12 @@ export const ptBR: TranslationStructure = {
         title: "O valor da sua hora é:",
       },
     },
+    success: {
+      created: "Item criado com sucesso!",
+      updated: "Item atualizado com sucesso!",
+      deleted: "Item excluído com sucesso!",
+      "bulk-deleted": "{{count}} item{{count === 1 ? '' : 's'}} excluído{{count === 1 ? '' : 's'}} com sucesso!",
+    },
   },
   validation: {
     form: {
@@ -281,6 +287,7 @@ export const ptBR: TranslationStructure = {
       "create-failed": "Ops! Não conseguimos criar o item. Tente novamente!",
       "update-failed": "Ops! Não conseguimos atualizar o item(s). Tente novamente!",
       "delete-failed": "Ops! Não conseguimos excluir o item(s). Tente novamente!",
+      "bulk-delete-failed": "Falha ao excluir {{count}} item{{count === 1 ? '' : 's'}}",
       "not-found": "Item não encontrado.",
       unauthorized: "Você não tem permissão para realizar essa operação.",
       "validation-failed": "Falha na validação. Verifique sua entrada.",
@@ -299,6 +306,26 @@ export const ptBR: TranslationStructure = {
     generic: {
       title: "Algo Deu Errado",
       description: "Ocorreu um erro inesperado. Estamos trabalhando para corrigir este problema.",
+    },
+    "infinite-loop": {
+      title: "Loop Infinito Detectado",
+      description: "Detectamos um loop infinito no componente. O sistema está tentando se recuperar automaticamente.",
+      detected: {
+        title: "Proteção contra Loop Infinito Ativa",
+        description: "O sistema detectou renderizações excessivas e ativou mecanismos de proteção para prevenir travamentos.",
+      },
+    },
+    "circuit-breaker": {
+      open: {
+        title: "Disjuntor Ativo",
+        description: "Muitas falhas detectadas. O sistema está temporariamente bloqueando operações para prevenir falhas em cascata.",
+      },
+      testing: {
+        title: "Testando Recuperação do Sistema",
+        description: "O sistema está testando se o problema foi resolvido. Aguarde...",
+      },
+      recovering: "Tentando recuperação automática...",
+      "force-recovery": "Forçar Recuperação",
     },
     retry: "Tentar Novamente",
     "retry-with-delay": "Tentar novamente em {delay}s",

@@ -289,7 +289,9 @@ class PerformanceMonitor {
     const now = Date.now();
 
     if (existing) {
-      const regression = currentValue > existing.baseline * this.REGRESSION_THRESHOLD;
+      // Only detect regression if baseline is meaningful (> 0.001) and current value is significantly higher
+      const hasValidBaseline = existing.baseline > 0.001;
+      const regression = hasValidBaseline && currentValue > existing.baseline * this.REGRESSION_THRESHOLD;
 
       this.benchmarks.set(name, {
         ...existing,
@@ -300,9 +302,14 @@ class PerformanceMonitor {
 
       // Alert on performance regression
       if (regression && !existing.regression) {
+        // Calculate percentage increase safely (avoid division by zero)
+        const percentageIncrease = existing.baseline > 0
+          ? ((currentValue / existing.baseline - 1) * 100).toFixed(1)
+          : 'N/A';
+
         this.addAlert({
           type: 'regression',
-          message: `Performance regression detected in ${name}: ${currentValue.toFixed(2)} vs baseline ${existing.baseline.toFixed(2)} (${((currentValue / existing.baseline - 1) * 100).toFixed(1)}% increase)`,
+          message: `Performance regression detected in ${name}: ${currentValue.toFixed(2)} vs baseline ${existing.baseline.toFixed(2)} (${percentageIncrease}% increase)`,
           timestamp: now,
           metrics: { current: currentValue, baseline: existing.baseline },
           severity: currentValue > existing.baseline * 2 ? 'critical' : 'high'
@@ -524,7 +531,9 @@ class PerformanceMonitor {
     if (regressions.length > 0) {
       console.group('📉 Performance Regressions');
       regressions.forEach(regression => {
-        const increase = ((regression.current / regression.baseline - 1) * 100).toFixed(1);
+        const increase = regression.baseline > 0
+          ? ((regression.current / regression.baseline - 1) * 100).toFixed(1)
+          : 'N/A';
         console.warn(`${regression.name}: +${increase}% (${regression.current.toFixed(2)} vs ${regression.baseline.toFixed(2)})`);
       });
       console.groupEnd();

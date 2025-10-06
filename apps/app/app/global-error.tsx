@@ -2,6 +2,7 @@
 
 import { Button } from '@repo/design-system/components/ui/button';
 import { captureException } from '@sentry/nextjs';
+import { useTranslations } from '@/hooks/use-translation';
 import type NextError from 'next/error';
 import { useEffect } from 'react';
 

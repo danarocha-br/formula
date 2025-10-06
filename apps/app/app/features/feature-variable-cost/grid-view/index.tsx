@@ -148,7 +148,7 @@ export const GridView = ({ userId }: GridViewProps) => {
 
       try {
         // Use cache utilities for optimistic drag reorder
-        const previousItems = equipmentDragDropUtils.optimisticDragReorder(
+        equipmentDragDropUtils.optimisticDragReorder(
           queryClient,
           userId,
           activeIndex,
@@ -227,18 +227,18 @@ export const GridView = ({ userId }: GridViewProps) => {
       {isLoadingExpenses ? (
         <LoadingView />
       ) : (
-        <section className="container relative">
+        <section className="relative p-4">
           <DndContext
             sensors={sensors}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
-            <div className="w-full">
+            <div className="@container w-full">
               <SortableContext items={cardsId}>
                 {equipment &&
                 viewPreference === "grid" &&
                 equipment.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <MasonryGrid>
                     {equipmentCardData.map((cardData) => (
                       <div
                         key={cardData.key}
@@ -274,7 +274,7 @@ export const GridView = ({ userId }: GridViewProps) => {
                         className="h-full w-full"
                       />
                     </div>
-                  </div>
+                  </MasonryGrid>
                 ) : (
                   <EmptyView userId={userId} />
                 )}

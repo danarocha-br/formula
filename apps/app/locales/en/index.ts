@@ -263,6 +263,12 @@ export const en: TranslationStructure = {
         },
       },
     },
+    success: {
+      created: "Item created successfully!",
+      updated: "Item updated successfully!",
+      deleted: "Item deleted successfully!",
+      "bulk-deleted": "{{count}} item{{count === 1 ? '' : 's'}} deleted successfully!",
+    },
   },
   validation: {
     form: {
@@ -273,6 +279,7 @@ export const en: TranslationStructure = {
       "create-failed": "Oops! We couldn't create the item. Let's try again!",
       "update-failed": "Oops! We couldn't update the item(s). Let's try again!",
       "delete-failed": "Oops! We couldn't delete the item(s). Let's try again!",
+      "bulk-delete-failed": "Failed to delete {{count}} item{{count === 1 ? '' : 's'}}",
       "not-found": "Resource not found.",
       unauthorized: "You are not authorized to perform this action.",
       "validation-failed": "Validation failed. Please check your input.",
@@ -291,6 +298,26 @@ export const en: TranslationStructure = {
     generic: {
       title: "Something Went Wrong",
       description: "An unexpected error occurred. We're working to fix this issue.",
+    },
+    "infinite-loop": {
+      title: "Infinite Loop Detected",
+      description: "We've detected an infinite loop in the component. The system is attempting to recover automatically.",
+      detected: {
+        title: "Infinite Loop Protection Active",
+        description: "The system has detected excessive re-renders and activated protection mechanisms to prevent crashes.",
+      },
+    },
+    "circuit-breaker": {
+      open: {
+        title: "Circuit Breaker Active",
+        description: "Too many failures detected. The system is temporarily blocking operations to prevent cascading failures.",
+      },
+      testing: {
+        title: "System Recovery Testing",
+        description: "The system is testing if the issue has been resolved. Please wait...",
+      },
+      recovering: "Attempting automatic recovery...",
+      "force-recovery": "Force Recovery",
     },
     retry: "Try Again",
     "retry-with-delay": "Retry in {delay}s",

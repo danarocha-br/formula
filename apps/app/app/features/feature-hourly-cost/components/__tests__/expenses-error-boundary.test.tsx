@@ -12,6 +12,10 @@ vi.mock('@/hooks/use-translation', () => ({
         'errors.stack-overflow.description': 'We\'ve detected a system error that could affect your experience.',
         'errors.generic.title': 'Something Went Wrong',
         'errors.generic.description': 'An unexpected error occurred.',
+        'errors.infinite-loop.title': 'Infinite Loop Detected',
+        'errors.infinite-loop.description': 'The system detected an infinite loop that could cause performance issues.',
+        'errors.infinite-loop.detected.title': 'Infinite Loop Prevention Active',
+        'errors.infinite-loop.detected.description': 'We\'ve detected repeated errors and activated protection mechanisms.',
         'errors.retry': 'Try Again',
         'errors.retry-with-delay': `Retry in ${params?.delay || 0}s`,
         'errors.clear-cache': 'Clear Cache & Reload',
@@ -44,6 +48,24 @@ const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
 const ThrowStackOverflowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
   if (shouldThrow) {
     const error = new RangeError('Maximum call stack size exceeded');
+    throw error;
+  }
+  return <div>No error</div>;
+};
+
+// Component that throws a maximum update depth error
+const ThrowMaxUpdateDepthError = ({ shouldThrow }: { shouldThrow: boolean }) => {
+  if (shouldThrow) {
+    const error = new Error('Maximum update depth exceeded');
+    throw error;
+  }
+  return <div>No error</div>;
+};
+
+// Component that throws too many re-renders error
+const ThrowTooManyReRendersError = ({ shouldThrow }: { shouldThrow: boolean }) => {
+  if (shouldThrow) {
+    const error = new Error('Too many re-renders. React limits the number of renders to prevent an infinite loop.');
     throw error;
   }
   return <div>No error</div>;
@@ -227,5 +249,79 @@ describe('ExpensesErrorBoundary', () => {
     expect(screen.queryByText('Error Details')).not.toBeInTheDocument();
 
     process.env.NODE_ENV = originalEnv;
+  });
+
+  it('should detect maximum update depth errors as infinite loops', () => {
+    renderWithProviders(
+      <ExpensesErrorBoundary userId="test-user">
+        <ThrowMaxUpdateDepthError shouldThrow={true} />
+      </ExpensesErrorBoundary>
+    );
+
+    expect(screen.getByText('Infinite Loop Detected')).toBeInTheDocument();
+    expect(screen.getByText('The system detected an infinite loop that could cause performance issues.')).toBeInTheDocument();
+    expect(screen.getByText('Infinite Loop Prevention Active')).toBeInTheDocument();
+  });
+
+  it('should detect too many re-renders errors as infinite loops', () => {
+    renderWithProviders(
+      <ExpensesErrorBoundary userId="test-user">
+        <ThrowTooManyReRendersError shouldThrow={true} />
+      </ExpensesErrorBoundary>
+    );
+
+    expect(screen.getByText('Infinite Loop Detected')).toBeInTheDocument();
+    expect(screen.getByText('The system detected an infinite loop that could cause performance issues.')).toBeInTheDocument();
+    expect(screen.getByText('Infinite Loop Prevention Active')).toBeInTheDocument();
+  });
+
+  it('should disable retry button for infinite loop errors', () => {
+    renderWithProviders(
+      <ExpensesErrorBoundary userId="test-user">
+        <ThrowMaxUpdateDepthError shouldThrow={true} />
+      </ExpensesErrorBoundary>
+    );
+
+    // Retry button should not be present for infinite loop errors
+    expect(screen.queryByText('Try Again')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Retry in/)).not.toBeInTheDocument();
+  });
+
+  it('should show infinite loop detection details in development mode', () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'development';
+
+    renderWithProviders(
+      <ExpensesErrorBoundary userId="test-user">
+        <ThrowMaxUpdateDepthError shouldThrow={true} />
+      </ExpensesErrorBoundary>
+    );
+
+    expect(screen.getByText('Error Details')).toBeInTheDocument();
+
+    // Click to expand details
+    fireEvent.click(screen.getByText('Error Details'));
+
+    expect(screen.getByText(/Infinite Loop Detection:/)).toBeInTheDocument();
+    expect(screen.getByText(/Render Count:/)).toBeInTheDocument();
+    expect(screen.getByText(/Consecutive Errors:/)).toBeInTheDocument();
+
+    process.env.NODE_ENV = originalEnv;
+  });
+
+  it('should reset all infinite loop tracking on reset', () => {
+    renderWithProviders(
+      <ExpensesErrorBoundary userId="test-user">
+        <ThrowMaxUpdateDepthError shouldThrow={true} />
+      </ExpensesErrorBoundary>
+    );
+
+    expect(screen.getByText('Infinite Loop Detected')).toBeInTheDocument();
+
+    const dismissButton = screen.getByText('Dismiss');
+    fireEvent.click(dismissButton);
+
+    // After reset, the component should still throw but tracking should be reset
+    expect(screen.getByText('Infinite Loop Detected')).toBeInTheDocument();
   });
 });
