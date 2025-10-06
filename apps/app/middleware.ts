@@ -1,8 +1,9 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
-import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import { getCountryFromIP, getIPAddress, LANGUAGE_MAP } from "./utils/ip-api";
-
-// export default clerkMiddleware();
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import {
+  type NextRequest,
+  NextResponse,
+} from "next/server";
+import { LANGUAGE_MAP, getCountryFromIP, getIPAddress } from "./utils/ip-api";
 
 async function setLanguageCookie(
   request: NextRequest,
@@ -18,7 +19,9 @@ async function setLanguageCookie(
 
   // Check existing cookie
   const localeCookie = request.cookies.get("NEXT_LOCALE");
-  if (localeCookie) return response;
+  if (localeCookie) {
+    return response;
+  }
 
   try {
     const ip = getIPAddress(request);
@@ -43,16 +46,29 @@ async function setLanguageCookie(
   }
 }
 
-export default async function middleware(
-  request: NextRequest,
-  event: NextFetchEvent
-) {
-  const clerkResponse = await clerkMiddleware()(request, event);
+// Define public routes
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/api/health",
+  "/.well-known(.*)",
+]);
 
-  const response = clerkResponse || NextResponse.next();
+// Use Clerk's middleware with a custom handler
+export default clerkMiddleware((auth, req) => {
+  const request = req as NextRequest;
 
-  return await setLanguageCookie(request, response);
-}
+  // If the user is not authenticated and the route is not public, redirect to sign-in
+  if (!auth.sessionId && !isPublicRoute(request)) {
+    const signInUrl = new URL("/sign-in", request.url);
+    signInUrl.searchParams.set("redirect_url", request.url);
+    return NextResponse.redirect(signInUrl);
+  }
+
+  // For all other cases, proceed with the language middleware
+  return setLanguageCookie(request, NextResponse.next());
+});
 
 export const config = {
   matcher: [

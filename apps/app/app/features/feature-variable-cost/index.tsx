@@ -1,145 +1,117 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { parseCookies } from "nookies";
-import {
-  DndContext,
-  DragEndEvent,
-  DragStartEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import { arrayMove, SortableContext } from "@dnd-kit/sortable";
-import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
-
-import { useCurrencyStore } from "@/app/store/currency-store";
-import { EquipmentExpenseItem } from "@/app/types";
-import { getTranslations } from "@/utils/translations";
 import { useViewPreferenceStore } from "@/app/store/view-preference-store";
-import { useGetEquipmentExpenses } from "./server/get-equipment-expenses";
 import { LoadingView } from "../feature-hourly-cost/loading-view";
 import { GridView } from "./grid-view";
+import { TableView } from "./table-view";
+import { useStableEquipment } from "@/hooks/use-stable-equipment";
+import { useExpenseComponentSafeguards } from "@/utils/use-effect-safeguards";
+import { useMemoryLeakDetection } from "@/utils/memory-leak-detection";
+import { useRenderFrequencyMonitor } from "@/utils/re-render-monitoring";
+import { useEquipmentPerformanceMonitor } from "@/utils/equipment-performance-monitor";
+import { PerformanceMonitoringProvider } from "@/utils/equipment-performance-dashboard";
+import { EQUIPMENT_COST_CATEGORIES } from "@/app/constants";
+import { useCallback, useEffect } from "react";
 
 type GridViewProps = {
   userId: string;
 };
 
 export const VariableCostView = ({ userId }: GridViewProps) => {
+  // Performance safeguards for equipment cost feature
+  const {
+    isComponentHealthy,
+    healthReport,
+  } = useExpenseComponentSafeguards('VariableCostView', 'equipment-expenses', {
+    maxRenders: 30,
+    enableMemoryTracking: true,
+  });
+
+  // Memory leak detection
+  const { registerCleanup } = useMemoryLeakDetection('VariableCostView');
+
+  // Render frequency monitoring
+  const { isExcessive } = useRenderFrequencyMonitor('VariableCostView');
+
+  // Enhanced performance monitoring for infinite loop detection
+  const { getMetrics, trackStateUpdate, trackMemoryUsage } = useEquipmentPerformanceMonitor('VariableCostView');
+
   const { viewPreference } = useViewPreferenceStore();
+  const {
+    equipment: equipmentExpenses,
+    isLoading: isLoadingExpenses,
+    isRefetching: isRefetchingExpenses,
+    error: equipmentError,
+  } = useStableEquipment({ userId });
 
-  const t = getTranslations();
-  const { data: initialExpenses, isLoading: isLoadingExpenses } =
-    useGetEquipmentExpenses({ userId });
-  const [expenses, setExpenses] = useState<EquipmentExpenseItem[] | []>([]);
-  const [activeCard, setActiveCard] = useState<EquipmentExpenseItem | null>(
-    null
-  );
-  const [editingId, setEditingId] = useState<number | null>(null);
+  // Helper functions for category data with performance tracking
+  const getCategoryColor = useCallback((category: string) => {
+    const categoryData = EQUIPMENT_COST_CATEGORIES.find(cat => cat.value === category);
+    return categoryData?.color || 'bg-gray-300';
+  }, []);
 
+  const getCategoryLabel = useCallback((category: string) => {
+    const categoryData = EQUIPMENT_COST_CATEGORIES.find(cat => cat.value === category);
+    return categoryData?.label || category;
+  }, []);
+
+  // Log component health in development with enhanced performance monitoring
   useEffect(() => {
-    if (initialExpenses) {
-      setExpenses(initialExpenses);
+    const metrics = getMetrics();
+    if (process.env.NODE_ENV === 'development' && (!isComponentHealthy || isExcessive || metrics?.alertLevel === 'critical')) {
+      console.warn('VariableCostView component health warning:', {
+        isComponentHealthy,
+        isExcessive,
+        healthReport,
+        performanceMetrics: metrics,
+      });
     }
-  }, [initialExpenses]);
+  }, [isComponentHealthy, isExcessive, healthReport, getMetrics]);
 
+  // Track memory usage periodically
   useEffect(() => {
-    if (initialExpenses) {
-      const sortedExpenses = [...initialExpenses].sort(
-        (a, b) => (a.rank ?? 0) - (b.rank ?? 0)
-      );
-      // @ts-ignore
-      setExpenses(sortedExpenses);
-    }
-  }, [initialExpenses]);
+    const interval = setInterval(() => {
+      trackMemoryUsage();
+    }, 10000); // Every 10 seconds
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 3,
-      },
-    })
-  );
+    return () => clearInterval(interval);
+  }, [trackMemoryUsage]);
 
-  const cardsId = useMemo(() => expenses.map((item) => item.id), [expenses]);
-
-  function onDragStart(event: DragStartEvent) {
-    const { active } = event;
-
-    if (active.data.current?.type === "card") {
-      setActiveCard(active.data.current.data);
-      return;
-    }
-  }
-
-  function onDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-
-    if (!over) return;
-    if (active.id === over.id) return;
-
-    setExpenses((expenses) => {
-      const activeIndex = expenses.findIndex(
-        (expense) => expense.id === active.id
-      );
-      const overIndex = expenses.findIndex((expense) => expense.id === over.id);
-      const newExpenses = arrayMove(expenses, activeIndex, overIndex);
-
-      const updatedExpenses = newExpenses.map((expense, index) => ({
-        ...expense,
-        rank: index + 1,
-      }));
-
-      // updateBatchExpenses(
-      //   {
-      //     json: {
-      //       updates: updatedExpenses.map((expense) => ({
-      //         id: expense.id,
-      //         data: { rank: expense.rank },
-      //       })),
-      //       userId,
-      //     },
-      //   },
-      //   {
-      //     onError: () => {
-      //       toast({
-      //         title: t.validation.error["update-failed"],
-      //         variant: "destructive",
-      //       });
-      //     },
-      //   }
-      // );
-
-      return updatedExpenses;
+  // Register cleanup for component unmount
+  useEffect(() => {
+    const cleanup = registerCleanup(() => {
+      console.log('Cleaning up VariableCostView component');
     });
-  }
+
+    return cleanup;
+  }, [registerCleanup]);
 
   return (
-    <ScrollArea.Root className="h-[calc(100vh-7.7rem)]">
-      {isLoadingExpenses ? (
-        <LoadingView />
-      ) : (
-        <section className="relative">
-          <DndContext
-            sensors={sensors}
-            onDragStart={onDragStart}
-            onDragEnd={onDragEnd}
-          >
-            <div className="p-2 w-full">
-              <SortableContext items={cardsId}>
-                {expenses && viewPreference === "grid" && (
-                  <GridView
-                    expenses={expenses}
-                    setExpenses={setExpenses}
-                    userId={userId}
-                    loading={isLoadingExpenses}
-                  />
-                )}
-              </SortableContext>
+    <PerformanceMonitoringProvider>
+      <div className="h-[calc(100vh-7.7rem)]">
+        {isLoadingExpenses ? (
+          <LoadingView />
+        ) : (
+          <section className="relative">
+            <div className='w-full p-2'>
+              {viewPreference === "grid" && (
+                <GridView userId={userId} />
+              )}
+              {viewPreference === "table" && (
+                <TableView
+                  data={equipmentExpenses || []}
+                  userId={userId}
+                  getCategoryColor={getCategoryColor}
+                  getCategoryLabel={getCategoryLabel}
+                  isLoading={isLoadingExpenses}
+                  isRefetching={isRefetchingExpenses}
+                  error={equipmentError}
+                />
+              )}
             </div>
-          </DndContext>
-        </section>
-      )}
-    </ScrollArea.Root>
+          </section>
+        )}
+      </div>
+    </PerformanceMonitoringProvider>
   );
 };

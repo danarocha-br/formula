@@ -21,6 +21,13 @@ const roundToTwoDecimals = (value: number): number => {
   return Math.round(value * 100) / 100;
 };
 
+const safeNumber = (value: number): number => {
+  if (Number.isNaN(value) || !Number.isFinite(value)) {
+    return 0;
+  }
+  return value;
+};
+
 export const useBreakEvenCalculator = (
   input: BreakEvenInput
 ): BreakEvenCalculations => {

@@ -1,41 +1,63 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
-import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
-import { Resizable } from "@repo/design-system/components/ui/resizable-panel";
 import { AnimatedNumber } from "@repo/design-system/components/ui/animated-number";
-import { cn } from "@repo/design-system/lib/utils";
-import { TabButton } from "@repo/design-system/components/ui/tab-button";
 import { Icon } from "@repo/design-system/components/ui/icon";
+import { Resizable } from "@repo/design-system/components/ui/resizable-panel";
+import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
+import { TabButton } from "@repo/design-system/components/ui/tab-button";
+import { cn } from "@repo/design-system/lib/utils";
+import { useMemo, useState, useEffect } from "react";
 
-import { getTranslations } from "@/utils/translations";
 import { useCurrencyStore } from "@/app/store/currency-store";
 import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
+import { usePanelToggleStore } from "@/app/store/panel-toggle-store";
 import { useViewPreferenceStore } from "@/app/store/view-preference-store";
-import { ExpenseItem } from "@/app/types";
+import { useStableExpenses } from "@/hooks/use-stable-expenses";
+import { useTranslations } from "@/hooks/use-translation";
+import { useRenderTracker } from "@/utils/performance-monitor";
+import { useExpenseComponentSafeguards } from "@/utils/use-effect-safeguards";
+import { useMemoryLeakDetection } from "@/utils/memory-leak-detection";
+import { useRenderFrequencyMonitor } from "@/utils/re-render-monitoring";
 import { BillableCosts } from "../feature-billable-cost";
 import { VariableCostView } from "../feature-variable-cost";
 import { AnalyticsView } from "./analytics-view";
-import { NodeView } from "./node-view";
-import { useGetFixedExpenses } from "./server/get-fixed-expenses";
+import { ExpensesErrorBoundary } from './components/expenses-error-boundary';
 import { GridView } from "./grid-view";
+import { NodeView } from "./node-view";
 
 type Props = {
   userId: string;
 };
 
 export const FeatureHourlyCost = ({ userId }: Props) => {
-  const t = getTranslations();
-  const { data: initialExpenses, isLoading: isLoadingExpenses } =
-    useGetFixedExpenses({ userId });
+  // Track component renders for performance monitoring
+  useRenderTracker('FeatureHourlyCost');
+
+  // Performance safeguards for fixed cost feature
+  const {
+    isComponentHealthy,
+    healthReport,
+  } = useExpenseComponentSafeguards('FeatureHourlyCost', 'fixed-expenses', {
+    maxRenders: 40,
+    enableMemoryTracking: true,
+  });
+
+  // Memory leak detection
+  const { registerCleanup } = useMemoryLeakDetection('FeatureHourlyCost');
+
+  // Render frequency monitoring
+  const { isExcessive } = useRenderFrequencyMonitor('FeatureHourlyCost');
+
+  const { t } = useTranslations();
+  const { expenses, isLoading: isLoadingExpenses } = useStableExpenses({ userId });
 
   const { selectedCurrency } = useCurrencyStore();
 
-  const [expenses, setExpenses] = useState<ExpenseItem[] | []>([]);
   const [expenseTypeView, setExpenseTypeView] = useState<"fixed" | "variable">(
     "fixed"
   );
 
   const { viewPreference } = useViewPreferenceStore();
+  const { isBillablePanelVisible } = usePanelToggleStore();
 
   const { hourlyCost, setTotalMonthlyExpenses } = useHourlyCostStore();
 
@@ -51,112 +73,158 @@ export const FeatureHourlyCost = ({ userId }: Props) => {
     [expenses]
   );
 
+  // Update total monthly expenses when calculation changes
   useEffect(() => {
     setTotalMonthlyExpenses(totalExpensesCostPerMonth);
-  }, [totalExpensesCostPerMonth]);
+  }, [totalExpensesCostPerMonth, setTotalMonthlyExpenses]);
 
+  // Log component health in development
   useEffect(() => {
-    if (initialExpenses) {
-      //@ts-ignore
-      setExpenses(initialExpenses);
+    if (process.env.NODE_ENV === 'development' && (!isComponentHealthy || isExcessive)) {
+      console.warn('FeatureHourlyCost component health warning:', {
+        isComponentHealthy,
+        isExcessive,
+        healthReport,
+      });
     }
-  }, [initialExpenses]);
+  }, [isComponentHealthy, isExcessive, healthReport]);
 
+  // Register cleanup for component unmount
   useEffect(() => {
-    if (initialExpenses) {
-      const sortedExpenses = [...initialExpenses].sort(
-        (a, b) => (a.rank ?? 0) - (b.rank ?? 0)
-      );
-      // @ts-ignore
-      setExpenses(sortedExpenses);
-    }
-  }, [initialExpenses]);
+    const cleanup = registerCleanup(() => {
+      console.log('Cleaning up FeatureHourlyCost component');
+    });
 
-  return viewPreference === "node" ? (
-    <NodeView expenses={expenses} userId={userId} />
-  ) : viewPreference === "chart" ? (
-    <AnalyticsView userId={userId} />
-  ) : (
-    <Resizable.Group direction="horizontal">
-      <Resizable.Panel
-        defaultSize={60}
-        className={cn(
-          "hidden md:block rounded-lg",
-          viewPreference === "grid" ? "bg-purple-300" : "bg-neutral-100"
-        )}
-      >
-        {expenseTypeView === "fixed" && (
-          <GridView
-            userId={userId}
-            expenses={expenses}
-            setExpenses={setExpenses}
-            loading={isLoadingExpenses}
-          />
-        )}
+    return cleanup;
+  }, [registerCleanup]);
 
-        {expenseTypeView === "variable" && <VariableCostView userId={userId} />}
+  // Handle different view preferences
+  if (viewPreference === "node") {
+    return <NodeView expenses={expenses} userId={userId} />;
+  }
 
-        <div className="mt-auto sticky bottom-0 flex items-center justify-between w-full rounded-br-md rounded-tl-md col-span-full bg-purple-200 h-14">
-          <div className="h-full w-full flex justify-between items-center pr-2">
-            <div className="flex items-center h-full">
-              <TabButton
-                isActive={expenseTypeView === "fixed"}
-                onClick={() => setExpenseTypeView("fixed")}
-              >
-                <Icon
-                  name="work"
-                  size="sm"
-                  label={t.navigation["bottom-level"]["fixed-cost"]}
-                  color="current"
-                />
-                {t.navigation["bottom-level"]["fixed-cost"]}
-              </TabButton>
-              <TabButton
-                isActive={expenseTypeView === "variable"}
-                onClick={() => setExpenseTypeView("variable")}
-              >
-                <Icon
-                  name="work"
-                  size="sm"
-                  label={t.navigation["bottom-level"]["variable-cost"]}
-                  color="current"
-                />
-                {t.navigation["bottom-level"]["variable-cost"]}
-              </TabButton>
-            </div>
+  if (viewPreference === "chart") {
+    return <AnalyticsView userId={userId} />;
+  }
 
-            <div className="text-card-foreground flex items-center gap-2 mr-6">
-              <AnimatedNumber
-                className="text-2xl font-semibold"
-                value={totalExpensesCostPerMonth}
-                currency={selectedCurrency.code}
-                locale={selectedCurrency.locale}
+  // Grid view with conditional panel rendering
+  const mainContent = (
+    <div
+      className={cn(
+        'rounded-lg h-full',
+        viewPreference === "grid" ? "bg-purple-300" : "bg-neutral-100",
+        // When panel is hidden, show on mobile and expand to full width
+        isBillablePanelVisible ? 'hidden md:block shadow-sm' : 'block w-full shadow-lg'
+      )}
+    >
+      {expenseTypeView === "fixed" && (
+        <GridView
+          userId={userId}
+          expenses={expenses}
+          loading={isLoadingExpenses}
+        />
+      )}
+
+      {expenseTypeView === "variable" && <VariableCostView userId={userId} />}
+
+      <div className='sticky bottom-0 col-span-full mt-auto flex h-14 w-full items-center justify-between rounded-tl-md rounded-br-md bg-purple-200'>
+        <div className='flex h-full w-full items-center justify-between pr-2'>
+          <div className='flex h-full items-center'>
+            <TabButton
+              isActive={expenseTypeView === "fixed"}
+              onClick={() => setExpenseTypeView("fixed")}
+            >
+              <Icon
+                name="work"
+                size="sm"
+                label={t("navigation.bottom-level.fixed-cost")}
+                color="current"
               />
-              / {t.expenses.billable.breakeven["per-month"]}
-            </div>
+              {t("navigation.bottom-level.fixed-cost")}
+            </TabButton>
+            <TabButton
+              isActive={expenseTypeView === "variable"}
+              onClick={() => setExpenseTypeView("variable")}
+            >
+              <Icon
+                name="work"
+                size="sm"
+                label={t("navigation.bottom-level.variable-cost")}
+                color="current"
+              />
+              {t("navigation.bottom-level.variable-cost")}
+            </TabButton>
+          </div>
+
+          <div className='mr-6 flex items-center gap-2 text-card-foreground'>
+            <AnimatedNumber
+              className='font-semibold text-2xl'
+              value={totalExpensesCostPerMonth}
+              currency={selectedCurrency.code}
+              locale={selectedCurrency.locale}
+            />
+            / {t("expenses.billable.breakeven.per-month")}
           </div>
         </div>
-      </Resizable.Panel>
+      </div>
+    </div>
+  );
 
-      <Resizable.Handle withHandle />
+  const billablePanel = (
+    <section className='@container relative flex flex-col justify-between rounded-lg bg-neutral-100 text-card-foreground h-full'>
+      <ScrollArea.Root className='h-[calc(100vh-70px)] w-full rounded-b-lg'>
+        <BillableCosts userId={userId} />
 
-      <Resizable.Panel defaultSize={40}>
-        <section className="bg-neutral-100 text-card-foreground rounded-lg relative flex flex-col justify-between @container">
-          <ScrollArea.Root className="w-full h-[calc(100vh-70px)] rounded-b-lg">
-            <BillableCosts userId={userId} />
+        <div className='sticky bottom-0 mt-auto flex h-[54px] w-full items-center justify-between rounded-b-md bg-purple-200 px-5 py-4'>
+          <p>{t("expenses.billable.total.title")}</p>
+          <AnimatedNumber
+            className='font-semibold text-2xl '
+            value={hourlyCost}
+            currency={selectedCurrency.code}
+            locale={selectedCurrency.locale}
+          />
+        </div>
+      </ScrollArea.Root>
+    </section>
+  );
 
-            <div className="sticky bottom-0 mt-auto flex items-center justify-between w-full rounded-b-md h-[54px] px-5 py-4 bg-purple-200">
-              <p>{t.expenses.billable.total.title}</p>
-              <AnimatedNumber
-                className="text-2xl font-semibold "
-                value={hourlyCost}
-                currency={selectedCurrency.code}
-                locale={selectedCurrency.locale}
+  // Conditional rendering with smooth transitions wrapped in error boundary
+  return (
+    <ExpensesErrorBoundary userId={userId}>
+      <div className="relative h-full w-full overflow-hidden" data-testid="panel-container">
+        {isBillablePanelVisible ? (
+          <div
+            key="panel-visible"
+            className="animate-in fade-in-0 duration-300 h-full w-full"
+          >
+            <Resizable.Group direction="horizontal" className="h-full">
+              <Resizable.Panel defaultSize={60} className="min-w-0">
+                <div className="animate-in slide-in-from-left-2 duration-300 ease-out h-full">
+                  {mainContent}
+                </div>
+              </Resizable.Panel>
+
+              <Resizable.Handle
+                withHandle
+                className="animate-in fade-in-0 duration-200 delay-150 opacity-100 hover:bg-purple-100/10 transition-colors duration-200"
               />
-            </div>
-          </ScrollArea.Root>
-        </section>
-      </Resizable.Panel>
-    </Resizable.Group>
+
+              <Resizable.Panel defaultSize={40} className="min-w-0">
+                <div className="animate-in slide-in-from-right-2 duration-300 ease-out delay-75 h-full">
+                  {billablePanel}
+                </div>
+              </Resizable.Panel>
+            </Resizable.Group>
+          </div>
+        ) : (
+          <div
+            key="panel-hidden"
+            className="animate-in fade-in-0 slide-in-from-left-2 duration-300 ease-out h-full w-full"
+          >
+            {mainContent}
+          </div>
+        )}
+      </div>
+    </ExpensesErrorBoundary>
   );
 };

@@ -1,39 +1,39 @@
-import { useEffect, useCallback, useRef, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import ReactFlow, {
   Background,
   Controls,
-  Connection,
-  Edge,
-  Node,
+  type Connection,
+  type Edge,
+  type Node,
   addEdge,
   useNodesState,
   useEdgesState,
-  NodeTypes,
+  type NodeTypes,
   Position,
-  NodeChange,
-  XYPosition,
+  type NodeChange,
+  type XYPosition,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import { useDebounce } from "react-use";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { useDebounce } from "react-use";
 import * as z from "zod";
 
-import { InputNode } from "@repo/design-system/components/ui/nodes/input-node";
-import { GroupNode } from "@repo/design-system/components/ui/nodes/group-node";
+import { useCurrencyStore } from "@/app/store/currency-store";
+import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
+import { useNodeViewStore } from '@/app/store/node-view-store';
+import type { ExpenseItem } from "@/app/types";
+import { useBreakEvenCalculator } from "@/hooks/use-break-even-calculator";
+import { useTranslations } from "@/hooks/use-translation";
+import { formatCurrency } from "@/utils/format-currency";
+import { createValidationMessages } from "@/utils/validation-messages";
 import { CalculationNode } from "@repo/design-system/components/ui/nodes/calculation-node";
+import { InputNode } from "@repo/design-system/components/ui/nodes/input-node";
 import { OutputNode } from "@repo/design-system/components/ui/nodes/output-node";
 import { useToast } from "@repo/design-system/hooks/use-toast";
-import { getTranslations } from "@/utils/translations";
-import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
-import { useBreakEvenCalculator } from "@/hooks/use-break-even-calculator";
-import { useCurrencyStore } from "@/app/store/currency-store";
+import { useCreateBillableExpense } from "../../feature-billable-cost/server/create-billable-expense";
 import { useGetBillableExpenses } from "../../feature-billable-cost/server/get-billable-expenses";
 import { useUpdateBillableExpense } from "../../feature-billable-cost/server/update-billable-expense";
-import { useCreateBillableExpense } from "../../feature-billable-cost/server/create-billable-expense";
-import { ExpenseItem } from "@/app/types";
-import { formatCurrency } from "@/utils/format-currency";
-import { useNodeViewStore } from '@/app/store/node-view-store';
 import { LoadingNodeView } from './loading';
 
 type NodeViewProps = {
@@ -41,7 +41,17 @@ type NodeViewProps = {
   expenses: ExpenseItem[];
 };
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = {
+  work_days: number;
+  hours_per_day: number;
+  monthly_salary: number;
+  holiday_days: number;
+  vacation_days: number;
+  sick_leave: number;
+  taxes: number;
+  fees: number;
+  margin: number;
+};
 
 interface CalculatedMetrics {
   timeOff: number;
@@ -55,16 +65,78 @@ interface NodeCalculations {
   nodes: Node[];
 }
 
-const formSchema = z.object({
-  work_days: z.number().min(1).max(7),
-  hours_per_day: z.number().min(1).max(24),
-  monthly_salary: z.number().min(0),
-  holiday_days: z.number().min(0).max(365),
-  vacation_days: z.number().min(0).max(365),
-  sick_leave: z.number().min(0).max(365),
-  taxes: z.number().min(0).max(100),
-  fees: z.number().min(0).max(100),
-  margin: z.number().min(0).max(100),
+// Create formSchema inside the component to access translations
+const createFormSchema = (validationMessages: ReturnType<typeof createValidationMessages>) => z.object({
+  work_days: z.number({
+    required_error: validationMessages.required(),
+    invalid_type_error: validationMessages.number(),
+  }).min(1, {
+    message: validationMessages.min(1),
+  }).max(7, {
+    message: validationMessages.max(7),
+  }),
+  hours_per_day: z.number({
+    required_error: validationMessages.required(),
+    invalid_type_error: validationMessages.number(),
+  }).min(1, {
+    message: validationMessages.min(1),
+  }).max(24, {
+    message: validationMessages.max(24),
+  }),
+  monthly_salary: z.number({
+    required_error: validationMessages.required(),
+    invalid_type_error: validationMessages.number(),
+  }).min(0, {
+    message: validationMessages.min(0),
+  }),
+  holiday_days: z.number({
+    required_error: validationMessages.required(),
+    invalid_type_error: validationMessages.number(),
+  }).min(0, {
+    message: validationMessages.min(0),
+  }).max(365, {
+    message: validationMessages.max(365),
+  }),
+  vacation_days: z.number({
+    required_error: validationMessages.required(),
+    invalid_type_error: validationMessages.number(),
+  }).min(0, {
+    message: validationMessages.min(0),
+  }).max(365, {
+    message: validationMessages.max(365),
+  }),
+  sick_leave: z.number({
+    required_error: validationMessages.required(),
+    invalid_type_error: validationMessages.number(),
+  }).min(0, {
+    message: validationMessages.min(0),
+  }).max(365, {
+    message: validationMessages.max(365),
+  }),
+  taxes: z.number({
+    required_error: validationMessages.required(),
+    invalid_type_error: validationMessages.number(),
+  }).min(0, {
+    message: validationMessages.min(0),
+  }).max(100, {
+    message: validationMessages.max(100),
+  }),
+  fees: z.number({
+    required_error: validationMessages.required(),
+    invalid_type_error: validationMessages.number(),
+  }).min(0, {
+    message: validationMessages.min(0),
+  }).max(100, {
+    message: validationMessages.max(100),
+  }),
+  margin: z.number({
+    required_error: validationMessages.required(),
+    invalid_type_error: validationMessages.number(),
+  }).min(0, {
+    message: validationMessages.min(0),
+  }).max(100, {
+    message: validationMessages.max(100),
+  }),
 });
 
 export const NodeView = ({ userId, expenses }: NodeViewProps) => {
@@ -73,7 +145,7 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
   const { mutate: updateBillableExpenses } = useUpdateBillableExpense();
   const { mutate: createBillableExpenses } = useCreateBillableExpense();
   const { toast } = useToast();
-  const t = getTranslations();
+  const { t } = useTranslations();
   const { setHourlyCost, totalMonthlyExpenses } = useHourlyCostStore();
   const { selectedCurrency } = useCurrencyStore();
   const { nodePositions, setNodePositions, updateNodePosition } = useNodeViewStore();
@@ -119,14 +191,14 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         position: nodePositions["taxes"] || { x: 480, y: -210 },
         draggable: true,
         data: {
-          label: t.expenses.billable.form.taxes,
+          label: t("expenses.billable.form.taxes"),
           suffix: "%",
           value: data.taxes,
           min: 0,
           max: 100,
           onChange: (value: number) => handleNodeChange("taxes", value),
           error: form.formState.errors.taxes?.message,
-          description: t.expenses.billable.flow.taxes,
+          description: t("expenses.billable.flow.taxes"),
         },
       },
       {
@@ -135,14 +207,14 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         position: nodePositions["fees"] || { x: 480, y: -15 },
         draggable: true,
         data: {
-          label: t.expenses.billable.form.fees,
+          label: t("expenses.billable.form.fees"),
           suffix: "%",
           value: data.fees,
           min: 0,
           max: 100,
           onChange: (value: number) => handleNodeChange("fees", value),
           error: form.formState.errors.fees?.message,
-          description: t.expenses.billable.flow.fees,
+          description: t("expenses.billable.flow.fees"),
         },
       },
       {
@@ -151,8 +223,8 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         position: nodePositions["monthly_salary"] || { x: 75, y: 30 },
         draggable: true,
         data: {
-          label: t.expenses.billable.form["monthly-salary"],
-          suffix: t.expenses.billable.form["monthly-salary-period"],
+          label: t("expenses.billable.form.monthly-salary"),
+          suffix: t("expenses.billable.form.monthly-salary-period"),
           currency: selectedCurrency.symbol + " ",
           value: data.monthly_salary,
           onChange: (value: number) =>
@@ -161,7 +233,7 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
           max: 1000000,
           icon: "wallet",
           error: form.formState.errors.monthly_salary?.message,
-          description: t.expenses.billable.flow["monthly-salary"],
+          description: t("expenses.billable.flow.monthly-salary"),
         },
       },
       {
@@ -170,15 +242,15 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         position: nodePositions["hours_per_day"] || { x: 75, y: 210 },
         draggable: true,
         data: {
-          label: t.expenses.billable.form["billable-hours"],
-          suffix: t.expenses.billable.form["billable-hours-period"],
-          value: data.hours_per_day,
+          label: t('expenses.billable.form.billable-hours'),
+          suffix: t('expenses.billable.form.billable-hours-period'),
+          description: t('expenses.billable.flow.billable-hours'),
           onChange: (value: number) => handleNodeChange("hours_per_day", value),
           max: 24,
           min: 1,
           icon: "time",
           error: form.formState.errors.hours_per_day?.message,
-          description: t.expenses.billable.flow["billable-hours"],
+          description: t('expenses.billable.flow.billable-hours'),
         },
       },
       {
@@ -187,9 +259,9 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         position: nodePositions["work_days"] || { x: 75, y: 390 },
         draggable: true,
         data: {
-          label: t.expenses.billable.form["work-days"],
-          suffix: t.expenses.billable.form["work-days-period"],
-          value: data.work_days,
+          label: t('expenses.billable.form.work-days'),
+          suffix: t('expenses.billable.form.work-days-period'),
+          description: t('expenses.billable.flow.work-days'),
           onChange: (value: number) => handleNodeChange("work_days", value),
           max: 7,
           min: 1,
@@ -197,7 +269,6 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
           icon: "calendar",
           sourcePosition: Position.Right,
           targetPosition: Position.Bottom,
-          description: t.expenses.billable.flow["work-days"],
         },
       },
       {
@@ -206,8 +277,9 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         position: nodePositions["holiday_days"] || { x: 75, y: 570 },
         draggable: true,
         data: {
-          label: t.expenses.billable.form.holidays,
-          suffix: t.expenses.billable.form["holidays-period"],
+          label: t('expenses.billable.form.holidays'),
+          suffix: t('expenses.billable.form.holidays-period'),
+          description: t('expenses.billable.flow.holidays'),
           value: data.holiday_days,
           min: 0,
           max: 365,
@@ -216,7 +288,6 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
           error: form.formState.errors.holiday_days?.message,
           sourcePosition: Position.Right,
           targetPosition: Position.Left,
-          description: t.expenses.billable.flow.holidays,
         },
       },
       {
@@ -225,8 +296,9 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         position: nodePositions["vacation_days"] || { x: 75, y: 750 },
         draggable: true,
         data: {
-          label: t.expenses.billable.form.vacations,
-          suffix: t.expenses.billable.form["vacations-period"],
+          label: t('expenses.billable.form.vacations'),
+          suffix: t('expenses.billable.form.vacations-period'),
+          description: t('expenses.billable.flow.vacations'),
           value: data.vacation_days,
           min: 0,
           max: 365,
@@ -235,7 +307,6 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
           error: form.formState.errors.vacation_days?.message,
           sourcePosition: Position.Right,
           targetPosition: Position.Left,
-          description: t.expenses.billable.flow.vacations,
         },
       },
       {
@@ -244,15 +315,16 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         position: nodePositions["sick_leave"] || { x: 75, y: 915 },
         draggable: true,
         data: {
-          label: t.expenses.billable.form["sick-leave"],
-          suffix: t.expenses.billable.form["sick-leave-period"],
+          label: t('expenses.billable.form.sick-leave'),
+          suffix: t('expenses.billable.form.sick-leave-period'),
+          description: t('expenses.billable.flow.sick-leave'),
           value: data.sick_leave,
           icon: "pill",
           onChange: (value: number) => handleNodeChange("sick_leave", value),
           min: 0,
           max: 365,
           error: form.formState.errors.sick_leave?.message,
-          description: t.expenses.billable.flow["sick-leave"],
+          description: t('expenses.billable.flow.sick-leave'),
           sourcePosition: Position.Right,
           targetPosition: Position.Left,
         },
@@ -266,13 +338,12 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         },
         draggable: true,
         data: {
-          label: t.expenses.billable.flow["total-monthly-cost"].title,
-          formula: t.expenses.billable.flow["total-monthly-cost"].formula,
+          label: t('expenses.billable.flow.total-monthly-cost.title'),
+          formula: t('expenses.billable.flow.total-monthly-cost.formula'),
           result: formatCurrency(totalMonthlyExpenses, {
             currency: selectedCurrency.code,
           }),
-          description:
-            t.expenses.billable.flow["total-monthly-cost"].description,
+          description: t('expenses.billable.flow.total-monthly-cost.description'),
           sourcePosition: Position.Bottom,
           targetPosition: Position.Top,
         },
@@ -283,13 +354,12 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         position: nodePositions["total_yearly_cost"] || { x: 1005, y: 135 },
         draggable: true,
         data: {
-          label: t.expenses.billable.flow["total-yearly-cost"].title,
-          formula: t.expenses.billable.flow["total-yearly-cost"].formula,
+          label: t('expenses.billable.flow.total-yearly-cost.title'),
+          formula: t('expenses.billable.flow.total-yearly-cost.formula'),
           result: formatCurrency(metrics.billableHours, {
             currency: selectedCurrency.code,
           }),
-          description:
-            t.expenses.billable.flow["total-yearly-cost"].description,
+          description: t('expenses.billable.flow.total-yearly-cost.description'),
           sourcePosition: Position.Right,
           targetPosition: Position.Top,
         },
@@ -300,10 +370,10 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         position: nodePositions["actual_work_days"] || { x: 480, y: 780 },
         draggable: true,
         data: {
-          label: t.expenses.billable.flow["actual-work-days"].title,
-          formula: t.expenses.billable.flow["actual-work-days"].formula,
-          result: `${metrics.actualWorkDays} ${t.expenses.billable.form["actual-work-days-period"]}`,
-          description: t.expenses.billable.flow["actual-work-days"].description,
+          label: t('expenses.billable.flow.actual-work-days.title'),
+          formula: t('expenses.billable.flow.actual-work-days.formula'),
+          result: `${metrics.actualWorkDays} ${t('expenses.billable.form.actual-work-days-period')}`,
+          description: t('expenses.billable.flow.actual-work-days.description'),
           sourcePosition: Position.Right,
           targetPosition: Position.Top,
         },
@@ -314,10 +384,10 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         position: nodePositions["time_off"] || { x: 480, y: 570 },
         draggable: true,
         data: {
-          label: t.expenses.billable.flow["time-off"].title,
-          formula: t.expenses.billable.flow["time-off"].formula,
-          result: `${metrics.timeOff} ${t.expenses.billable.form["time-off-period"]}`,
-          description: t.expenses.billable.flow["time-off"].description,
+          label: t('expenses.billable.flow.time-off.title'),
+          formula: t('expenses.billable.flow.time-off.formula'),
+          result: `${metrics.timeOff} ${t('expenses.billable.form.time-off-period')}`,
+          description: t('expenses.billable.flow.time-off.description'),
           sourcePosition: Position.Bottom,
           targetPosition: Position.Left,
         },
@@ -328,14 +398,14 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         position: nodePositions["billable_hours"] || { x: 1215, y: 390 },
         draggable: true,
         data: {
-          label: t.expenses.billable.flow["total-billable-hours"].title,
-          formula: t.expenses.billable.flow["total-billable-hours"].formula,
+          label: t('expenses.billable.flow.total-billable-hours.title'),
+          formula: t('expenses.billable.flow.total-billable-hours.formula'),
           result:
             metrics.billableHours +
             " " +
-            t.expenses.billable.form["billable-hours-summary-period"],
+            t('expenses.billable.form.billable-hours-summary-period'),
           description:
-            t.expenses.billable.flow["total-billable-hours"].description,
+            t('expenses.billable.flow.total-billable-hours.description'),
           sourcePosition: Position.Right,
           targetPosition: Position.Left,
         },
@@ -346,14 +416,14 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         position: nodePositions["margin"] || { x: 1395, y: 630 },
         draggable: true,
         data: {
-          label: t.expenses.billable.form.margin,
+          label: t('expenses.billable.form.margin'),
           suffix: "%",
           value: data.margin,
           min: 0,
           max: 100,
           onChange: (value: number) => handleNodeChange("margin", value),
           error: form.formState.errors.margin?.message,
-          description: t.expenses.billable.flow.margin,
+          description: t('expenses.billable.flow.margin'),
         },
       },
       {
@@ -362,18 +432,21 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         position: nodePositions["hourly_rate"] || { x: 1920, y: 390 },
         draggable: true,
         data: {
-          label: t.expenses.billable.flow["hourly-rate"].title,
+          label: t('expenses.billable.flow.hourly-rate.title'),
           value: formatCurrency(metrics.hourlyRate, {
             currency: selectedCurrency.code,
           }),
-          formula: t.expenses.billable.flow["hourly-rate"].formula,
-          description: t.expenses.billable.flow["hourly-rate"].description,
+          formula: t('expenses.billable.flow.hourly-rate.formula'),
+          description: t('expenses.billable.flow.hourly-rate.description'),
         },
       },
     ];
 
     return { metrics, nodes };
   };
+
+  const validationMessages = createValidationMessages(t);
+  const formSchema = createFormSchema(validationMessages);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -497,7 +570,7 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
             },
             onError: () => {
               toast({
-                title: t.validation.error["update-failed"],
+                title: t("validation.error.update-failed"),
                 variant: "destructive",
               });
             },
@@ -550,7 +623,7 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         {
           onError: () => {
             toast({
-              title: t.validation.error["create-failed"],
+              title: t("validation.error.create-failed"),
               variant: "destructive",
             });
           },
@@ -586,7 +659,7 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
   }
 
   return (
-    <div className="w-full h-screen">
+    <div className='h-screen w-full'>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -603,9 +676,9 @@ export const NodeView = ({ userId, expenses }: NodeViewProps) => {
         nodesDraggable={true}
         nodesConnectable={false}
       >
-        <Background color="black" className="bg-primary rounded-xl" />
+        <Background color="black" className='rounded-xl bg-primary' />
         <Controls />
-      </ReactFlow>
+      </ReactFlow>'rounded-xl '
     </div>
   );
 };

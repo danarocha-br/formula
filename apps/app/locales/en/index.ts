@@ -1,13 +1,7 @@
-export const en = {
+import type { TranslationStructure } from '@/types/translations';
+
+export const en: TranslationStructure = {
   common: {
-    title: "Welcome",
-    description: "This is my app",
-    currency: "USD",
-    "currency-symbol": "$",
-    "not-found": "No results found.",
-    search: "Search...",
-    delete: "Delete",
-    edit: "Edit",
     categories: {
       "fixed-cost": {
         rent: "Rent",
@@ -41,12 +35,99 @@ export const en = {
         other: "Other",
       }
     },
+    title: "Welcome",
+    description: "This is my app",
+    currency: "USD",
+    "currency-symbol": "$",
+    "not-found": "No results found.",
+    search: "Search...",
+    delete: "Delete",
+    edit: "Edit",
+    actions: {
+      add: "Add",
+      save: "Save",
+      cancel: "Cancel",
+      close: "Close",
+      open: "Open",
+    },
+    labels: {
+      name: "Name",
+      cost: "Cost",
+      category: "Category",
+      date: "Date",
+      lifespan: "Lifespan",
+      usage: "Usage",
+      amount: "Amount",
+    },
+    placeholders: {
+      enterName: "Enter name",
+      selectCategory: "Select category",
+      search: "Search",
+    },
+    accessibility: {
+      openSettings: "Open settings",
+      openMenu: "Open menu",
+      closeMenu: "Close menu",
+      showBillablePanel: "Show billable panel",
+      hideBillablePanel: "Hide billable panel",
+      selectLanguage: "Select language",
+      selectCurrency: "Select currency",
+      selectCategory: "Select category",
+      toggleLanguage: "Toggle language",
+      navigationMenu: "Navigation menu",
+      gridView: "Grid view",
+      tableView: "Table view",
+      nodeView: "Node view",
+      chartView: "Analytics view",
+      deleteItem: "Delete item",
+      addItem: "Add item",
+      editItem: "Edit item",
+      alert: "Alert",
+    },
+
     period: {
       "per-month": "mo",
       "per-year": "year",
       monthly: "Monthly",
       yearly: "Yearly",
       months: "months",
+      years: "years",
+    },
+  },
+  forms: {
+    equipment: {
+      name: "Equipment name",
+      cost: "Equipment cost",
+      purchaseDate: "Purchase date",
+      lifespan: "Lifespan",
+      usage: "Usage percentage",
+      usageLabel: "Usage",
+      totalCost: "Total cost",
+      hourlyCost: "Hourly cost",
+    },
+    validation: {
+      required: "This field is required",
+      invalidType: "Invalid input type",
+      minLength: "Minimum length not met",
+      maxLength: "Maximum length exceeded",
+      min: "Value is too small",
+      max: "Value is too large",
+      email: "Please enter a valid email address",
+      url: "Please enter a valid URL",
+      number: "Please enter a valid number",
+      integer: "Please enter a whole number",
+      positive: "Value must be positive",
+      negative: "Value must be negative",
+      date: "Please enter a valid date",
+      string: "Please enter text",
+      select: "Please select an option",
+      custom: "Invalid value",
+    },
+    accessibility: {
+      openMenu: "Open menu",
+      closeDialog: "Close dialog",
+      selectAll: "Select all",
+      selectRow: "Select row",
     },
   },
   navigation: {
@@ -70,6 +151,20 @@ export const en = {
       name: "Expense name",
       value: "Expense cost",
       period: "per month",
+      "work-days": "Work days",
+      "work-days-period": "days per week",
+      "billable-hours": "Billable hours",
+      "billable-hours-period": "hours per day",
+      holidays: "National holidays",
+      "holidays-period": "days per year",
+      vacations: "Vacations",
+      "vacations-period": "days per year",
+      "sick-leave": "Sick leave",
+      "sick-leave-period": "days per year",
+      "time-off-period": "days per year",
+      "actual-work-days-period": "days per year",
+      "billable-hours-summary-period": "hours per year",
+      margin: "Margin",
     },
     billable: {
       title: "Billable costs",
@@ -128,35 +223,28 @@ export const en = {
       },
       flow: {
         "monthly-salary": "How much do you want to make per month?",
-        "billable-hours":
-          "Consider that around 75% of your working day is billable.",
+        "billable-hours": "Consider that around 75% of your working day is billable.",
         "work-days": "How many work days per week will you work?",
-        holidays:
-          "How many national holidays per year will you take approximately?",
+        holidays: "How many national holidays per year will you take approximately?",
         vacations: "How many days per year will you take vacations?",
-        "sick-leave":
-          "Consider some sick leave days per year in case of illness.",
+        "sick-leave": "Consider some sick leave days per year in case of illness.",
         taxes: "Consider what taxes you need to pay.",
         fees: "Consider fees for invoicing or payment processing or others.",
-        margin:
-          "Consider how much you want to add on top of your break even point.",
+        margin: "Consider how much you want to add on top of your break even point.",
         "time-off": {
           title: "Time off",
-          description:
-            "This is the amount of time off per year that you will take.",
+          description: "This is the amount of time off per year that you will take.",
           formula: "Holidays + Vacations + Sick Leave",
         },
         "actual-work-days": {
           title: "Actual work days",
-          description:
-            "This is the amount of work days per year that you will work.",
+          description: "This is the amount of work days per year that you will work.",
           formula: "(Work days * 52 weeks) - Time off",
         },
         "total-yearly-cost": {
           title: "Your total yearly cost is:",
           description: "This is the result of your total yearly cost.",
-          formula:
-            "(Monthly cost * 12) + (Monthly salary * 12) + Yearly taxes and fees",
+          formula: "(Monthly cost * 12) + (Monthly salary * 12) + Yearly taxes and fees",
         },
         "total-monthly-cost": {
           title: "Your fixed monthly cost is:",
@@ -165,8 +253,7 @@ export const en = {
         },
         "total-billable-hours": {
           title: "Your annual billable hours is:",
-          description:
-            "This is the amount of billable hours per year that you will work.",
+          description: "This is the amount of billable hours per year that you will work.",
           formula: "Actual work days * Billable hours per day",
         },
         "hourly-rate": {
@@ -176,6 +263,12 @@ export const en = {
         },
       },
     },
+    success: {
+      created: "Item created successfully!",
+      updated: "Item updated successfully!",
+      deleted: "Item deleted successfully!",
+      "bulk-deleted": "{{count}} item{{count === 1 ? '' : 's'}} deleted successfully!",
+    },
   },
   validation: {
     form: {
@@ -183,19 +276,108 @@ export const en = {
       required: "This field is required.",
     },
     error: {
-      unauthorized: "You are not authorized to perform this action.",
-      "not-found": "Resource not found.",
       "create-failed": "Oops! We couldn't create the item. Let's try again!",
       "update-failed": "Oops! We couldn't update the item(s). Let's try again!",
       "delete-failed": "Oops! We couldn't delete the item(s). Let's try again!",
-      "list-update-failed":
-        "Oops! We couldn't update your list. Let's try again!",
+      "bulk-delete-failed": "Failed to delete {{count}} item{{count === 1 ? '' : 's'}}",
+      "not-found": "Resource not found.",
+      unauthorized: "You are not authorized to perform this action.",
+      "validation-failed": "Validation failed. Please check your input.",
+      duplicate: "This item already exists.",
+      "network-error": "Network error. Please check your connection.",
+      "server-error": "Server error. Please try again later.",
+    },
+  },
+  errors: {
+    globalError: "Oops, something went wrong",
+    tryAgain: "Try again",
+    "stack-overflow": {
+      title: "System Error Detected",
+      description: "We've detected a system error that could affect your experience. Don't worry, your data is safe.",
+    },
+    generic: {
+      title: "Something Went Wrong",
+      description: "An unexpected error occurred. We're working to fix this issue.",
+    },
+    "infinite-loop": {
+      title: "Infinite Loop Detected",
+      description: "We've detected an infinite loop in the component. The system is attempting to recover automatically.",
+      detected: {
+        title: "Infinite Loop Protection Active",
+        description: "The system has detected excessive re-renders and activated protection mechanisms to prevent crashes.",
+      },
+    },
+    "circuit-breaker": {
+      open: {
+        title: "Circuit Breaker Active",
+        description: "Too many failures detected. The system is temporarily blocking operations to prevent cascading failures.",
+      },
+      testing: {
+        title: "System Recovery Testing",
+        description: "The system is testing if the issue has been resolved. Please wait...",
+      },
+      recovering: "Attempting automatic recovery...",
+      "force-recovery": "Force Recovery",
+    },
+    retry: "Try Again",
+    "retry-with-delay": "Retry in {delay}s",
+    "clear-cache": "Clear Cache & Reload",
+    dismiss: "Dismiss",
+    "max-retries": {
+      title: "Maximum Retries Reached",
+      description: "We've tried multiple times but couldn't complete the operation. Please try clearing the cache or contact support if the issue persists.",
     },
   },
   auth: {
     signIn: "Sign In",
     signOut: "Sign Out",
+    welcomeBack: "Welcome back",
+    signInDescription: "Enter your details to sign in.",
+    createAccount: "Create an account",
+    signUpDescription: "Enter your details to get started.",
+    userNotAuthenticated: "User is not authenticated.",
+  },
+  onboarding: {
+    welcome: "Welcome to Formula!",
+    setupSuccess: "Your freelance toolkit has been set up successfully.",
+    setupError: "Setup Error",
+    unknownError: "Unknown error",
+    setupErrorMessage: "There was a problem setting up your account: {errorMessage}. Please refresh the page or contact support.",
+    retrySetup: "Retry setup",
+    settingUp: "Setting up Formula",
+  },
+  sidebar: {
+    introduction: "Introduction",
+    getStarted: "Get Started",
+    tutorials: "Tutorials",
+    changelog: "Changelog",
+    viewProject: "View Project",
+    shareProject: "Share Project",
+    deleteProject: "Delete Project",
+    designEngineering: "Design Engineering",
+    salesMarketing: "Sales & Marketing",
+    travel: "Travel",
+  },
+  app: {
+    title: "Formula by Compasso",
+    description: "Manage your expenses",
+    projectDescription: "Manage your project expenses",
+  },
+  analytics: {
+    monthlyRevenue: "Monthly Revenue",
+    hourlyRate: "Hourly Rate:",
+    hoursPerMonth: "Hours per month:",
+    timeDistribution: "Time distribution",
+    workingDays: "Working Days",
+    workingHours: "Working Hours",
+    nonWorkingHours: "Non-Working Hours",
+    equipmentInvestment: "Equipment Investment",
+    initialCost: "Initial Cost",
+    monthlyCost: "Monthly Cost",
+    annualROI: "Annual ROI",
+    days: "days",
+    hours: "h",
   },
 };
 
-export type Messages = typeof en;
+export type Messages = TranslationStructure;

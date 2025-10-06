@@ -1,25 +1,27 @@
-import React, { useState, useMemo } from "react";
-import { z } from "zod";
-import { cva } from "class-variance-authority";
-
-import { getTranslations } from "@/utils/translations";
-import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@repo/design-system/components/ui/button";
 import { Combobox } from "@repo/design-system/components/ui/combobox";
+import { DatePicker } from "@repo/design-system/components/ui/date-picker";
+import { Icon, type iconPath } from "@repo/design-system/components/ui/icon";
 import { Input } from "@repo/design-system/components/ui/input";
 import { SliderCard } from "@repo/design-system/components/ui/slider-card";
-import { Button } from "@repo/design-system/components/ui/button";
 import { useToast } from "@repo/design-system/hooks/use-toast";
-import { Icon, iconPath } from "@repo/design-system/components/ui/icon";
-import { DatePicker } from "@repo/design-system/components/ui/date-picker";
+import { cva } from "class-variance-authority";
+import type React from "react";
+import { useMemo } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { EQUIPMENT_COST_CATEGORIES } from "@/app/constants";
-import { cn } from "@repo/design-system/lib/utils";
 import { useCurrencyStore } from "@/app/store/currency-store";
-import { useCreateEquipmentExpense } from "./server/create-equipment-expense";
+import { useTranslations } from "@/hooks/use-translation";
+import { createApiErrorHandler, ErrorPatterns } from "@/utils/api-error-handler";
+import { createValidationMessages } from "@/utils/validation-messages";
 import { Label } from "@repo/design-system/components/ui/label";
-import { parseCookies } from "nookies";
 import { NumberInput } from "@repo/design-system/components/ui/number-input";
+import { cn } from "@repo/design-system/lib/utils";
+import { parseCookies } from "nookies";
+import { useCreateEquipmentExpense } from "./server/create-equipment-expense";
 
 interface NewExpenseForm {
   name: string | undefined;
@@ -73,14 +75,16 @@ export const AddEquipmentExpenseForm = ({
   defaultValues = {
     name: "",
     category: undefined,
-    amount: 0,
+    amount: 1,
     purchaseDate: new Date(),
-    usage: 0,
-    lifeSpan: 0,
+    usage: 100,
+    lifeSpan: 1,
   },
 }: AddExpenseFormProps) => {
-  const t = getTranslations();
+  const { t } = useTranslations();
   const { toast } = useToast();
+  const handleApiError = createApiErrorHandler(t);
+  const errorPatterns = ErrorPatterns.CREATE(t);
   const cookies = parseCookies();
   const userLocale = cookies.NEXT_LOCALE || navigator.language || "en";
 
@@ -92,8 +96,8 @@ export const AddEquipmentExpenseForm = ({
         slot: (
           <div
             className={cn(
-              "flex items-center justify-center p-1 h-6 w-6 rounded-[4px]",
-              category.color
+              'flex h-6 w-6 items-center justify-center rounded-[4px] p-1',
+              'ategoh-6 ry.color w-6 p-1'
             )}
           >
             <Icon
@@ -108,6 +112,8 @@ export const AddEquipmentExpenseForm = ({
   );
   const { selectedCurrency } = useCurrencyStore();
 
+  const validationMessages = createValidationMessages(t);
+
   const expenseSchema = z.object({
     category: z.object(
       {
@@ -116,25 +122,41 @@ export const AddEquipmentExpenseForm = ({
         slot: z.any().optional(),
       },
       {
-        required_error: t.validation.form.required,
-        invalid_type_error: t.validation.form.select,
+        required_error: validationMessages.required(),
+        invalid_type_error: validationMessages.select(),
       }
     ),
     amount: z.number({
-      required_error: t.validation.form.required,
+      required_error: validationMessages.required(),
+      invalid_type_error: validationMessages.number(),
+    }).min(1, {
+      message: validationMessages.min(1),
     }),
     usage: z.number({
-      required_error: t.validation.form.required,
+      required_error: validationMessages.required(),
+      invalid_type_error: validationMessages.number(),
+    }).min(0, {
+      message: validationMessages.min(0),
+    }).max(100, {
+      message: validationMessages.max(100),
+    }),
+    lifeSpan: z.number({
+      required_error: validationMessages.required(),
+      invalid_type_error: validationMessages.number(),
+    }).min(1, {
+      message: validationMessages.min(1),
     }),
     purchaseDate: z.date({
-      required_error: t.validation.form.required,
+      required_error: validationMessages.required(),
+      invalid_type_error: validationMessages.date(),
     }),
     name: z
       .string({
-        required_error: t.validation.form.required,
+        required_error: validationMessages.required(),
+        invalid_type_error: validationMessages.string(),
       })
       .min(1, {
-        message: t.validation.form.required,
+        message: validationMessages.required(),
       }),
   });
 
@@ -149,49 +171,52 @@ export const AddEquipmentExpenseForm = ({
     mode: "onBlur",
   });
 
-  const { mutate: createFixedExpense } = useCreateEquipmentExpense();
-  async function onSubmit(data: NewExpenseForm) {
-    if (!data.category || !data.name) return;
-    reset(defaultValues);
-    setIsActive(false);
+  const { mutate: createEquipmentExpense } = useCreateEquipmentExpense();
 
-    createFixedExpense(
-      {
-        json: {
-          userId,
-          name: data.name,
-          amount: data.amount,
-          category: data.category.value,
-          rank: rankIndex,
-          purchaseDate: new Date(),
-          usage: 20,
-          lifeSpan: 20,
-        },
+  function onSubmit(data: NewExpenseForm) {
+    if (!data.category || !data.name) return;
+
+    createEquipmentExpense({
+      json: {
+        userId,
+        name: data.name,
+        amount: data.amount,
+        category: data.category.value,
+        rank: rankIndex,
+        purchaseDate: data.purchaseDate,
+        usage: data.usage,
+        lifeSpan: data.lifeSpan,
       },
-      {
-        onError: () => {
-          toast({
-            title: t.validation.error["create-failed"],
-            variant: "destructive",
-          });
-        },
-      }
-    );
+    }, {
+      onSuccess: () => {
+        // Reset and close after successful creation
+        reset(defaultValues);
+        setIsActive(false);
+      },
+      onError: (error) => {
+        const errorMessage = handleApiError(error, errorPatterns.default);
+        toast({
+          title: errorMessage,
+          variant: "destructive",
+        });
+      },
+    });
   }
   return (
     <form
-      className="p-3 flex flex-col justify-between h-full"
+      className='flex flex-col gap-3 p-3 h-full'
       onSubmit={handleSubmit(onSubmit)}
     >
-      <div className="flex w-full justify-between">
-        <div onClick={(e) => e.stopPropagation()}>
+      <div className="flex w-full justify-between items-start">
+        <div onClick={(e) => e.stopPropagation()} className="flex-1 mr-2">
           <Controller
             name="category"
             control={control}
             render={({ field }) => (
               <Combobox
-                placeholder={t.expenses.form.category}
-                searchPlaceholder={t.common["search"]}
+                placeholder={t("common.placeholders.selectCategory", "Select category")}
+                searchPlaceholder={t("common.placeholders.search", "Search")}
+                aria-label={t("common.accessibility.selectCategory")}
                 options={categoriesList}
                 value={field.value || undefined}
                 onChange={(option: SelectOption | SelectOption[]) => {
@@ -199,7 +224,7 @@ export const AddEquipmentExpenseForm = ({
                     field.onChange(option);
                   }
                 }}
-                emptyMessage={t.common["not-found"]}
+                emptyMessage={t("common.not-found", "No items found")}
                 errors={
                   errors?.category?.message
                     ? { message: errors.category.message }
@@ -210,25 +235,27 @@ export const AddEquipmentExpenseForm = ({
           />
         </div>
         <button
+          type="button"
           className={closeButton()}
           onClick={() => {
             setIsActive(false);
           }}
         >
-          <Icon name="close" className="w-4 h-4" label="close" color="body" />
+          <Icon name="close" className='h-4 w-4' label={t("common.actions.close", "close")} color="body" />
         </button>
       </div>
-      <div>
+
+      <div className="flex flex-col gap-3 flex-1 overflow-y-auto">
         <div className="flex flex-col gap-2">
           <Controller
             control={control}
             name="name"
             render={({ field }) => (
               <div className="space-y-2">
-                <Label>Nome do equipamento</Label>
+                <Label>{t("forms.equipment.name", "Equipment name")}</Label>
                 <Input
                   variant="secondary"
-                  placeholder={t.expenses.form.name}
+                  placeholder={t("common.placeholders.enterName", "Enter name")}
                   className="w-full"
                   id="name"
                   {...field}
@@ -247,7 +274,7 @@ export const AddEquipmentExpenseForm = ({
             name="amount"
             render={({ field }) => (
               <div className="space-y-2">
-                <Label>Custo do equipamento</Label>
+                <Label>{t("forms.equipment.cost", "Equipment cost")}</Label>
                 <SliderCard
                   currency={selectedCurrency.symbol + " "}
                   min={1}
@@ -265,13 +292,36 @@ export const AddEquipmentExpenseForm = ({
             )}
           />
 
-          <div className="flex w-full gap-2 justify-between">
+          <Controller
+            control={control}
+            name="usage"
+            render={({ field }) => (
+              <div className="space-y-2">
+                <Label>{t("forms.equipment.usage", "Usage")}</Label>
+                <SliderCard
+                  suffix="h/month"
+                  min={0}
+                  max={100}
+                  value={field.value}
+                  onChange={field.onChange}
+                  removePaddings
+                  errors={
+                    errors?.usage?.message
+                      ? { message: errors.usage.message }
+                      : undefined
+                  }
+                />
+              </div>
+            )}
+          />
+
+          <div className='flex w-full justify-between gap-2'>
             <Controller
               control={control}
               name="purchaseDate"
               render={({ field }) => (
-                <div className="space-y-2 w-full">
-                  <Label>Data de compra</Label>
+                <div className='w-full space-y-2'>
+                  <Label>{t("forms.equipment.purchaseDate", "Purchase date")}</Label>
                   <DatePicker
                     {...field}
                     format={
@@ -292,16 +342,16 @@ export const AddEquipmentExpenseForm = ({
               control={control}
               name="lifeSpan"
               render={({ field }) => (
-                <div className="space-y-2 w-full h-full">
-                  <Label>Tempo de uso</Label>
+                <div className='h-full w-full space-y-2'>
+                  <Label>{t("forms.equipment.lifespan", "Lifespan")}</Label>
                   <NumberInput
                     variant="secondary"
-                    className="bg-ring/60 h-full"
-                    suffix={t.common.period.months}
+                    className='h-full bg-ring/60'
+                    suffix={t("common.period.years", "years")}
                     {...field}
                     errors={
-                      errors?.purchaseDate?.message
-                        ? { message: errors.purchaseDate.message }
+                      errors?.lifeSpan?.message
+                        ? { message: errors.lifeSpan.message }
                         : undefined
                     }
                   />
@@ -310,14 +360,15 @@ export const AddEquipmentExpenseForm = ({
             />
           </div>
 
-          <div className="mt-4">
-            <Button type="submit" className="whitespace-nowrap">
-              <i>
-                <Icon name="plus" label="add" color="on-dark" />
-              </i>
-              {t.expenses.actions["add-expense"]}
-            </Button>
-          </div>
+        </div>
+
+        <div className="mt-auto pt-3">
+          <Button type="submit" className="w-full">
+            <i>
+              <Icon name="plus" label={t("common.actions.add", "add")} color="on-dark" />
+            </i>
+            {t("expenses.actions.add-expense", "Add Expense")}
+          </Button>
         </div>
       </div>
     </form>

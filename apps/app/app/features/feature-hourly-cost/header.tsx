@@ -1,11 +1,11 @@
-import React from "react";
+
 import {
   Combobox,
-  SelectOption,
+  type SelectOption,
 } from "@repo/design-system/components/ui/combobox";
 
 import { useCurrencyStore } from "@/app/store/currency-store";
-import { getTranslations } from "@/utils/translations";
+import { useTranslations } from "@/hooks/use-translation";
 
 type CurrencySwitchProps = {
   value: string;
@@ -14,20 +14,20 @@ type CurrencySwitchProps = {
 };
 
 export const Header = () => {
-  const t = getTranslations();
+  const { t } = useTranslations();
   const { currencies, selectedCurrency, setSelectedCurrency } =
     useCurrencyStore();
 
   return (
-    <div className="w-full flex items-center justify-end mb-2">
+    <div className='mb-2 flex w-full items-center justify-end'>
       <div>
         <Combobox
-          searchPlaceholder={t.common["search"]}
+          searchPlaceholder={t("common.search")}
           options={currencies.map((currency) => ({
             label: currency.code,
             value: currency.code,
             slot: (
-              <b className="bg-neutral-900/15 w-7 h-7 flex items-center justify-center rounded-full">
+              <b className='flex h-7 w-7 items-center justify-center rounded-full bg-neutral-900/15'>
                 {currency.symbol}
               </b>
             ),
@@ -42,7 +42,7 @@ export const Header = () => {
               if (currency) setSelectedCurrency(currency);
             }
           }}
-          emptyMessage={t.common["not-found"]}
+          emptyMessage={t("common.not-found")}
           triggerClassName="bg-transparent w-28 rounded-lg pl-1"
         />
       </div>

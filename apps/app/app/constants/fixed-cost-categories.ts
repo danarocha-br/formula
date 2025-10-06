@@ -1,5 +1,7 @@
 import { getTranslations } from '@/utils/translations';
 
+// Note: This file uses getTranslations() directly because it's a constant file
+// that needs to be evaluated at module load time. For components, use useTranslations() hook.
 const t = getTranslations();
 
 export const FIXED_COST_CATEGORIES = [

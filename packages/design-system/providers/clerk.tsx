@@ -3,9 +3,10 @@
 import { ClerkProvider as ClerkProviderRaw } from '@clerk/nextjs';
 import { dark } from '@clerk/themes';
 import type { Theme } from '@clerk/types';
-import { tailwind } from '../lib/tailwind';
 import { useTheme } from 'next-themes';
+import Script from 'next/script';
 import type { ComponentProps } from 'react';
+import { tailwind } from '../lib/tailwind';
 
 export const ClerkProvider = (
   props: ComponentProps<typeof ClerkProviderRaw>
@@ -35,12 +36,30 @@ export const ClerkProvider = (
     organizationSwitcherTriggerIcon: 'text-muted-foreground',
     organizationPreview__organizationSwitcherTrigger: 'gap-2',
     organizationPreviewAvatarContainer: 'shrink-0',
+    formButtonPrimary: 'bg-primary text-primary-foreground hover:bg-primary/90',
+    card: 'bg-card shadow-sm border',
+    formFieldInput: 'border rounded-sm py-1.5 px-2.5',
+    formFieldLabel: 'text-sm font-medium',
+    footerActionLink: 'text-primary hover:text-primary/90',
   };
 
+  // Add a global script to make Clerk Elements work
   return (
-    <ClerkProviderRaw
-      {...props}
-      appearance={{ baseTheme, variables, elements }}
-    />
+    <>
+      <Script id="clerk-elements-polyfill">
+        {`
+          window.global = window;
+          window.process = { env: {} };
+          window.Buffer = undefined;
+        `}
+      </Script>
+      <ClerkProviderRaw
+        {...props}
+        dynamic
+        appearance={{ baseTheme, variables, elements }}
+      >
+        {props.children}
+      </ClerkProviderRaw>
+    </>
   );
 };

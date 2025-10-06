@@ -1,15 +1,19 @@
 "use client";
 
-import { cn } from "@repo/design-system/lib/utils";
-import { Navigation } from "@repo/design-system/components/ui/navigation";
-import { usePathname, useRouter } from "next/navigation";
 import { useCurrencyStore } from "@/app/store/currency-store";
+import { usePanelToggleStore } from "@/app/store/panel-toggle-store";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { useTranslations } from "@/hooks/use-translation";
+import { UserButton } from "@clerk/nextjs";
 import {
   Combobox,
-  SelectOption,
+  type SelectOption,
 } from "@repo/design-system/components/ui/combobox";
-import { getTranslations } from "@/utils/translations";
-import { UserButton } from "@clerk/nextjs";
+import { IconButton } from "@repo/design-system/components/ui/icon-button";
+import { Navigation } from "@repo/design-system/components/ui/navigation";
+import { cn } from "@repo/design-system/lib/utils";
+import { usePathname, useRouter } from "next/navigation";
+import type React from "react";
 import { DockNavigation } from "./dock";
 
 type HeaderProps = {
@@ -25,15 +29,19 @@ export const Header = ({ items }: HeaderProps) => {
   const router = useRouter();
   const { currencies, selectedCurrency, setSelectedCurrency } =
     useCurrencyStore();
-  const t = getTranslations();
+  const { isBillablePanelVisible, toggleBillablePanel } = usePanelToggleStore();
+  const { t } = useTranslations();
 
   const navigate = (href: string) => {
     router.push(href);
   };
 
   return (
-    <header className="bg-subdued h-12 w-full flex gap-2 rounded-md items-center justify-between px-2">
-      <Navigation as="nav" className='w-auto'>
+    <header className="flex h-12 w-full items-center justify-between gap-2 rounded-md bg-subdued px-2">
+      <Navigation
+        as="div"
+        className="flex w-auto items-center justify-between bg-subdued"
+      >
         {({ ready, size, position, duration }) => (
           <div className="relative">
             <div
@@ -54,6 +62,14 @@ export const Header = ({ items }: HeaderProps) => {
               as="ul"
               className="relative flex items-center gap-2"
             >
+              <li>
+                <IconButton
+                  label={t("common.accessibility.openSettings")}
+                  icon="panel-left"
+                  className="bg-transparent hover:bg-neutral-600"
+                />
+              </li>
+
               {items.map((item, index) => {
                 const isActive = item.href === pathname;
                 return (
@@ -64,7 +80,11 @@ export const Header = ({ items }: HeaderProps) => {
                     onActivated={() => navigate(item.href)}
                   >
                     {({ setActive }) => (
-                      <button onClick={setActive}>
+                      <button
+                        type="button"
+                        onClick={setActive}
+                        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/20 focus-visible:ring-offset-1 focus-visible:ring-offset-neutral-900"
+                      >
                         {item.icon && item.icon}
                         <span>{item.label}</span>
                       </button>
@@ -81,15 +101,20 @@ export const Header = ({ items }: HeaderProps) => {
 
       <div className="flex items-center gap-2">
         <div>
+          <LanguageSwitcher />
+        </div>
+
+        <div>
           <Combobox
-            searchPlaceholder={t.common["search"]}
+            searchPlaceholder={t("common.search")}
+            aria-label={t("common.accessibility.selectCurrency")}
             options={currencies
               .sort((a, b) => a.code.localeCompare(b.code))
               .map((currency) => ({
                 label: currency.code,
                 value: currency.code,
                 slot: (
-                  <b className="text-xs bg-neutral-900/15 w-8 h-8 flex items-center justify-center rounded-full">
+                  <b className="flex h-8 w-8 items-center justify-center rounded-full group-hover:bg-neutral-900 text-xs ">
                     {currency.symbol}
                   </b>
                 ),
@@ -103,11 +128,13 @@ export const Header = ({ items }: HeaderProps) => {
                 const currency = currencies.find(
                   (c) => c.code === option.value
                 );
-                if (currency) setSelectedCurrency(currency);
+                if (currency) {
+                  setSelectedCurrency(currency);
+                }
               }
             }}
-            emptyMessage={t.common["not-found"]}
-            triggerClassName="bg-transparent w-24 rounded-md pl-1 mr-6 text-foreground"
+            emptyMessage={t("common.not-found")}
+            triggerClassName="bg-transparent group-hover:bg-ring/10 w-24 rounded-md pl-1 text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/20 focus-visible:ring-offset-1 focus-visible:ring-offset-neutral-900 focus-visible:bg-transparent"
           />
         </div>
 
@@ -121,6 +148,17 @@ export const Header = ({ items }: HeaderProps) => {
               userButtonOuterIdentifier: "truncate p-0",
             },
           }}
+        />
+
+        <IconButton
+          label={isBillablePanelVisible ? t("common.accessibility.hideBillablePanel") : t("common.accessibility.showBillablePanel")}
+          icon="panel-right"
+          className={cn(
+            "bg-transparent hover:bg-neutral-600 transition-all duration-200 ease-in-out",
+            "hover:scale-105 active:scale-95 focus:ring-2 focus:ring-purple-400/50",
+            isBillablePanelVisible ? "text-purple-300" : "text-neutral-400"
+          )}
+          onClick={toggleBillablePanel}
         />
       </div>
     </header>

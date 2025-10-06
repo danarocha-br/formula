@@ -1,22 +1,25 @@
-import {
+import type {
   EquipmentExpense,
   Prisma,
 } from "@prisma/client";
 
 import { database } from "..";
-import { IEquipmentCostRepository } from "./dtos/equipment-cost-repository";
+import type { IEquipmentCostRepository } from "./dtos/equipment-cost-repository";
 
 export class PrismaEquipmentCostRepository implements IEquipmentCostRepository {
   /**
-   * Finds an equipment cost expense by user ID.
+   * Finds all equipment cost expenses by user ID.
    *
-   * @param {string} userId The ID of the user that owns the equipment expense.
-   * @returns {Promise<EquipmentExpense | null>} The equipment expense if found, null otherwise.
+   * @param {string} userId The ID of the user that owns the equipment expenses.
+   * @returns {Promise<EquipmentExpense[]>} The equipment expenses if found, empty array otherwise.
    */
-  async findByUserId(userId: string): Promise<EquipmentExpense | null> {
-    const expenses = await database.equipmentExpense.findFirst({
+  async findByUserId(userId: string): Promise<EquipmentExpense[]> {
+    const expenses = await database.equipmentExpense.findMany({
       where: {
         userId: userId,
+      },
+      orderBy: {
+        rank: 'asc',
       },
     });
 
@@ -70,21 +73,15 @@ export class PrismaEquipmentCostRepository implements IEquipmentCostRepository {
   }
 
   /**
-   * Deletes an equipment cost expense for a specific user.
+   * Deletes a specific equipment cost expense.
    *
-   * @param {string} userId The ID of the user that owns the expense.
+   * @param {number} id The ID of the expense to delete.
    * @returns {Promise<void>} A promise that resolves when the expense has been deleted.
-   * @throws {Error} Throws an error if the expense is not found for the given user.
+   * @throws {Error} Throws an error if the expense is not found.
    */
-  async delete(userId: string): Promise<void> {
-    const expense = await database.equipmentExpense.findFirst({
-      where: { userId },
+  async delete(id: number): Promise<void> {
+    await database.equipmentExpense.delete({
+      where: { id },
     });
-
-    if (expense) {
-      await database.equipmentExpense.delete({
-        where: { id: expense.id },
-      });
-    }
   }
 }

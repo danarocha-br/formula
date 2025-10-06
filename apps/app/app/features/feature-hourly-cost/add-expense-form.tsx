@@ -1,23 +1,26 @@
-import React, { useMemo, useState } from "react";
-import { z } from "zod";
 import { cva } from "class-variance-authority";
+import type React from "react";
+import { useMemo, useState } from "react";
+import { z } from "zod";
 
-import { getTranslations } from "@/utils/translations";
-import { CostStatus } from "@/app/types";
-import { Controller, useForm } from "react-hook-form";
+import type { CostStatus } from "@/app/types";
+import { useTranslations } from "@/hooks/use-translation";
+import { ErrorPatterns, createApiErrorHandler } from "@/utils/api-error-handler";
+import { createValidationMessages } from "@/utils/validation-messages";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreateFixedExpenses } from "./server/create-fixed-expenses";
+import { Button } from "@repo/design-system/components/ui/button";
 import { Combobox } from "@repo/design-system/components/ui/combobox";
-import { ToggleGroup } from "@repo/design-system/components/ui/toggle-group";
+import { Icon, type iconPath } from "@repo/design-system/components/ui/icon";
 import { Input } from "@repo/design-system/components/ui/input";
 import { SliderCard } from "@repo/design-system/components/ui/slider-card";
-import { Button } from "@repo/design-system/components/ui/button";
+import { ToggleGroup } from "@repo/design-system/components/ui/toggle-group";
 import { useToast } from "@repo/design-system/hooks/use-toast";
-import { Icon, iconPath } from "@repo/design-system/components/ui/icon";
+import { Controller, useForm } from "react-hook-form";
+import { useCreateFixedExpenses } from "./server/create-fixed-expenses";
 
 import { FIXED_COST_CATEGORIES } from "@/app/constants";
-import { cn } from "@repo/design-system/lib/utils";
 import { useCurrencyStore } from "@/app/store/currency-store";
+import { cn } from "@repo/design-system/lib/utils";
 
 interface NewExpenseForm {
   category: ComboboxOption | undefined;
@@ -72,8 +75,10 @@ export const AddExpenseForm = ({
     amount: 0,
   },
 }: AddExpenseFormProps) => {
-  const t = getTranslations();
+  const { t } = useTranslations();
   const { toast } = useToast();
+  const handleApiError = createApiErrorHandler(t);
+  const errorPatterns = ErrorPatterns.CREATE(t);
 
   const categoriesList = useMemo(
     () =>
@@ -102,6 +107,8 @@ export const AddExpenseForm = ({
     "monthly"
   );
 
+  const validationMessages = createValidationMessages(t);
+
   const expenseSchema = z.object({
     category: z.object(
       {
@@ -110,19 +117,23 @@ export const AddExpenseForm = ({
         slot: z.any().optional(),
       },
       {
-        required_error: t.validation.form.required,
-        invalid_type_error: t.validation.form.select,
+        required_error: validationMessages.required(),
+        invalid_type_error: validationMessages.select(),
       }
     ),
     amount: z.number({
-      required_error: t.validation.form.required,
+      required_error: validationMessages.required(),
+      invalid_type_error: validationMessages.number(),
+    }).min(1, {
+      message: validationMessages.min(1),
     }),
     name: z
       .string({
-        required_error: t.validation.form.required,
+        required_error: validationMessages.required(),
+        invalid_type_error: validationMessages.string(),
       })
       .min(1, {
-        message: t.validation.form.required,
+        message: validationMessages.required(),
       }),
   });
 
@@ -138,10 +149,8 @@ export const AddExpenseForm = ({
   });
 
   const { mutate: createFixedExpense } = useCreateFixedExpenses();
-  async function onSubmit(data: NewExpenseForm) {
+  function onSubmit(data: NewExpenseForm) {
     if (!data.category || !data.name) return;
-    reset(defaultValues);
-    setIsActive(false);
 
     createFixedExpense(
       {
@@ -155,9 +164,14 @@ export const AddExpenseForm = ({
         },
       },
       {
-        onError: () => {
+        onSuccess: () => {
+          reset(defaultValues);
+          setIsActive(false);
+        },
+        onError: (error) => {
+          const errorMessage = handleApiError(error, errorPatterns.default);
           toast({
-            title: t.validation.error["create-failed"],
+            title: errorMessage,
             variant: "destructive",
           });
         },
@@ -176,8 +190,9 @@ export const AddExpenseForm = ({
             control={control}
             render={({ field }) => (
               <Combobox
-                placeholder={t.expenses.form.category}
-                searchPlaceholder={t.common["search"]}
+                placeholder={t("expenses.form.category")}
+                searchPlaceholder={t("common.search")}
+                aria-label={t("common.accessibility.selectCategory")}
                 options={categoriesList}
                 value={field.value || undefined}
                 onChange={(option: SelectOption | SelectOption[]) => {
@@ -185,7 +200,7 @@ export const AddExpenseForm = ({
                     field.onChange(option);
                   }
                 }}
-                emptyMessage={t.common["not-found"]}
+                emptyMessage={t("common.not-found")}
                 errors={
                   errors?.category?.message
                     ? { message: errors.category.message }
@@ -201,7 +216,7 @@ export const AddExpenseForm = ({
             setIsActive(false);
           }}
         >
-          <Icon name="close" className="w-4 h-4" label="close" color="body" />
+          <Icon name="close" className="w-4 h-4" label={t("common.actions.close")} color="body" />
         </button>
       </div>
       <div>
@@ -212,7 +227,7 @@ export const AddExpenseForm = ({
             render={({ field }) => (
               <Input
                 variant="secondary"
-                placeholder={t.expenses.form.name}
+                placeholder={t("expenses.form.name")}
                 className="w-full"
                 id="name"
                 {...field}
@@ -232,8 +247,8 @@ export const AddExpenseForm = ({
               <SliderCard
                 suffix={
                   billingPeriod === "monthly"
-                    ? t.common.period.monthly
-                    : t.common.period.yearly
+                    ? t("common.period.monthly")
+                    : t("common.period.yearly")
                 }
                 currency={selectedCurrency.symbol}
                 min={1}
@@ -259,19 +274,19 @@ export const AddExpenseForm = ({
             className="w-full"
           >
             <ToggleGroup.Item value="monthly" className="w-full">
-              {t.common.period.monthly}
+              {t("common.period.monthly")}
             </ToggleGroup.Item>
             <ToggleGroup.Item value="yearly" className="w-full">
-              {t.common.period.yearly}
+              {t("common.period.yearly")}
             </ToggleGroup.Item>
           </ToggleGroup.Root>
 
           <div className="mt-4">
             <Button type="submit" className="whitespace-nowrap">
               <i>
-                <Icon name="plus" label="add" color="on-dark" />
+                <Icon name="plus" label={t("common.actions.add")} color="on-dark" />
               </i>
-              {t.expenses.actions["add-expense"]}
+              {t("expenses.actions.add-expense")}
             </Button>
           </div>
         </div>

@@ -1,30 +1,30 @@
-import { ColumnDef } from "@tanstack/react-table";
-import { useCallback, useMemo, useState, useRef } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
 import { cva } from "class-variance-authority";
+import { useCallback, useMemo, useState, } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { formatCurrency } from "@/utils/format-currency";
 import { useCurrencyStore } from "@/app/store/currency-store";
-import { getTranslations } from "@/utils/translations";
-import { Skeleton } from "@repo/design-system/components/ui/skeleton";
+import { useTranslations } from "@/hooks/use-translation";
+import { formatCurrency } from "@/utils/format-currency";
+import { DeleteIcon } from "@repo/design-system/components/ui/animated-icon/delete";
 import { Checkbox } from "@repo/design-system/components/ui/checkbox";
-import { cn } from "@repo/design-system/lib/utils";
-import { useToast } from "@repo/design-system/hooks/use-toast";
+import { Combobox } from "@repo/design-system/components/ui/combobox";
+import { Icon, type iconPath } from "@repo/design-system/components/ui/icon";
+import { iconbutton } from "@repo/design-system/components/ui/icon-button";
 import { Input } from "@repo/design-system/components/ui/input";
 import { NumberInput } from "@repo/design-system/components/ui/number-input";
-import { iconbutton } from "@repo/design-system/components/ui/icon-button";
-import { DeleteIcon } from "@repo/design-system/components/ui/animated-icon/delete";
-import { Combobox } from "@repo/design-system/components/ui/combobox";
-import { Icon, iconPath } from "@repo/design-system/components/ui/icon";
+import { Skeleton } from "@repo/design-system/components/ui/skeleton";
+import { useToast } from "@repo/design-system/hooks/use-toast";
+import { cn } from "@repo/design-system/lib/utils";
 
-import { ExpenseItem } from "@/app/types";
 import { FIXED_COST_CATEGORIES } from "@/app/constants";
+import type { ExpenseItem } from "@/app/types";
 
-import { DataTable } from "./data-table";
-import { SelectOption } from "../add-expense-form";
-import { useUpdateFixedExpense } from "../server/update-fixed-expense";
-import { useDeleteFixedExpenses } from "../server/delete-fixed-expenses";
+import type { SelectOption } from "../add-expense-form";
 import { useCreateFixedExpenses } from "../server/create-fixed-expenses";
+import { useDeleteFixedExpenses } from "../server/delete-fixed-expenses";
+import { useUpdateFixedExpense } from "../server/update-fixed-expense";
+import { DataTable } from "./data-table";
 
 type TableViewProps = {
   data: ExpenseItem[];
@@ -90,7 +90,7 @@ export const TableView = ({
   userId,
 }: TableViewProps) => {
   const { selectedCurrency } = useCurrencyStore();
-  const t = getTranslations();
+  const { t } = useTranslations();
   const {
     control,
     formState: { isDirty },
@@ -110,7 +110,7 @@ export const TableView = ({
     slot: (
       <div
         className={cn(
-          "flex items-center justify-center p-1 h-7 w-7 rounded-[4px] bg-opacity-60",
+          'flex h-7 w-7 items-center justify-center rounded-[4px] bg-opacity-60 p-1',
           category.color
         )}
       >
@@ -214,7 +214,7 @@ export const TableView = ({
             },
             onError: (error) => {
               toast({
-                title: t.validation.error["create-failed"],
+                title: t("validation.error.create-failed"),
                 variant: "destructive",
               });
             },
@@ -235,7 +235,7 @@ export const TableView = ({
       } else if (field === "amountPerMonth") {
         const numericValue =
           typeof value === "string"
-            ? parseFloat(value.replace(/[^0-9.-]/g, ""))
+            ? Number.parseFloat(value.replace(/[^0-9.-]/g, ""))
             : value;
         setValue(`newExpense_${tempId}.amountPerMonth`, numericValue);
         setValue(`newExpense_${tempId}.amountPerYear`, numericValue * 12);
@@ -254,14 +254,14 @@ export const TableView = ({
             (table.getIsSomePageRowsSelected() && "indeterminate")
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
+          aria-label={t("forms.accessibility.selectAll")}
         />
       ),
       cell: ({ row }) => (
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
+          aria-label={t("forms.accessibility.selectRow")}
           className="ml-1.5"
         />
       ),
@@ -273,7 +273,7 @@ export const TableView = ({
     },
     {
       accessorKey: "category",
-      header: t.expenses.form.category,
+      header: t("expenses.form.category"),
       cell: ({ row }) => {
         if (row.original.id.toString().startsWith("new-")) {
           return (
@@ -289,8 +289,9 @@ export const TableView = ({
                 return (
                   <Combobox
                     {...field}
-                    placeholder={t.expenses.form.category}
-                    searchPlaceholder={t.common["search"]}
+                    placeholder={t("expenses.form.category")}
+                    searchPlaceholder={t("common.search")}
+                    aria-label={t("common.accessibility.selectCategory")}
                     options={categoriesList}
                     value={selectedCategory}
                     onChange={(option: SelectOption | SelectOption[]) => {
@@ -303,7 +304,7 @@ export const TableView = ({
                         );
                       }
                     }}
-                    emptyMessage={t.common["not-found"]}
+                    emptyMessage={t("common.not-found")}
                     triggerClassName={cn(
                       inputStyles(),
                       "[&_.combobox-label]:text-md"
@@ -332,7 +333,7 @@ export const TableView = ({
                 slot: (
                   <div
                     className={cn(
-                      "flex items-center justify-center p-1 h-6 w-6 rounded-[4px]",
+                      'flex h-6 w-6 items-center justify-center rounded-[4px] p-1',
                       category.color
                     )}
                   >
@@ -364,7 +365,7 @@ export const TableView = ({
                 },
                 onError: () => {
                   toast({
-                    title: t.validation.error["update-failed"],
+                    title: t("validation.error.update-failed"),
                     variant: "destructive",
                   });
                   reset({
@@ -386,8 +387,9 @@ export const TableView = ({
               render={({ field }) => (
                 <Combobox
                   {...field}
-                  placeholder={t.expenses.form.category}
-                  searchPlaceholder={t.common["search"]}
+                  placeholder={t("expenses.form.category")}
+                  searchPlaceholder={t("common.search")}
+                  aria-label={t("common.accessibility.selectCategory")}
                   options={categoriesList}
                   value={field.value || undefined}
                   onChange={(option: SelectOption | SelectOption[]) => {
@@ -395,7 +397,7 @@ export const TableView = ({
                       handleCategoryChange(option);
                     }
                   }}
-                  emptyMessage={t.common["not-found"]}
+                  emptyMessage={t("common.not-found")}
                   triggerClassName={cn(
                     inputStyles(),
                     "[&_.combobox-label]:text-md"
@@ -410,7 +412,7 @@ export const TableView = ({
     },
     {
       accessorKey: "name",
-      header: t.expenses.form.name,
+      header: t("expenses.form.name"),
       cell: ({ row }) => {
         if (row.original.id.toString().startsWith("new-")) {
           return (
@@ -458,7 +460,7 @@ export const TableView = ({
                   onSuccess: () => setIsEditing(false),
                   onError: (error) => {
                     toast({
-                      title: t.validation.error["update-failed"],
+                      title: t("validation.error.update-failed"),
                       variant: "destructive",
                     });
                   },
@@ -473,7 +475,9 @@ export const TableView = ({
 
         return (
           <div onDoubleClick={toggleEditing}>
-            {!isPending ? (
+            {isPending ? (
+              <TableSkeleton />
+            ) : (
               <Controller
                 name={`expenses.${row.id}.name`}
                 control={control}
@@ -487,8 +491,6 @@ export const TableView = ({
                   />
                 )}
               />
-            ) : (
-              <TableSkeleton />
             )}
           </div>
         );
@@ -497,7 +499,7 @@ export const TableView = ({
     },
     {
       accessorKey: "amountPerMonth",
-      header: t.expenses.form.value + " (" + t.common.period["per-month"] + ")",
+      header: t("expenses.form.value") + " (" + t("common.period.per-month") + ")",
       cell: ({ row }) => {
         if (row.original.id.toString().startsWith("new-")) {
           return (
@@ -548,7 +550,7 @@ export const TableView = ({
                 isDirty &&
                 !isNaN(amountValue) &&
                 amountValue !==
-                  parseFloat(
+                  Number.parseFloat(
                     row.original.amountPerMonth
                       .replace(/[^0-9.,]/g, "")
                       .replace(",", ".")
@@ -579,7 +581,7 @@ export const TableView = ({
                     },
                     onError: (error) => {
                       toast({
-                        title: t.validation.error["update-failed"],
+                        title: t("validation.error.update-failed"),
                         variant: "destructive",
                       });
                       reset({
@@ -606,13 +608,13 @@ export const TableView = ({
             const cleanedValue = String(field.value)
               .replace(/[^0-9.,]/g, "")
               .replace(",", ".");
-            const amountValue = parseFloat(cleanedValue);
+            const amountValue = Number.parseFloat(cleanedValue);
 
             if (
               isDirty &&
               !isNaN(amountValue) &&
               amountValue !==
-                parseFloat(
+                Number.parseFloat(
                   row.original.amountPerMonth
                     .replace(/[^0-9.,]/g, "")
                     .replace(",", ".")
@@ -640,7 +642,7 @@ export const TableView = ({
                   },
                   onError: (error) => {
                     toast({
-                      title: t.validation.error["update-failed"],
+                      title: t("validation.error.update-failed"),
                       variant: "destructive",
                     });
                     reset({
@@ -667,7 +669,9 @@ export const TableView = ({
 
         return (
           <div className="relative" onDoubleClick={toggleEditing}>
-            {!isPending ? (
+            {isPending ? (
+              <TableSkeleton />
+            ) : (
               <Controller
                 name={`expenses.${row.id}.amountPerMonth`}
                 control={control}
@@ -693,8 +697,6 @@ export const TableView = ({
                   />
                 )}
               />
-            ) : (
-              <TableSkeleton />
             )}
           </div>
         );
@@ -702,7 +704,7 @@ export const TableView = ({
     },
     {
       accessorKey: "amountPerYear",
-      header: t.expenses.form.value + " (" + t.common.period["per-year"] + ")",
+      header: t("expenses.form.value") + " (" + t("common.period.per-year") + ")",
       cell: ({ row }) => {
         const [isEditing, setIsEditing] = useState(false);
 
@@ -718,7 +720,7 @@ export const TableView = ({
                 isDirty &&
                 !isNaN(amountValue) &&
                 amountValue !==
-                  parseFloat(
+                  Number.parseFloat(
                     row.original.amountPerYear
                       .replace(/[^0-9.,]/g, "")
                       .replace(",", ".")
@@ -749,7 +751,7 @@ export const TableView = ({
                     },
                     onError: (error) => {
                       toast({
-                        title: t.validation.error["update-failed"],
+                        title: t("validation.error.update-failed"),
                         variant: "destructive",
                       });
                       reset({
@@ -776,13 +778,13 @@ export const TableView = ({
             const cleanedValue = String(field.value)
               .replace(/[^0-9.,]/g, "")
               .replace(",", ".");
-            const amountValue = parseFloat(cleanedValue);
+            const amountValue = Number.parseFloat(cleanedValue);
 
             if (
               isDirty &&
               !isNaN(amountValue) &&
               amountValue !==
-                parseFloat(
+                Number.parseFloat(
                   row.original.amountPerYear
                     .replace(/[^0-9.,]/g, "")
                     .replace(",", ".")
@@ -810,7 +812,7 @@ export const TableView = ({
                   },
                   onError: (error) => {
                     toast({
-                      title: t.validation.error["update-failed"],
+                      title: t("validation.error.update-failed"),
                       variant: "destructive",
                     });
                     reset({
@@ -837,7 +839,9 @@ export const TableView = ({
 
         return (
           <div onDoubleClick={toggleEditing}>
-            {!isPending ? (
+            {isPending ? (
+              <TableSkeleton />
+            ) : (
               <Controller
                 name={`expenses.${row.id}.amountPerYear`}
                 control={control}
@@ -862,8 +866,6 @@ export const TableView = ({
                   />
                 )}
               />
-            ) : (
-              <TableSkeleton />
             )}
           </div>
         );
@@ -900,7 +902,7 @@ export const TableView = ({
               {
                 onError: () => {
                   toast({
-                    title: t.validation.error["delete-failed"],
+                    title: t("validation.error.delete-failed"),
                     variant: "destructive",
                   });
                 },
@@ -915,6 +917,7 @@ export const TableView = ({
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
               onClick={handleDeleteRow}
+              aria-label={t("common.accessibility.deleteItem")}
               className={cn(
                 iconbutton({ size: "sm" }),
                 "opacity-60 hover:opacity-100"
@@ -935,14 +938,15 @@ export const TableView = ({
       <DataTable columns={columns} data={tableData} />
       <button
         onClick={handleAddNewRow}
+        aria-label={t("common.accessibility.addItem")}
         className={cn(
-          "w-full py-2 border-b border-t-0 border-muted-foreground/50",
-          "hover:border-primary/50 hover:bg-card/50 transition-colors",
-          "flex items-center justify-center gap-2"
+          'w-full border-muted-foreground/50 border-t-0 border-b py-2',
+          'hover:bg-card/50 transition-colors',
+          'flex items-center justify-center gap-2'
         )}
       >
-        <Icon name="plus" label="Add" color="primary" />
-        <span className="text-sm text-card-foreground/60">{t.expenses.actions['add-expense']}</span>
+        <Icon name="plus" label={t("common.accessibility.addItem")} color="primary" />
+        <span className='text-card-foreground/60 text-sm'>{t("expenses.actions.add-expense")}</span>
       </button>
     </div>
   );

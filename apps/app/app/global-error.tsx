@@ -2,6 +2,7 @@
 
 import { Button } from '@repo/design-system/components/ui/button';
 import { captureException } from '@sentry/nextjs';
+import { useTranslations } from '@/hooks/use-translation';
 import type NextError from 'next/error';
 import { useEffect } from 'react';
 
@@ -11,6 +12,8 @@ type GlobalErrorProperties = {
 };
 
 const GlobalError = ({ error, reset }: GlobalErrorProperties) => {
+  const { t } = useTranslations();
+
   useEffect(() => {
     captureException(error);
   }, [error]);
@@ -18,8 +21,8 @@ const GlobalError = ({ error, reset }: GlobalErrorProperties) => {
   return (
     <html lang="en">
       <body>
-        <h1>Oops, something went wrong</h1>
-        <Button onClick={() => reset()}>Try again</Button>
+        <h1>{t('errors.globalError')}</h1>
+        <Button onClick={() => reset()}>{t('errors.tryAgain')}</Button>
       </body>
     </html>
   );

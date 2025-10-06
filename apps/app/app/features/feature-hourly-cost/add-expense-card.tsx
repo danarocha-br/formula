@@ -1,11 +1,11 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { Icon } from "@repo/design-system/components/ui/icon";
+import { useOutsideClick } from "@repo/design-system/hooks/use-outside-click";
+import { cn } from "@repo/design-system/lib/utils";
 import { cva } from "class-variance-authority";
 import { AnimatePresence, motion } from "framer-motion";
-import { Icon } from "@repo/design-system/components/ui/icon";
-import { cn } from "@repo/design-system/lib/utils";
-import { useOutsideClick } from "@repo/design-system/hooks/use-outside-click";
+import { useEffect, useId, useRef, useState } from "react";
 
-import { getTranslations } from "@/utils/translations";
+import { useTranslations } from "@/hooks/use-translation";
 import { AddExpenseForm } from "./add-expense-form";
 
 const card = cva(
@@ -78,7 +78,7 @@ export const AddCard: React.FC<AddCardProps> = ({
   userId,
   rankIndex,
 }) => {
-  const t = getTranslations();
+  const { t } = useTranslations();
   const [isActive, setIsActive] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
@@ -139,15 +139,15 @@ export const AddCard: React.FC<AddCardProps> = ({
           >
             <div
               className={cn(
-                "group-hover:opacity-100 text-white transition-all transform duration-300",
+                'transform text-white transition-all duration-300 group-hover:opacity-100',
                 highlight
                   ? "opacity-100"
                   : "-translate-y-3 opacity-0 group-hover:translate-y-0"
               )}
             >
-              <div className="flex flex-col gap-2 items-center justify-center h-32 text-card-foreground">
-                <Icon name="plus" size="lg" label="add" color="current" />
-                <p className="text-sm">{t.expenses.actions["add-expense"]}</p>
+              <div className='flex h-32 flex-col items-center justify-center gap-2 text-card-foreground'>
+                <Icon name="plus" size="lg" label={t("common.actions.add")} color="current" />
+                <p className="text-sm">{t("expenses.actions.add-expense")}</p>
               </div>
             </div>
           </button>

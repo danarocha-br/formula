@@ -1,32 +1,31 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
+import React, { useEffect, useMemo, useState } from "react";
 
-import { ExpenseItem } from "@/app/types";
-import { getTranslations } from "@/utils/translations";
+import { FIXED_COST_CATEGORIES } from "@/app/constants";
+import { useViewPreferenceStore } from "@/app/store/view-preference-store";
+import type { ExpenseItem } from "@/app/types";
+import { useTranslations } from "@/hooks/use-translation";
 import {
   DndContext,
-  DragEndEvent,
+  type DragEndEvent,
   DragOverlay,
-  DragStartEvent,
+  type DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import { SortableContext, arrayMove } from "@dnd-kit/sortable";
+import { ItemCard } from "@repo/design-system/components/ui/item-card";
+import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
 import { useToast } from "@repo/design-system/hooks/use-toast";
+import { createPortal } from "react-dom";
+import { LoadingView } from "../loading-view";
 import { useDeleteFixedExpenses } from "../server/delete-fixed-expenses";
 import { useUpdateBatchFixedExpense } from "../server/update-batch-fixed-expenses";
-import { FIXED_COST_CATEGORIES } from "@/app/constants";
-import { arrayMove, SortableContext } from "@dnd-kit/sortable";
-import { useViewPreferenceStore } from "@/app/store/view-preference-store";
-import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
-import { LoadingView } from "../loading-view";
-import { Grid } from "./grid";
 import { TableView } from "../table-view";
-import { createPortal } from "react-dom";
-import { ItemCard } from "@repo/design-system/components/ui/item-card";
-import { useHourlyCostStore } from "@/app/store/hourly-cost-store";
+import { Grid } from "./grid";
 
 const DragOverlayWrapper = dynamic(
   () =>
@@ -37,7 +36,7 @@ const DragOverlayWrapper = dynamic(
         setMounted(true);
       }, []);
 
-      if (!mounted) return null;
+      if (!mounted) {return null};
 
       return createPortal(
         <DragOverlay>
@@ -60,18 +59,16 @@ const DragOverlayWrapper = dynamic(
 
 type GridViewProps = {
   expenses: ExpenseItem[];
-  setExpenses: React.Dispatch<React.SetStateAction<ExpenseItem[]>>;
   userId: string;
   loading?: boolean;
 };
 
 export const GridView = ({
   expenses,
-  setExpenses,
   userId,
   loading = false,
 }: GridViewProps) => {
-  const t = getTranslations();
+  const { t } = useTranslations();
   const [activeCard, setActiveCard] = useState<ExpenseItem | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const { toast } = useToast();
@@ -152,49 +149,50 @@ export const GridView = ({
     if (!over) return;
     if (active.id === over.id) return;
 
-    setExpenses((expenses) => {
-      const activeIndex = expenses.findIndex(
-        (expense) => expense.id === active.id
-      );
-      const overIndex = expenses.findIndex((expense) => expense.id === over.id);
-      const newExpenses = arrayMove(expenses, activeIndex, overIndex);
+    const activeIndex = expenses.findIndex(
+      (expense) => expense.id === active.id
+    );
+    const overIndex = expenses.findIndex((expense) => expense.id === over.id);
 
-      const updatedExpenses = newExpenses.map((expense, index) => ({
-        ...expense,
-        rank: index + 1,
-      }));
+    if (activeIndex === -1 || overIndex === -1) return;
 
-      updateBatchExpenses(
-        {
-          json: {
-            updates: updatedExpenses.map((expense) => ({
-              id: expense.id,
-              data: { rank: expense.rank },
-            })),
-            userId,
-          },
+    const newExpenses = arrayMove(expenses, activeIndex, overIndex);
+
+    const updatedExpenses = newExpenses.map((expense, index) => ({
+      ...expense,
+      rank: index + 1,
+    }));
+
+    // The mutation hook now handles optimistic updates and cache management
+    updateBatchExpenses(
+      {
+        json: {
+          updates: updatedExpenses.map((expense) => ({
+            id: expense.id,
+            data: { rank: expense.rank },
+          })),
+          userId,
         },
-        {
-          onError: () => {
-            toast({
-              title: t.validation.error["update-failed"],
-              variant: "destructive",
-            });
-          },
-        }
-      );
-
-      return updatedExpenses;
-    });
+      },
+      {
+        onError: () => {
+          toast({
+            title: t("validation.error.update-failed"),
+            variant: "destructive",
+          });
+        },
+      }
+    );
   }
 
   function handleDeleteExpense(id: number) {
+    // The optimistic update is now handled by the mutation hook's onMutate
     deleteExpense(
       { param: { id: String(id), userId } },
       {
         onError: () => {
           toast({
-            title: t.validation.error["delete-failed"],
+            title: t("validation.error.delete-failed"),
             variant: "destructive",
           });
         },
@@ -212,7 +210,7 @@ export const GridView = ({
 
   return (
     <ScrollArea.Root className="h-[calc(100vh-7.7rem)]">
-      <div className="w-full text-card-foreground @container">
+      <div className="@container w-full text-card-foreground">
         {loading ? (
           <LoadingView />
         ) : (
@@ -222,7 +220,7 @@ export const GridView = ({
               onDragStart={onDragStart}
               onDragEnd={onDragEnd}
             >
-              <div className="p-2 w-full">
+              <div className="w-full p-2">
                 <SortableContext items={cardsId}>
                   {expenses && viewPreference === "grid" && (
                     <Grid

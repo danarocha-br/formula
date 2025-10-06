@@ -1,13 +1,13 @@
-import { EquipmentExpense, Prisma } from "@prisma/client";
+import type { EquipmentExpense, Prisma } from "@prisma/client";
 
 export interface IEquipmentCostRepository {
   create(
     data: Prisma.EquipmentExpenseUncheckedCreateInput
   ): Promise<EquipmentExpense>;
-  findByUserId(userId: string): Promise<EquipmentExpense | null>;
+  findByUserId(userId: string): Promise<EquipmentExpense[]>;
   update(
     userId: string,
     data: Prisma.EquipmentExpenseUncheckedUpdateInput
   ): Promise<EquipmentExpense | null>;
-  delete(userId: string): Promise<void>;
+  delete(id: number): Promise<void>;
 }

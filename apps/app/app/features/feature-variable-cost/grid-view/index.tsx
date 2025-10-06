@@ -1,68 +1,57 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { parseCookies } from "nookies";
-import { EquipmentCard } from "@repo/design-system/components/ui/equipment-card";
 import {
   DndContext,
-  DragEndEvent,
-  DragStartEvent,
+  type DragEndEvent,
+  type DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { arrayMove, SortableContext } from "@dnd-kit/sortable";
+import { SortableContext } from "@dnd-kit/sortable";
+import { EquipmentCard } from "@repo/design-system/components/ui/equipment-card";
+import { useCallback, useMemo, useState } from "react";
+import { AddCard } from "../add-equipment-expense-card";
 
 import { useCurrencyStore } from "@/app/store/currency-store";
-import { formatCurrency } from "@/utils/format-currency";
-import { EquipmentExpenseItem } from "@/app/types";
-import { getTranslations } from "@/utils/translations";
-import { useGetEquipmentExpenses } from "../server/get-equipment-expenses";
-import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
-import { LoadingView } from "../../feature-hourly-cost/loading-view";
 import { useViewPreferenceStore } from "@/app/store/view-preference-store";
+import type { EquipmentExpenseItem } from "@/app/types";
+import { useTranslations } from "@/hooks/use-translation";
+import { useStableEquipment } from "@/hooks/use-stable-equipment";
+import { formatCurrency } from "@/utils/format-currency";
+import { ScrollArea } from "@repo/design-system/components/ui/scroll-area";
+import { MasonryGrid } from "@repo/design-system/components/ui/masonry-grid";
 import { useToast } from "@repo/design-system/hooks/use-toast";
+import { LoadingView } from "../../feature-hourly-cost/loading-view";
 import { EmptyView } from "../empty-view";
+import { useDeleteEquipmentExpense } from "../server/delete-equipment-expense";
+import { useReorderEquipmentExpenses } from "../server/update-batch-equipment-expense";
+import { equipmentDragDropUtils } from "@/utils/equipment-cache-utils";
+import { useQueryClient } from "@tanstack/react-query";
+import { EditEquipmentExpenseForm } from "../edit-equipment-expense-form";
 
 type GridViewProps = {
-  expenses: EquipmentExpenseItem[];
-  setExpenses: React.Dispatch<React.SetStateAction<EquipmentExpenseItem[]>>;
   userId: string;
-  loading?: boolean;
 };
 
-export const GridView = ({ userId, loading }: GridViewProps) => {
-  const cookies = parseCookies();
-  const locale = cookies.NEXT_LOCALE || navigator.language || "en";
-  const { toast } = useToast();
+export const GridView = ({ userId }: GridViewProps) => {
+  const queryClient = useQueryClient();
+  const { equipment, isLoading: isLoadingExpenses } = useStableEquipment({
+    userId,
+  });
+  const { mutate: deleteExpense } = useDeleteEquipmentExpense();
+  const { reorderEquipment } = useReorderEquipmentExpenses();
 
+  const { t } = useTranslations();
+  const { toast } = useToast();
   const { selectedCurrency } = useCurrencyStore();
   const { viewPreference } = useViewPreferenceStore();
 
-  const t = getTranslations();
-  const { data: initialExpenses, isLoading: isLoadingExpenses } =
-    useGetEquipmentExpenses({ userId });
-  const [expenses, setExpenses] = useState<EquipmentExpenseItem[] | []>([]);
   const [activeCard, setActiveCard] = useState<EquipmentExpenseItem | null>(
     null
   );
-  const [editingId, setEditingId] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (initialExpenses) {
-      setExpenses(initialExpenses);
-    }
-  }, [initialExpenses]);
-
-  useEffect(() => {
-    if (initialExpenses) {
-      const sortedExpenses = [...initialExpenses].sort(
-        (a, b) => (a.rank ?? 0) - (b.rank ?? 0)
-      );
-      // @ts-ignore
-      setExpenses(sortedExpenses);
-    }
-  }, [initialExpenses]);
+  const [editingEquipment, setEditingEquipment] =
+    useState<EquipmentExpenseItem | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -72,100 +61,220 @@ export const GridView = ({ userId, loading }: GridViewProps) => {
     })
   );
 
-  const cardsId = useMemo(() => expenses.map((item) => item.id), [expenses]);
+  // Memoize card IDs to prevent unnecessary re-renders
+  const cardsId = useMemo(() => equipment.map((item) => item.id), [equipment]);
 
-  function onDragStart(event: DragStartEvent) {
-    const { active } = event;
+  // Memoize delete handler to prevent unnecessary re-renders
+  const handleDelete = useCallback(
+    (id: number) => {
+      deleteExpense(
+        { param: { id: id.toString(), userId } },
+        {
+          onError: (error) => {
+            console.error("Failed to delete equipment expense:", error);
+            toast({
+              title: t(
+                "validation.error.delete-failed",
+                "Failed to delete equipment expense"
+              ),
+              variant: "destructive",
+            });
+          },
+        }
+      );
+    },
+    [deleteExpense, userId, t, toast]
+  );
 
-    if (active.data.current?.type === "card") {
-      setActiveCard(active.data.current.data);
-      return;
-    }
-  }
+  // Memoize edit handler to prevent unnecessary re-renders
+  const handleEdit = useCallback((equipmentItem: EquipmentExpenseItem) => {
+    setEditingEquipment(equipmentItem);
+  }, []);
 
-  function onDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
+  // Memoize edit cancel handler
+  const handleEditCancel = useCallback(() => {
+    setEditingEquipment(null);
+  }, []);
 
-    if (!over) return;
-    if (active.id === over.id) return;
+  // Memoize edit success handler
+  const handleEditSuccess = useCallback(() => {
+    setEditingEquipment(null);
+  }, []);
 
-    setExpenses((expenses) => {
-      const activeIndex = expenses.findIndex(
+  // Optimized drag start handler using cache utilities
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const { active } = event;
+
+      if (active.data.current?.type === "card") {
+        const draggedItem = equipmentDragDropUtils.handleDragStart(
+          queryClient,
+          userId,
+          active.id as number
+        );
+        setActiveCard(draggedItem || null);
+      }
+    },
+    [queryClient, userId]
+  );
+
+  // Optimized drag end handler using cache utilities
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+
+      // Clear active card state
+      setActiveCard(null);
+
+      if (!over || active.id === over.id) {
+        return;
+      }
+
+      const activeIndex = equipment.findIndex(
         (expense) => expense.id === active.id
       );
-      const overIndex = expenses.findIndex((expense) => expense.id === over.id);
-      const newExpenses = arrayMove(expenses, activeIndex, overIndex);
+      const overIndex = equipment.findIndex(
+        (expense) => expense.id === over.id
+      );
 
-      const updatedExpenses = newExpenses.map((expense, index) => ({
-        ...expense,
-        rank: index + 1,
-      }));
+      // Validate indices
+      if (activeIndex === -1 || overIndex === -1) {
+        console.warn("Invalid drag operation: item not found", {
+          activeId: active.id,
+          overId: over.id,
+        });
+        return;
+      }
 
-      // updateBatchExpenses(
-      //   {
-      //     json: {
-      //       updates: updatedExpenses.map((expense) => ({
-      //         id: expense.id,
-      //         data: { rank: expense.rank },
-      //       })),
-      //       userId,
-      //     },
-      //   },
-      //   {
-      //     onError: () => {
-      //       toast({
-      //         title: t.validation.error["update-failed"],
-      //         variant: "destructive",
-      //       });
-      //     },
-      //   }
-      // );
+      try {
+        // Use cache utilities for optimistic drag reorder
+        equipmentDragDropUtils.optimisticDragReorder(
+          queryClient,
+          userId,
+          activeIndex,
+          overIndex
+        );
 
-      return updatedExpenses;
-    });
-  }
+        // Create reordered array with updated ranks for server update
+        const reorderedEquipment = [...equipment];
+        const [draggedItem] = reorderedEquipment.splice(activeIndex, 1);
+        reorderedEquipment.splice(overIndex, 0, draggedItem);
+
+        // Update ranks to match new positions
+        const equipmentWithUpdatedRanks = reorderedEquipment.map(
+          (item, index) => ({
+            ...item,
+            rank: index + 1,
+          })
+        );
+
+        // Use the reorder mutation to update server and cache
+        reorderEquipment(userId, equipmentWithUpdatedRanks);
+      } catch (error) {
+        console.error("Drag and drop operation failed:", error);
+        toast({
+          title: t(
+            "validation.error.reorder-failed",
+            "Failed to reorder equipment"
+          ),
+          variant: "destructive",
+        });
+      }
+    },
+    [equipment, queryClient, userId, reorderEquipment, t, toast]
+  );
+
+  // Memoize equipment card data to prevent unnecessary re-renders
+  const equipmentCardData = useMemo(
+    () =>
+      equipment.map((expense) => ({
+        key: expense.id,
+        id: expense.id,
+        expense,
+        isEditing: editingEquipment?.id === expense.id,
+        data: {
+          name: expense.name,
+          categoryIcon: expense.category,
+          color: expense.category,
+          purchaseDate:
+            expense.purchaseDate instanceof Date
+              ? expense.purchaseDate.toISOString()
+              : expense.purchaseDate,
+          id: expense.id,
+          lifeSpan: `${t("forms.equipment.lifespan", "Lifespan")}: ${expense.lifeSpan} ${t("common.period.months", "months")}`,
+          isEmpty: false,
+          usage: `${expense.usage} h/month`,
+          usageLabel: t("forms.equipment.usageLabel", "Usage"),
+          usagePercent: expense.usage,
+          totalCost: formatCurrency(expense.amount, {
+            currency: selectedCurrency.code,
+          }),
+          totalLabel: t("forms.equipment.totalCost", "Total cost"),
+          hourlyLabel: t("forms.equipment.hourlyCost", "Hourly cost"),
+          hourlyCost: formatCurrency(
+            expense.amount / expense.lifeSpan / expense.usage,
+            {
+              currency: selectedCurrency.code,
+            }
+          ),
+        },
+      })),
+    [equipment, t, selectedCurrency.code, editingEquipment?.id]
+  );
 
   return (
     <ScrollArea.Root className="h-[calc(100vh-7.7rem)]">
-      {loading ? (
+      {isLoadingExpenses ? (
         <LoadingView />
       ) : (
-        <section className="relative @container">
+        <section className="relative p-4">
           <DndContext
             sensors={sensors}
-            onDragStart={onDragStart}
-            onDragEnd={onDragEnd}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
           >
-            <div className="w-full">
+            <div className="@container w-full">
               <SortableContext items={cardsId}>
-                {expenses &&
+                {equipment &&
                 viewPreference === "grid" &&
-                expenses.length > 0 ? (
-                  <div className="w-full text-card-foreground grid gap-2 @[380px]:grid-cols-1 @[800px]:grid-cols-2 @[1200px]:grid-cols-3">
-                    <EquipmentCard
-                      data={{
-                        name: "Macbook Pro 14",
-                        categoryIcon: "computer",
-                        color: "bg-froly-200",
-                        purchaseDate: new Date().toLocaleDateString(locale),
-                        id: 1,
-                        lifeSpan: "Lifespan: 32 months",
-                        isEmpty: false,
-                        usage: "32 h/month",
-                        usageLabel: "Usage",
-                        usagePercent: 32,
-                        totalCost: formatCurrency(1000, {
-                          currency: selectedCurrency.code,
-                        }),
-                        totalLabel: "Total cost",
-                        hourlyLabel: "Hourly cost",
-                        hourlyCost: formatCurrency(1000, {
-                          currency: selectedCurrency.code,
-                        }),
-                      }}
-                      loading={loading}
-                    />
-                  </div>
+                equipment.length > 0 ? (
+                  <MasonryGrid>
+                    {equipmentCardData.map((cardData) => (
+                      <div
+                        key={cardData.key}
+                        className="relative h-[320px] min-h-[300px]"
+                        style={{ width: "100%" }}
+                      >
+                        <EquipmentCard
+                          data={cardData.data}
+                          loading={isLoadingExpenses}
+                          onEdit={() => handleEdit(cardData.expense)}
+                          onDelete={() => handleDelete(cardData.id)}
+                          isEditMode={cardData.isEditing}
+                          editModeContent={
+                            cardData.isEditing ? (
+                              <EditEquipmentExpenseForm
+                                equipment={cardData.expense}
+                                onCancel={handleEditCancel}
+                                onSuccess={handleEditSuccess}
+                              />
+                            ) : undefined
+                          }
+                          className="h-full w-full"
+                        />
+                      </div>
+                    ))}
+                    <div
+                      className="relative h-[320px] min-h-[300px]"
+                      style={{ width: "100%" }}
+                    >
+                      <AddCard
+                        userId={userId}
+                        rankIndex={equipment.length + 1}
+                        className="h-full w-full"
+                      />
+                    </div>
+                  </MasonryGrid>
                 ) : (
                   <EmptyView userId={userId} />
                 )}

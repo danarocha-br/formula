@@ -5,6 +5,7 @@ import { z } from "zod";
 import { EquipmentCostRepository } from "@repo/database";
 import { CloudflareKvCacheRepository } from "@repo/database/repositories/cloudflare-kv-cache-repository";
 import { EquipmentCostCacheKeys } from "@repo/database/cache-keys/equipment-cost-cache-keys";
+import { RedisCacheRepository } from "@repo/database/repositories/redis-cache-repository";
 
 const updateEquipmentSchema = z.object({
   userId: z.string(),
@@ -49,16 +50,16 @@ export const expensesEquipmentCosts = new Hono()
         return c.json({ status: 200, success: true, data: cacheData });
       }
 
-      const equipmentCost = await repository.findByUserId(userId);
+      const equipmentCosts = await repository.findByUserId(userId);
 
-      if (equipmentCost) {
+      if (equipmentCosts && equipmentCosts.length > 0) {
         await cacheRepository.set(
           EquipmentCostCacheKeys.list(userId),
-          JSON.stringify(equipmentCost)
+          JSON.stringify(equipmentCosts)
         );
       }
 
-      return c.json({ status: 200, success: true, data: equipmentCost });
+      return c.json({ status: 200, success: true, data: equipmentCosts || [] });
     }
   )
   .post(
@@ -132,6 +133,39 @@ export const expensesEquipmentCosts = new Hono()
             error instanceof Error
               ? error.message
               : "Failed to update equipment expense",
+        });
+      }
+    }
+  )
+  .delete(
+    "/equipment-costs/:id",
+    zValidator("param", z.object({ userId: z.string(), id: z.string() })),
+    async (c) => {
+      const { userId, id } = c.req.valid("param");
+      try {
+        if (!userId) {
+          throw new Error("Unauthorized");
+        }
+
+        const repository = new EquipmentCostRepository();
+        const cacheRepository = new RedisCacheRepository();
+
+        await repository.delete(Number(id));
+        await cacheRepository.delete(EquipmentCostCacheKeys.list(userId));
+
+        return c.json({
+          status: 200,
+          success: true,
+        });
+      } catch (error) {
+        console.error("Failed to delete equipment expense:", error);
+        return c.json({
+          status: 400,
+          success: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to delete equipment expense",
         });
       }
     }

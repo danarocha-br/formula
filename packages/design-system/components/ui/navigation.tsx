@@ -26,18 +26,19 @@ export const item = cva(
     "[&_button]:text-sm",
     "[&_button]:transition",
     "[&_button]:tracking-wide",
+    "focus-visible:outline-none",
 
-
-    "[&_button]:focus-visible:outline-none",
-    "[&_button]:focus-visible:ring-2",
-    "[&_button]:focus-visible:ring-offset-2",
-    "[&_button]:focus-visible:ring-ring",
+    "[&_button]:focus-visible:!outline-none",
+    "[&_button]:focus-visible:!ring-2",
+    "[&_button]:focus-visible:!ring-ring/20",
+    "[&_button]:focus-visible:!ring-offset-1",
+    "[&_button]:focus-visible:!ring-offset-neutral-900",
   ],
   {
     variants: {
       isActive: {
         true: [
-          "[&_button]:text-foreground",
+          "text-foreground",
           "[&_button]:opacity-100",
           "[&_svg]:fill-primary",
         ],

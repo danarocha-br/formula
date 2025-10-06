@@ -1,46 +1,30 @@
 "use client";
 
-import * as Clerk from "@clerk/elements/common";
-import * as SignIn from "@clerk/elements/sign-in";
-import { Button } from '@repo/design-system/components/ui/button';
+import { SignIn } from "@clerk/nextjs";
 
 export default function SignInPage() {
   return (
-    <SignIn.Root>
-      <SignIn.Step
-        name="start"
-        className="bg-card w-full rounded-xl py-10 px-6 shadow-sm border space-y-6"
-      >
-        <div className="grid grid-cols-3 gap-x-4">
-          <Clerk.Connection
-            name="google"
-            className="flex items-center gap-x-3 justify-center font-medium border shadow-sm py-1.5 px-2.5 rounded-sm"
-          >
-            <Clerk.Icon className="size-4" />
-            Google
-          </Clerk.Connection>
-
-          <Clerk.Connection
-            name="github"
-            className="flex items-center gap-x-3 justify-center font-medium border shadow-sm py-1.5 px-2.5 rounded-sm"
-          >
-            <Clerk.Icon className="size-4" />
-            GitHub
-          </Clerk.Connection>
-        </div>
-        <Clerk.Field name="identifier" className="space-y-2">
-          <Clerk.Label className="text-sm font-medium">Email</Clerk.Label>
-          <Clerk.Input className="w-full border rounded-sm py-1.5 px-2.5" />
-          <Clerk.FieldError className="block text-red-500 text-sm" />
-        </Clerk.Field>
-        <SignIn.Action
-          submit
-          // className="bg-primary w-full text-primary-foreground font-medium rounded-sm py-1.5 px-2.5"
-          asChild
-        >
-          <Button>Continue</Button>
-        </SignIn.Action>
-      </SignIn.Step>
-    </SignIn.Root>
+    <SignIn
+      appearance={{
+        elements: {
+          formButtonPrimary: "bg-primary text-primary-foreground hover:bg-primary/90",
+          card: "w-full space-y-6 rounded-xl border bg-card px-6 py-10 shadow-sm",
+          headerTitle: "hidden",
+          headerSubtitle: "hidden",
+          socialButtonsBlockButton: "flex items-center justify-center gap-x-3 rounded-sm border px-2.5 py-1.5 font-medium shadow-sm",
+          formFieldInput: "w-full rounded-sm border px-2.5 py-1.5",
+          formFieldLabel: "font-medium text-sm",
+          footerActionLink: "text-primary hover:text-primary/90",
+          socialButtonsIconButton: "size-4",
+          socialButtonsProviderIcon__google: "size-4",
+          socialButtonsProviderIcon__github: "size-4",
+        },
+        layout: {
+          socialButtonsPlacement: "top",
+          socialButtonsVariant: "blockButton",
+        },
+      }}
+      signUpUrl="/sign-up"
+    />
   );
 }
